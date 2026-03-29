@@ -1,0 +1,215 @@
+graph_id: "example:grassland_restoration_grounded"
+schema_version: "0.4.0"
+provenance:
+  ontology_framework: "ELMO + CAMO"
+  elm_version: "local checkout 2026-03-23"
+  causal_mosaic_version: "local checkout 2026-03-23"
+  created: "2026-03-24T20:00:00Z"
+  source_corpus: "Worked example derived from the grassland restoration sample narrative."
+  project: "Causal Mosaic ontology grounding review"
+
+nodes:
+  - id: "node:buckthorn_removal"
+    name: "Increased buckthorn removal intensity"
+    categories:
+      - management_intervention
+      - environmental_process
+    description: "Mechanical removal of European buckthorn by cutting and hand-pulling."
+    entity_type: management_intervention
+    entity_term: "elmo:elmo_3620021"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+    process_context:
+      - "elmo:elmo_3620021"
+    ontology_mappings:
+      - ontology: ELMO
+        curie: "elmo:elmo_3620021"
+        label: "mechanical vegetation removal process"
+      - ontology: ELMO
+        curie: "elmo:elmo_3620026"
+        label: "canopy thinning process"
+
+  - id: "node:buckthorn_canopy_cover"
+    name: "Decreased buckthorn canopy cover"
+    categories:
+      - abiotic_factor
+      - ecological_outcome
+    description: "Projected canopy cover of invasive buckthorn over restoration plots."
+    entity_type: environmental_variable
+    entity_term: "ENVO:00010483"
+    variable_attribute: "PATO:0001708"
+    variable_direction: decreased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+    ontology_mappings:
+      - ontology: ENVO
+        curie: "ENVO:00010483"
+        label: "canopy"
+      - ontology: PATO
+        curie: "PATO:0001708"
+        label: "1-D extent"
+
+  - id: "node:light_availability"
+    name: "Increased ground-level light availability"
+    categories:
+      - abiotic_factor
+      - ecological_outcome
+    description: "Photosynthetically active radiation reaching the herb layer after shrub removal."
+    entity_type: environmental_variable
+    entity_term: "ENVO:00010165"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+    conditioned_by:
+      - "node:buckthorn_canopy_cover"
+    ontology_mappings:
+      - ontology: ENVO
+        curie: "ENVO:00010165"
+        label: "light"
+
+  - id: "node:native_forb_richness"
+    name: "Increased native forb species richness"
+    categories:
+      - ecological_outcome
+    description: "Count of native forb species in standardized restoration plots."
+    entity_type: environmental_variable
+    entity_term: "ENVO:01000260"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+    ontology_mappings:
+      - ontology: ENVO
+        curie: "ENVO:01000260"
+        label: "species richness"
+
+edges:
+  - id: "edge:removal_to_canopy_cover"
+    subject: "node:buckthorn_removal"
+    predicate: negatively_regulates
+    object: "node:buckthorn_canopy_cover"
+    claim_strength: direct_causal
+    process_context: "elmo:elmo_3620021"
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - interventionist
+      - mechanistic
+    account_families:
+      - difference_making
+      - production
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: experimental
+    strength:
+      status: explicitly_asserted
+      qualitative_descriptor: strong
+    contributing_sole: contributing_cause
+    evidential_basis:
+      evidence_types:
+        - quasi_experiment
+        - mechanistic_study
+      evidence_objects:
+        - correlation
+        - mechanism
+      russo_williamson_satisfied: true
+      bradford_hill_viewpoints:
+        - experiment
+        - plausibility
+        - temporality
+      bradford_hill_count: 3
+      certainty_grade: high
+      certainty_rationale: "The intervention is direct and supported by both observation and mechanism."
+      evidence_count: 1
+    source_spans:
+      - text: "Following buckthorn removal, canopy cover declined sharply across treated plots."
+    source_document:
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      section: results
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.95
+    annotation_timestamp: "2024-03-15T14:30:00Z"
+
+  - id: "edge:canopy_to_light"
+    subject: "node:buckthorn_canopy_cover"
+    predicate: negatively_regulates
+    object: "node:light_availability"
+    claim_strength: direct_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - mechanistic
+    account_families:
+      - production
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: theoretical
+    strength:
+      status: explicitly_asserted
+      qualitative_descriptor: strong
+    evidential_basis:
+      evidence_types:
+        - observational_longitudinal
+        - mechanistic_study
+      evidence_objects:
+        - correlation
+        - mechanism
+      russo_williamson_satisfied: true
+      bradford_hill_viewpoints:
+        - plausibility
+        - temporality
+      bradford_hill_count: 2
+      certainty_grade: moderate
+      certainty_rationale: "The sign is mechanistically clear, but field magnitude varies by site."
+      evidence_count: 1
+    source_spans:
+      - text: "Plots with denser buckthorn canopy had lower ground-level PAR than opened plots."
+
+  - id: "edge:light_to_forb_richness"
+    subject: "node:light_availability"
+    predicate: positively_regulates
+    object: "node:native_forb_richness"
+    claim_strength: conditional_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - variation
+      - mechanistic
+    account_families:
+      - difference_making
+      - production
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: structural_model
+    strength:
+      status: explicitly_asserted
+      qualitative_descriptor: moderate
+      dose_response: true
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "strongest during the first two growing seasons after shrub removal"
+        - "requires a persistent native seedbank or nearby propagule source"
+      ecosystem_scope: "temperate grassland restoration"
+    evidential_basis:
+      evidence_types:
+        - structural_equation_model
+        - mechanistic_study
+      evidence_objects:
+        - correlation
+        - mechanism
+      russo_williamson_satisfied: true
+      bradford_hill_viewpoints:
+        - biological_gradient
+        - plausibility
+        - temporality
+      bradford_hill_count: 3
+      certainty_grade: moderate
+      certainty_rationale: "Richness responds to light, but recruitment remains context dependent."
+      evidence_count: 1
+    source_spans:
+      - text: "Greater light availability was associated with higher native forb richness in restored plots."

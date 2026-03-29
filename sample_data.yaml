@@ -1,0 +1,689 @@
+graph_id: "example:grassland_restoration_2024"
+schema_version: "0.4.0"
+provenance:
+  ontology_framework: "ELMO + CAMO"
+  elm_version: "local checkout 2026-03-23"
+  causal_mosaic_version: "local checkout 2026-03-23"
+  annotation_guide_version: "0.4.0"
+  created: "2024-03-15T15:10:00Z"
+  source_corpus: >-
+    Sample causal graph documenting ecological restoration outcomes after
+    European buckthorn removal in a temperate grassland in southern Ontario.
+    Demonstrates ELMO-style node decomposition and CAMO-style causal
+    annotation.
+  project: "EcoWeaver example data generation"
+
+nodes:
+  - id: "node:buckthorn_removal"
+    name: "Increased buckthorn removal intensity"
+    categories:
+      - management_intervention
+      - environmental_process
+    description: "Mechanical removal of European buckthorn plants via cutting and hand-pulling."
+    entity_type: management_intervention
+    entity_term: "elmo:elmo_3620021"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+    process_context:
+      - "elmo:elmo_3620021"
+    conditioned_by:
+      - "ENVO:01000335"
+    ontology_mappings:
+      - ontology: ELMO
+        curie: "elmo:elmo_3620021"
+        label: "mechanical vegetation removal process"
+      - ontology: ELMO
+        curie: "elmo:elmo_3620026"
+        label: "canopy thinning process"
+
+  - id: "node:buckthorn_canopy_cover"
+    name: "Decreased buckthorn canopy cover"
+    categories:
+      - abiotic_factor
+      - ecological_outcome
+    description: "Percentage of ground covered by buckthorn canopy."
+    entity_type: environmental_variable
+    entity_term: "ENVO:00010483"
+    variable_attribute: "PATO:0001708"
+    variable_direction: decreased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+
+  - id: "node:light_availability"
+    name: "Increased light availability at ground level"
+    categories:
+      - abiotic_factor
+      - ecological_outcome
+    description: "Photosynthetically active radiation reaching the grass and forb layer."
+    entity_type: environmental_variable
+    entity_term: "ENVO:00010165"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+
+  - id: "node:native_grass_growth"
+    name: "Increased native grass biomass"
+    categories:
+      - biological_process
+      - ecological_outcome
+    description: "Biomass accumulation in native perennial grass species."
+    entity_type: environmental_process
+    entity_term: "GO:0009056"
+    variable_attribute: "PATO:0001019"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+
+  - id: "node:big_bluestem_cover"
+    name: "Increased Andropogon gerardii abundance"
+    categories:
+      - organism_taxon
+      - ecological_outcome
+    description: "Cover and abundance of Andropogon gerardii, a dominant native species."
+    entity_type: environmental_variable
+    entity_term: "NCBITaxon:95525"
+    variable_attribute: "PATO:0000070"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+
+  - id: "node:native_forb_richness"
+    name: "Increased native forb species richness"
+    categories:
+      - community
+      - ecological_outcome
+    description: "Number of native wildflower species per standardized plot."
+    entity_type: environmental_variable
+    entity_term: "ENVO:01000260"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+
+  - id: "node:soil_moisture"
+    name: "Decreased soil volumetric water content"
+    categories:
+      - abiotic_factor
+      - ecological_outcome
+    description: "Water content of topsoil (0-15 cm depth) during the growing season."
+    entity_type: environmental_variable
+    entity_term: "PATO:0015009"
+    variable_direction: decreased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+
+  - id: "node:bee_diversity"
+    name: "Increased native bee species richness"
+    categories:
+      - community
+      - ecological_outcome
+    description: "Diversity of native bee taxa sampled during the flowering season."
+    entity_type: environmental_variable
+    entity_term: "NCBITaxon:7496"
+    variable_attribute: "ENVO:01000260"
+    variable_direction: increased
+    ecosystem_context:
+      - "elmo:elmo_3620249"
+
+edges:
+  - id: "edge:removal_to_cover"
+    subject: "node:buckthorn_removal"
+    predicate: negatively_regulates
+    object: "node:buckthorn_canopy_cover"
+    claim_strength: direct_causal
+    process_context: "elmo:elmo_3620021"
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - interventionist
+      - mechanistic
+    account_families:
+      - difference_making
+      - production
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: experimental
+    strength:
+      status: explicitly_asserted
+      quantitative_value: "Canopy cover declined from 65% to 12% after removal."
+      quantitative_numeric: 0.94
+      qualitative_descriptor: strong
+      dose_response: true
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "removal targets most stems within a treated hectare"
+        - "applies to temperate grassland and grassland-forest edge restoration"
+      geographic_scope: "southern Ontario"
+      temporal_scope: "first 1-2 growing seasons after treatment"
+      ecosystem_scope: "temperate grassland understory"
+    contributing_sole: contributing_cause
+    temporal_extent:
+      duration_months: 24
+      duration_text: "Canopy cover remained low for two growing seasons after removal."
+      lag_months: 0
+      observation_grain: "seasonal"
+      observation_seasons:
+        - "spring"
+        - "summer"
+    evidential_basis:
+      evidence_types:
+        - quasi_experiment
+        - mechanistic_study
+        - expert_judgment
+      evidence_objects:
+        - correlation
+        - mechanism
+      russo_williamson_satisfied: true
+      bradford_hill_viewpoints:
+        - strength
+        - consistency
+        - experiment
+      bradford_hill_count: 3
+      certainty_grade: high
+      certainty_rationale: "The intervention is direct, and both field observation and mechanism point the same way."
+      evidence_count: 1
+    source_spans:
+      - text: "Following complete removal of buckthorn stems in May 2023, canopy cover declined from 65% to 12% by August of the same year."
+        start_char: 1250
+        end_char: 1480
+    source_document:
+      doi: "10.1234/example.2024.001"
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      journal: "Journal of Restoration Ecology"
+      section: results
+      study_location: "Southern Ontario, Canada"
+      study_period_start: "2022"
+      study_period_end: "2024"
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.99
+    annotation_timestamp: "2024-03-15T14:30:00Z"
+    annotation_notes: "Very high confidence; direct intervention with a transparent mechanism."
+    fcm_weight: -0.95
+    fcm_weight_source: "derived_from_schema"
+
+  - id: "edge:cover_to_light"
+    subject: "node:buckthorn_canopy_cover"
+    predicate: negatively_regulates
+    object: "node:light_availability"
+    claim_strength: direct_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - mechanistic
+    account_families:
+      - production
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: theoretical
+    strength:
+      status: explicitly_asserted
+      quantitative_value: "PAR was markedly lower beneath dense buckthorn canopy than in open gaps."
+      quantitative_numeric: -0.5
+      qualitative_descriptor: strong
+      dose_response: true
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "strongest during the leaf-on season"
+      geographic_scope: "temperate North America"
+      temporal_scope: "April to October"
+      ecosystem_scope: "grassland understory"
+    evidential_basis:
+      evidence_types:
+        - observational_longitudinal
+        - mechanistic_study
+      evidence_objects:
+        - correlation
+        - mechanism
+      russo_williamson_satisfied: true
+      bradford_hill_viewpoints:
+        - strength
+        - plausibility
+        - temporality
+      bradford_hill_count: 3
+      certainty_grade: high
+      certainty_rationale: "The optical mechanism is well understood and field light measurements match it."
+      evidence_count: 2
+    source_spans:
+      - text: "PAR measurements averaged 45 under dense buckthorn canopy versus 180 in canopy gaps."
+        start_char: 2100
+        end_char: 2350
+    source_document:
+      doi: "10.1234/example.2024.001"
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      journal: "Journal of Restoration Ecology"
+      section: results
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.95
+    annotation_timestamp: "2024-03-15T14:35:00Z"
+    fcm_weight: -0.8
+    fcm_weight_source: "derived_from_schema"
+
+  - id: "edge:light_to_grass_growth"
+    subject: "node:light_availability"
+    predicate: positively_regulates
+    object: "node:native_grass_growth"
+    claim_strength: conditional_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    conditioned_by:
+      - "node:soil_moisture"
+    philosophical_accounts:
+      - mechanistic
+      - variation
+    account_families:
+      - production
+      - difference_making
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: structural_model
+    mediation:
+      status: explicitly_asserted
+      pathway_description: "Greater light increases photosynthetic carbon fixation and biomass accumulation."
+    moderation:
+      status: explicitly_asserted
+      interaction_type: quantitative
+      notes: "The positive effect weakens when summer soil moisture is low."
+    strength:
+      status: explicitly_asserted
+      quantitative_value: "Light explained 62% of variance in peak grass biomass."
+      quantitative_numeric: 0.62
+      qualitative_descriptor: strong
+      dose_response: true
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "strongest for dominant C4 grasses"
+        - "weaker in drought years or when nitrogen is limiting"
+      geographic_scope: "southern Ontario"
+      temporal_scope: "May to September"
+      ecosystem_scope: "temperate grassland"
+    proportionality: explicitly_asserted
+    evidential_basis:
+      evidence_types:
+        - observational_longitudinal
+        - mechanistic_study
+        - structural_equation_model
+      evidence_objects:
+        - correlation
+        - mechanism
+      russo_williamson_satisfied: true
+      bradford_hill_viewpoints:
+        - strength
+        - biological_gradient
+        - plausibility
+      bradford_hill_count: 3
+      certainty_grade: high
+      certainty_rationale: "Observational patterns, physiological mechanism, and modeled covariation all align."
+      evidence_count: 5
+    source_spans:
+      - text: "Native grass standing crop correlated strongly with growing-season PAR integration."
+        start_char: 3100
+        end_char: 3350
+    source_document:
+      doi: "10.1234/example.2024.001"
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      journal: "Journal of Restoration Ecology"
+      section: results
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.92
+    annotation_timestamp: "2024-03-15T14:40:00Z"
+    fcm_weight: 0.75
+    fcm_weight_source: "derived_from_schema"
+
+  - id: "edge:light_to_soil_moisture"
+    subject: "node:light_availability"
+    predicate: negatively_regulates
+    object: "node:soil_moisture"
+    claim_strength: conditional_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - mechanistic
+    account_families:
+      - production
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: theoretical
+    mediation:
+      status: explicitly_asserted
+      pathway_description: "More radiation increases evaporation and transpiration, lowering topsoil water content."
+    moderation:
+      status: explicitly_asserted
+      interaction_type: quantitative
+      notes: "Humidity and wind conditions alter the magnitude of the moisture loss."
+    strength:
+      status: implicitly_assumed
+      quantitative_value: "Open sites had lower June soil water content than residual canopy patches."
+      qualitative_descriptor: moderate
+      dose_response: false
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "most evident in well-drained soils"
+        - "strongest during hot, dry weather"
+      geographic_scope: "southern Ontario"
+      temporal_scope: "May to August"
+      ecosystem_scope: "grassland"
+    evidential_basis:
+      evidence_types:
+        - observational_cross_sectional
+        - mechanistic_study
+      evidence_objects:
+        - mechanism
+      russo_williamson_satisfied: false
+      bradford_hill_viewpoints:
+        - plausibility
+      bradford_hill_count: 1
+      certainty_grade: moderate
+      certainty_rationale: "The mechanism is plausible, but direct isolation of evapotranspiration drivers is limited."
+      evidence_count: 1
+    source_spans:
+      - text: "Soil volumetric water content in June was slightly lower in open post-removal sites than under residual canopy patches."
+        start_char: 4200
+        end_char: 4450
+    source_document:
+      doi: "10.1234/example.2024.001"
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      journal: "Journal of Restoration Ecology"
+      section: results
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.65
+    annotation_timestamp: "2024-03-15T14:45:00Z"
+    fcm_weight: -0.35
+    fcm_weight_source: "derived_from_schema"
+
+  - id: "edge:grass_growth_to_bluestem"
+    subject: "node:native_grass_growth"
+    predicate: positively_regulates
+    object: "node:big_bluestem_cover"
+    claim_strength: conditional_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - probabilistic
+      - variation
+    account_families:
+      - difference_making
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: temporal_precedence
+    mediation:
+      status: explicitly_asserted
+      pathway_description: "Increasing native grass biomass appears to favor competitive native perennials such as Andropogon gerardii."
+    strength:
+      status: explicitly_asserted
+      quantitative_value: "Andropogon cover rose from 3% to 18% over two years in higher-biomass plots."
+      quantitative_numeric: 0.48
+      qualitative_descriptor: moderate
+      dose_response: true
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "requires a local seed source or historical site occupancy"
+      geographic_scope: "southern Ontario"
+      temporal_scope: "two to three years post-removal"
+      ecosystem_scope: "temperate grassland recovery"
+    contributing_sole: contributing_cause
+    evidential_basis:
+      evidence_types:
+        - observational_longitudinal
+        - expert_judgment
+      evidence_objects:
+        - correlation
+      russo_williamson_satisfied: false
+      bradford_hill_viewpoints:
+        - strength
+        - temporality
+      bradford_hill_count: 2
+      certainty_grade: moderate
+      certainty_rationale: "Temporal ordering helps, but seed availability and other recovery processes remain possible confounders."
+      evidence_count: 2
+    source_spans:
+      - text: "Andropogon gerardii cover increased most strongly in plots with the highest native grass biomass accumulation."
+        start_char: 5200
+        end_char: 5450
+    source_document:
+      doi: "10.1234/example.2024.001"
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      journal: "Journal of Restoration Ecology"
+      section: results
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.73
+    annotation_timestamp: "2024-03-15T14:50:00Z"
+    fcm_weight: 0.5
+    fcm_weight_source: "derived_from_schema"
+
+  - id: "edge:light_to_forb_richness"
+    subject: "node:light_availability"
+    predicate: positively_regulates
+    object: "node:native_forb_richness"
+    claim_strength: conditional_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    conditioned_by:
+      - "node:native_grass_growth"
+    philosophical_accounts:
+      - probabilistic
+      - variation
+    account_families:
+      - difference_making
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: structural_model
+    moderation:
+      status: explicitly_asserted
+      interaction_type: antagonistic
+      notes: "Higher light benefits forbs, but concurrent grass expansion offsets part of that gain."
+    strength:
+      status: explicitly_asserted
+      quantitative_value: "Open plots averaged 8.2 forb species per 10 m2 versus 4.1 under residual canopy."
+      quantitative_numeric: 2.1
+      qualitative_descriptor: weak
+      dose_response: false
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "best interpreted jointly with grass competition"
+      geographic_scope: "southern Ontario"
+      temporal_scope: "June to August"
+      ecosystem_scope: "temperate grassland understory"
+    evidential_basis:
+      evidence_types:
+        - observational_cross_sectional
+        - structural_equation_model
+      evidence_objects:
+        - correlation
+      russo_williamson_satisfied: false
+      bradford_hill_viewpoints:
+        - strength
+        - temporality
+      bradford_hill_count: 2
+      certainty_grade: low
+      certainty_rationale: "The positive effect is plausible but modest and partly confounded by competition with recovering grasses."
+      evidence_count: 1
+    source_spans:
+      - text: "Native forb richness was higher in post-removal plots than in residual canopy patches."
+        start_char: 6100
+        end_char: 6300
+    source_document:
+      doi: "10.1234/example.2024.001"
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      journal: "Journal of Restoration Ecology"
+      section: results
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.52
+    annotation_timestamp: "2024-03-15T14:55:00Z"
+    fcm_weight: 0.25
+    fcm_weight_source: "derived_from_schema"
+
+  - id: "edge:grass_growth_to_forb_richness"
+    subject: "node:native_grass_growth"
+    predicate: negatively_regulates
+    object: "node:native_forb_richness"
+    claim_strength: conditional_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - mechanistic
+      - probabilistic
+    account_families:
+      - production
+      - difference_making
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: theoretical
+    mediation:
+      status: explicitly_asserted
+      pathway_description: "Greater grass biomass increases belowground competition for water and nutrients and can increase shading and litter."
+    moderation:
+      status: explicitly_asserted
+      interaction_type: quantitative
+      notes: "The suppressive effect weakens where resource supply is relatively high."
+    strength:
+      status: implicitly_assumed
+      quantitative_value: "Forb richness showed a weak negative correlation with grass biomass."
+      quantitative_numeric: -0.42
+      qualitative_descriptor: moderate
+      dose_response: true
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "most relevant in mesic, nitrogen-limited grasslands"
+      geographic_scope: "southern Ontario"
+      temporal_scope: "July to September"
+      ecosystem_scope: "temperate grassland"
+    evidential_basis:
+      evidence_types:
+        - observational_longitudinal
+        - theoretical
+      evidence_objects:
+        - correlation
+        - mechanism
+      russo_williamson_satisfied: false
+      bradford_hill_viewpoints:
+        - plausibility
+        - coherence
+      bradford_hill_count: 2
+      certainty_grade: moderate
+      certainty_rationale: "The competition mechanism is well known, but the specific empirical signal in this study is fairly weak."
+      evidence_count: 2
+    source_spans:
+      - text: "Native forb richness showed a weak negative correlation with grass biomass, consistent with competitive suppression."
+        start_char: 7100
+        end_char: 7350
+    source_document:
+      doi: "10.1234/example.2024.001"
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      journal: "Journal of Restoration Ecology"
+      section: discussion
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.68
+    annotation_timestamp: "2024-03-15T15:00:00Z"
+    fcm_weight: -0.4
+    fcm_weight_source: "derived_from_schema"
+
+  - id: "edge:forb_richness_to_bee_diversity"
+    subject: "node:native_forb_richness"
+    predicate: positively_regulates
+    object: "node:bee_diversity"
+    claim_strength: direct_causal
+    ecosystem_context: "elmo:elmo_3620249"
+    philosophical_accounts:
+      - probabilistic
+      - mechanistic
+    account_families:
+      - difference_making
+      - production
+    temporal_ordering: explicitly_asserted
+    direction:
+      status: asserted
+      evidence_for_direction: experimental
+    mediation:
+      status: explicitly_asserted
+      pathway_description: "More forb species create more abundant and temporally extended nectar and pollen resources."
+    moderation:
+      status: explicitly_asserted
+      interaction_type: quantitative
+      notes: "The pollinator response is stronger where nesting habitat is also available."
+    strength:
+      status: explicitly_asserted
+      quantitative_value: "Higher-forb plots supported 11 bee species versus 4 in low-forb plots."
+      quantitative_numeric: 0.18
+      qualitative_descriptor: strong
+      dose_response: true
+    context_dependence:
+      status: explicitly_asserted
+      scope_conditions:
+        - "temperate grassland or savanna systems"
+        - "wild native bee assemblages"
+      geographic_scope: "temperate North America"
+      temporal_scope: "flowering season"
+      ecosystem_scope: "mixed forb grassland"
+    proportionality: explicitly_asserted
+    evidential_basis:
+      evidence_types:
+        - observational_cross_sectional
+        - randomized_experiment
+        - meta_analysis
+      evidence_objects:
+        - correlation
+        - mechanism
+      russo_williamson_satisfied: true
+      bradford_hill_viewpoints:
+        - strength
+        - consistency
+        - biological_gradient
+        - plausibility
+        - experiment
+      bradford_hill_count: 5
+      certainty_grade: high
+      certainty_rationale: "Local observation, manipulative pollination ecology, and meta-analysis all support the same direction."
+      evidence_count: 12
+    source_spans:
+      - text: "Bee species richness increased from 4 species in low-forb plots to 11 species in high-forb plots."
+        start_char: 8100
+        end_char: 8350
+    source_document:
+      doi: "10.1234/example.2024.001"
+      title: "Native Grassland Recovery Following Invasive Buckthorn Removal"
+      authors:
+        - "Smith, J."
+        - "Patel, K."
+      year: 2024
+      journal: "Journal of Restoration Ecology"
+      section: results
+    annotator: "orcid:0000-0001-2345-6789"
+    annotation_confidence: 0.93
+    annotation_timestamp: "2024-03-15T15:05:00Z"
+    fcm_weight: 0.85
+    fcm_weight_source: "derived_from_schema"
