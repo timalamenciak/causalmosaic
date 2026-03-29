@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile extract.py validate_schema.py validate_curies.py lookup_curie.py verify_spans.py pipeline.py)",
+      "Bash(python -m py_compile extract.py validate_schema.py validate_curies.py lookup_curie.py verify_spans.py pipeline.py utils.py)"
+    ]
+  }
+}
