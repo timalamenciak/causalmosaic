@@ -1,0 +1,1752 @@
+## =============================================================================
+## Causal Mosaic Ontology - LinkML Schema
+## =============================================================================
+## Merges: Ecolink Model Ontology (ELM; ontology implementation of the ELM
+##         pattern) for ecological entity
+##         structure with Illari & Russo's (2014) causal mosaic framework for
+##         rich causal annotation. ELM provides the entity layer (environmental
+##         variables, processes, taxa decomposed into entity + attribute +
+##         direction). The Causal Mosaic provides the causal semantics layer
+##         (philosophical accounts, 15 causal features, evidential basis).
+##
+## Designed to support multiple renderings from a single canonical graph:
+##   - Rosetta Statements (template-based NL rendering)
+##   - Fuzzy Cognitive Maps and other causal models
+##   - Evidence Gap Maps (intervention × outcome matrices)
+##   - Retrieval-Augmented Generation (RAG)
+##   - Causal diagrams, practitioner summaries, and future formats
+##
+## Key design principle: Causation in ecology is always between CHANGES IN
+## STATE, not between things. A taxon does not cause anything; a change in
+## an attribute of a taxon-linked variable does. Nodes therefore decompose
+## into entity (what thing) + attribute (what measurable property) + direction
+## (which way it changed), following ELM's qualifier pattern.
+##
+## Schema version: 0.4.0
+## =============================================================================
+
+id: https://w3id.org/causal-mosaic
+name: causal-mosaic
+title: Causal Mosaic Ontology for Ecological Evidence Synthesis
+description: >-
+  A unified schema merging the Ecolink Model (ELM) entity structure
+  with the Illari-Russo causal mosaic annotation framework as formalized in
+  CAMO. ELM provides the ecological entity layer: environmental variables,
+  processes, and taxa are represented as nodes decomposed into entity +
+  measurable attribute + direction of change, with qualifier slots for
+  ecosystem context, process context, and conditioning variables. CAMO provides
+  the causal semantics layer: each edge carries four annotation layers
+  encoding claim strength, philosophical account of causation, fifteen causal
+  features, and evidential basis. Together, they produce a labeled property
+  graph that can be rendered into Rosetta Statements, Fuzzy Cognitive Maps,
+  Evidence Gap Maps, RAG indices, and practitioner summaries. Where ELMO asks
+  "what is related to what, and in what context?", CAMO asks "how do we know
+  this is causal, what kind of causation is claimed, and how confident should
+  we be?"
+
+license: CC0
+version: 0.4.1
+
+see_also:
+  - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
+  - https://global.oup.com/academic/product/causality-9780199662678  # Illari & Russo 2014
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  causal_mosaic: https://w3id.org/causal-mosaic/
+  example: https://w3id.org/ecoweaver/examples/
+  node: https://w3id.org/causal-mosaic/node/
+  edge: https://w3id.org/causal-mosaic/edge/
+  camo: https://w3id.org/camo/
+  elmo: https://w3id.org/elmo/
+  elmo_cas: https://w3id.org/elmo/cas/
+  biolink: https://w3id.org/biolink/vocab/
+  schema: http://schema.org/
+  skos: http://www.w3.org/2004/02/skos/core#
+  dcterms: http://purl.org/dc/terms/
+  prov: http://www.w3.org/ns/prov#
+  orcid: https://orcid.org/
+  doi: https://doi.org/
+  ENVO: http://purl.obolibrary.org/obo/ENVO_
+  CHEBI: http://purl.obolibrary.org/obo/CHEBI_
+  NCBITaxon: http://purl.obolibrary.org/obo/NCBITaxon_
+  GO: http://purl.obolibrary.org/obo/GO_
+  PATO: http://purl.obolibrary.org/obo/PATO_
+  ECO: http://purl.obolibrary.org/obo/ECO_
+  RO: http://purl.obolibrary.org/obo/RO_
+  SEPIO: http://purl.obolibrary.org/obo/SEPIO_
+  OBI: http://purl.obolibrary.org/obo/OBI_
+  BFO: http://purl.obolibrary.org/obo/BFO_
+
+default_prefix: causal_mosaic
+default_range: string
+
+imports:
+  - linkml:types
+
+
+## =============================================================================
+## ENUMERATIONS
+## =============================================================================
+## These encode the controlled vocabularies for both dimensions of the causal
+## mosaic, plus supporting classifications for evidence, rendering, and graph
+## structure.
+
+enums:
+
+  # ---------------------------------------------------------------------------
+  # Dimension 1: Philosophical Accounts of Causation
+  # ---------------------------------------------------------------------------
+
+  PhilosophicalAccountEnum:
+    description: >-
+      The philosophical account of causation invoked by a causal claim, per
+      Illari and Russo's (2014) mosaic. Each account offers a different lens on
+      what it means for C to cause E.
+    permissible_values:
+      counterfactual:
+        description: >-
+          Had C not occurred, E would not have occurred. Lewis (1973), revised
+          as influence theory. Operationalized by potential outcomes / Rubin
+          causal model.
+        meaning: camo:Counterfactual
+        annotations:
+          family: difference_making
+          canonical_question: "Would E have occurred without C?"
+          linguistic_cues: >-
+            without X; in the absence of; had [not]; would not have;
+            if X had not occurred; removal language implying dependence
+          evidence_affinity: experimental, potential_outcomes, control_group
+      probabilistic:
+        description: >-
+          C raises the probability of E, conditioned on certain background factors.
+          Reichenbach, Suppes, Eells. Operationalized by relative risks, odds
+          ratios, and conditional probabilities.
+        meaning: camo:Probabilistic
+        annotations:
+          family: difference_making
+          canonical_question: "Does C raise the probability of E?"
+          linguistic_cues: >-
+            increases the risk of; risk factor for; associated with [+stats];
+            probability; odds ratio; relative risk; hazard ratio; P(E|C)
+          evidence_affinity: epidemiological, statistical, population_level
+      interventionist:
+        description: >-
+          There exists an intervention on C that changes E or its probability
+          distribution. Woodward (2003). Invariant generalizations stable under
+          intervention. Pearl's do-calculus.
+        meaning: camo:Interventionist
+        annotations:
+          family: difference_making
+          canonical_question: "Does intervening on C change E?"
+          linguistic_cues: >-
+            experimental manipulation of; removal led to; treatment resulted in;
+            randomized trial showed; controlled experiment demonstrated
+          evidence_affinity: experimental, quasi_experimental, natural_experiment
+      variation:
+        description: >-
+          Causation as systematic co-variation between values of variables
+          across cases or units. Russo's variation account (2009), often
+          operationalized through regression, path analysis, or SEM.
+        meaning: camo:Variation
+        annotations:
+          family: difference_making
+          canonical_question: "Do variations in C systematically track variations in E?"
+          linguistic_cues: >-
+            regression coefficient; path coefficient; structural equation model;
+            SEM; variance explained; R²; beta coefficient; effect of X on Y
+          evidence_affinity: structural_equation_model, path_analysis, regression
+      process:
+        description: >-
+          Causal processes are spatiotemporal entities transmitting conserved
+          quantities. Salmon mark-transmission, Dowe conserved quantity theory.
+          Strongest in physics; limited in ecology.
+        meaning: camo:Process
+        annotations:
+          family: production
+          canonical_question: "What conserved quantity is transmitted from C to E?"
+          linguistic_cues: >-
+            energy transfer; material flow; physical transmission;
+            nutrient transport; water flow; sediment transport
+          evidence_affinity: physical_measurement, tracer_studies
+      mechanistic:
+        description: >-
+          Entities and activities organized to produce the phenomenon.
+          Machamer-Darden-Craver (2000), Illari and Williamson (2012) consensus
+          definition. Dominant in biology and ecology.
+        meaning: camo:Mechanistic
+        annotations:
+          family: production
+          canonical_question: "What entities and activities produce E from C?"
+          linguistic_cues: >-
+            the mechanism by which; pathway from X to Y; exerts its effect via;
+            step-by-step process; molecular pathway; trophic cascade
+          evidence_affinity: mechanistic_study, process_tracing, lab_experiment
+      information_transmission:
+        description: >-
+          Causal production as transfer of information between system states.
+          Collier, Illari (2011). Generalizes beyond physics, handles absences.
+        meaning: camo:InformationTransmission
+        annotations:
+          family: production
+          canonical_question: "What information is transmitted from C to E?"
+          linguistic_cues: >-
+            signal; information channel; biomarker pathway; contaminant tracing;
+            gene expression cascade; environmental signal
+          evidence_affinity: biomarker_tracking, signal_tracing, omics
+      regularity:
+        description: >-
+          Constant conjunction between event types. Hume, Mill, neo-Humean
+          accounts. Causation as repeated, regular succession.
+        meaning: camo:Regularity
+        annotations:
+          family: complementary
+          canonical_question: "Does C-type always/usually precede E-type?"
+          linguistic_cues: >-
+            wherever X appears, Y follows; consistently observed; invariably
+            accompanies; universal pattern; law-like regularity
+          evidence_affinity: repeated_observation, survey, monitoring
+      inus_component:
+        description: >-
+          C is an Insufficient but Necessary part of an Unnecessary but
+          Sufficient condition. Mackie (1965). Rothman's sufficient-component
+          cause model in epidemiology.
+        meaning: camo:INUSComponent
+        annotations:
+          family: complementary
+          canonical_question: "Is C a necessary component of a sufficient cause constellation?"
+          linguistic_cues: >-
+            contributing factor; one of several causes; component cause;
+            in combination with; multifactorial; necessary but not sufficient
+          evidence_affinity: multifactorial_analysis, interaction_studies
+      capacity:
+        description: >-
+          Real powers or dispositions inherent in things. Cartwright (1989),
+          Mumford and Anjum (2011). Emphasizes context-dependence of whether
+          capacities are exercised.
+        meaning: camo:Capacity
+        annotations:
+          family: complementary
+          canonical_question: "Does C have the power/capacity to produce E?"
+          linguistic_cues: >-
+            capacity to; disposition to; potential to; tendency to;
+            ability to recolonize; competitive ability; dispersal capacity
+          evidence_affinity: theoretical, trait_measurement, functional_ecology
+      agency:
+        description: >-
+          C causes E if bringing about C would be an effective means for a free
+          agent to bring about E. von Wright (1971), Menzies and Price (1993).
+          Important for management and restoration prescriptions.
+        meaning: camo:Agency
+        annotations:
+          family: complementary
+          canonical_question: "Can an agent bring about E by doing C?"
+          linguistic_cues: >-
+            managers can achieve Y by doing X; restoration prescription;
+            we can restore; recommended intervention; adaptive management
+          evidence_affinity: management_trials, adaptive_management, practice_evidence
+
+  AccountFamilyEnum:
+    description: >-
+      The high-level family grouping from Illari and Russo's primary distinction
+      (via Ned Hall 2004): difference-making asks WHETHER C makes a difference
+      to E; production asks HOW C brings about E.
+    permissible_values:
+      difference_making:
+        description: "Asks WHETHER C makes a difference to E."
+        meaning: camo:DifferenceMakingAccount
+      production:
+        description: "Asks HOW C brings about E."
+        meaning: camo:ProductionAccount
+      complementary:
+        description: "Additional structural accounts (regularity, INUS, capacities, agency)."
+        meaning: camo:ComplementaryAccount
+
+  # ---------------------------------------------------------------------------
+  # Dimension 2: Features of Causal Claims
+  # ---------------------------------------------------------------------------
+
+  FeatureAssertionEnum:
+    description: >-
+      Four-value assertion status for causal features. Used to distinguish
+      what a text explicitly claims from what it assumes or denies.
+    permissible_values:
+      explicitly_asserted:
+        description: "The text explicitly states this feature."
+      implicitly_assumed:
+        description: "The feature is strongly implied but not directly stated."
+      explicitly_denied:
+        description: "The text explicitly states this feature does NOT hold."
+      not_addressed:
+        description: "The text does not address this feature."
+
+  DirectionStatusEnum:
+    permissible_values:
+      asserted:
+        description: "Direction of causation is asserted."
+      uncertain:
+        description: "Direction is acknowledged as uncertain or debated."
+      bidirectional:
+        description: "Bidirectional or reciprocal causation is described."
+      not_addressed:
+        description: "Direction is not discussed."
+
+  DirectionEvidenceEnum:
+    description: "How direction of causation is established."
+    permissible_values:
+      experimental:
+        description: "Direction established by experimental manipulation."
+      temporal_precedence:
+        description: "Direction established by time ordering."
+      theoretical:
+        description: "Direction established by theory or prior knowledge."
+      natural_experiment:
+        description: "Direction established by natural experiment or instrumental variable."
+      structural_model:
+        description: "Direction established by DAG or structural equation model."
+
+  TokenTypeEnum:
+    permissible_values:
+      token:
+        description: "Singular claim: this specific C caused this specific E."
+      type:
+        description: "General claim: C-type causes E-type."
+      ambiguous:
+        description: "Cannot determine if token or type."
+      not_addressed:
+        description: "Not relevant or not discussed."
+
+  DeterminismEnum:
+    permissible_values:
+      deterministic:
+        description: "C invariably produces E."
+      stochastic:
+        description: "C raises the probability of E but does not guarantee it."
+      ambiguous:
+        description: "Cannot determine deterministic or stochastic framing."
+      not_addressed:
+        description: "Not discussed."
+
+  ProximateDistalEnum:
+    permissible_values:
+      proximate:
+        description: "Immediate or direct trigger."
+      distal:
+        description: "Upstream or root cause."
+      both_specified:
+        description: "Both proximate and distal positions are identified."
+      not_addressed:
+        description: "Not discussed."
+
+  ContributingSoleEnum:
+    permissible_values:
+      sole_cause:
+        description: "Presented as the only cause."
+      contributing_cause:
+        description: "Presented as one of several contributing factors."
+      not_addressed:
+        description: "Not discussed."
+
+  ReversibilityEnum:
+    description: >-
+      Whether removing the cause undoes the effect. Central to restoration
+      ecology where hysteresis and alternative stable states are key concerns.
+    permissible_values:
+      reversible:
+        description: "Removing C reverses E."
+      irreversible:
+        description: "E persists even after C is removed."
+      partially_reversible:
+        description: "Partial recovery upon removal of C."
+      hysteresis:
+        description: "Recovery follows a different trajectory than degradation."
+      not_addressed:
+        description: "Not discussed."
+
+  InteractionTypeEnum:
+    permissible_values:
+      synergistic:
+        description: "Combined effect greater than sum of individual effects."
+      antagonistic:
+        description: "Combined effect less than sum of individual effects."
+      qualitative:
+        description: "Direction of effect changes across levels of moderator."
+      quantitative:
+        description: "Magnitude but not direction changes across levels."
+      not_specified:
+        description: "Interaction noted but type not characterized."
+
+  StrengthQualitativeEnum:
+    permissible_values:
+      strong:
+        description: "Large effect size or strong association."
+      moderate:
+        description: "Medium effect size."
+      weak:
+        description: "Small effect size or weak association."
+      negligible:
+        description: "Trivially small effect."
+      not_specified:
+        description: "Strength not characterized."
+
+  # ---------------------------------------------------------------------------
+  # Claim Strength (Layer 1)
+  # ---------------------------------------------------------------------------
+
+  ClaimStrengthEnum:
+    description: >-
+      Four-level causal language strength scale, adapted from Yu et al. (2019).
+      Captures the epistemic commitment of the text, not the actual strength
+      of evidence.
+    permissible_values:
+      no_relationship:
+        description: "Explicitly states no causal or associational relationship."
+        annotations:
+          exemplars: "no significant effect; did not affect; no association was found"
+      associational:
+        description: "Correlation or co-occurrence without causal verb."
+        annotations:
+          exemplars: "correlated with; associated with; co-occurred with; linked to"
+      uncertain_causal:
+        description: "Hedged causal language or conditional causation."
+        annotations:
+          exemplars: "may cause; could contribute to; suggests a causal role; possibly leads to"
+      direct_causal:
+        description: "Unhedged causal verb asserting direct causation."
+        annotations:
+          exemplars: "causes; leads to; results in; produces; drives; determines"
+
+  # ---------------------------------------------------------------------------
+  # Predicate vocabulary
+  # ---------------------------------------------------------------------------
+
+  CausalPredicateEnum:
+    description: >-
+      Controlled predicate vocabulary for causal edges, grounded primarily in
+      CAMO and cross-linked to Biolink / RO where possible. Each predicate
+      carries a sign and transitivity property for FCM rendering.
+    permissible_values:
+      causes:
+        description: "Direct positive causation: C produces E."
+        meaning: camo:causes
+        annotations:
+          sign: positive
+          fcm_default_weight: "0.7"
+          rosetta_template: "{subject} causes {object}"
+      contributes_to:
+        description: "C is one of several contributing factors to E."
+        meaning: camo:contributes_to
+        annotations:
+          sign: positive
+          fcm_default_weight: "0.4"
+          rosetta_template: "{subject} contributes to {object}"
+      associated_with:
+        description: "Statistical or observational association without causal commitment."
+        meaning: camo:associated_with
+        annotations:
+          sign: unspecified
+          fcm_default_weight: "0.3"
+          rosetta_template: "{subject} is associated with {object}"
+      prevents:
+        description: "C inhibits, blocks, or reduces E."
+        meaning: camo:prevents
+        annotations:
+          sign: negative
+          fcm_default_weight: "-0.6"
+          rosetta_template: "{subject} prevents {object}"
+      enables:
+        description: "C facilitates or promotes E but is not sufficient."
+        meaning: camo:enables
+        annotations:
+          sign: positive
+          fcm_default_weight: "0.5"
+          rosetta_template: "{subject} enables {object}"
+      disrupts:
+        description: "C degrades, suppresses, or disrupts E."
+        meaning: camo:disrupts
+        annotations:
+          sign: negative
+          fcm_default_weight: "-0.5"
+          rosetta_template: "{subject} disrupts {object}"
+      regulates:
+        description: "C modulates E (direction may be positive or negative)."
+        meaning: camo:regulates
+        annotations:
+          sign: variable
+          fcm_default_weight: "0.0"
+          rosetta_template: "{subject} regulates {object}"
+      positively_regulates:
+        description: "C upregulates or increases E."
+        meaning: camo:positively_regulates
+        annotations:
+          sign: positive
+          fcm_default_weight: "0.5"
+          rosetta_template: "{subject} positively regulates {object}"
+      negatively_regulates:
+        description: "C downregulates or decreases E."
+        meaning: camo:negatively_regulates
+        annotations:
+          sign: negative
+          fcm_default_weight: "-0.5"
+          rosetta_template: "{subject} negatively regulates {object}"
+      mediates:
+        description: "M is on the causal pathway between C and E."
+        meaning: camo:mediates
+        annotations:
+          sign: pathway
+          fcm_default_weight: "0.0"
+          rosetta_template: "{subject} mediates the effect on {object}"
+      moderates:
+        description: "Z modifies the strength or direction of the C→E relationship."
+        meaning: camo:moderates
+        annotations:
+          sign: modifier
+          fcm_default_weight: "0.0"
+          rosetta_template: "{subject} moderates the relationship with {object}"
+      precedes:
+        description: "Temporal precedence without causal commitment."
+        meaning: biolink:precedes
+        notes: "This maps to the Biolink Model because precedes is well-defined there."
+        annotations:
+          sign: temporal
+          fcm_default_weight: "0.0"
+          rosetta_template: "{subject} precedes {object}"
+      correlated_with:
+        description: "Statistical correlation without direction or causal commitment."
+        meaning: camo:correlated_with
+        annotations:
+          sign: unspecified
+          fcm_default_weight: "0.2"
+          rosetta_template: "{subject} is correlated with {object}"
+
+  # ---------------------------------------------------------------------------
+  # Evidential Basis (Layer 4)
+  # ---------------------------------------------------------------------------
+
+  EvidenceTypeEnum:
+    description: >-
+      TYPE of evidence per Illari's type/object distinction: what kind of study
+      or reasoning produced the evidence.
+    permissible_values:
+      randomized_experiment:
+        description: "Randomized controlled trial or field experiment."
+        meaning: ECO:0000006
+      natural_experiment:
+        description: "Natural experiment or exogenous shock."
+      quasi_experiment:
+        description: "Quasi-experimental design (BACI, difference-in-differences, etc.)."
+      observational_longitudinal:
+        description: "Longitudinal observational study (cohort, panel)."
+      observational_cross_sectional:
+        description: "Cross-sectional observational study or survey."
+      mechanistic_study:
+        description: "Laboratory or field study of mechanism (pathway dissection, process tracing)."
+        meaning: camo:MechanisticStudy
+      structural_equation_model:
+        description: "Structural equation model or path analysis quantifying covariation patterns."
+        meaning: camo:StructuralEquationModel
+      meta_analysis:
+        description: "Quantitative synthesis of multiple studies."
+        meaning: ECO:0006153
+      systematic_review:
+        description: "Systematic review (qualitative or quantitative)."
+      modeling_simulation:
+        description: "Computational model, simulation, or theoretical prediction."
+      expert_judgment:
+        description: "Expert elicitation, Delphi method, or professional opinion."
+      case_study:
+        description: "Single case study or natural history observation."
+        meaning: camo:CaseStudy
+      theoretical:
+        description: "Deduction from theory without empirical test."
+      indigenous_knowledge:
+        description: "Traditional ecological knowledge or Indigenous knowledge systems."
+      practitioner_experience:
+        description: "Practitioner or land manager field experience."
+        meaning: camo:PractitionerExperience
+
+  EvidenceObjectEnum:
+    description: >-
+      OBJECT of evidence per the Russo-Williamson Thesis: whether the evidence
+      supports correlation (difference-making), mechanism (production), or both.
+    permissible_values:
+      correlation:
+        description: "Evidence that C and E are correlated / C makes a difference to E."
+      mechanism:
+        description: "Evidence for a mechanism linking C to E."
+      both:
+        description: "Evidence addresses both correlation and mechanism."
+
+  BradfordHillViewpointEnum:
+    description: >-
+      Bradford Hill's nine 'viewpoints' (1965) for assessing causal claims from
+      observational evidence. Maps onto the philosophical accounts.
+    permissible_values:
+      strength:
+        description: "Large effect size or strong association."
+        annotations:
+          maps_to_account: probabilistic
+          maps_to_feature: strength
+      consistency:
+        description: "Replicated across different studies, populations, and contexts."
+        annotations:
+          maps_to_account: regularity
+          maps_to_feature: stability
+      specificity:
+        description: "One-to-one mapping between cause and effect."
+        annotations:
+          maps_to_account: probabilistic
+          maps_to_feature: specificity
+      temporality:
+        description: "Cause precedes effect (the only 'inarguable' viewpoint)."
+        annotations:
+          maps_to_account: all
+          maps_to_feature: temporal_ordering
+      biological_gradient:
+        description: "Dose-response relationship."
+        annotations:
+          maps_to_account: probabilistic
+          maps_to_feature: strength
+      plausibility:
+        description: "A known or plausible mechanism exists."
+        annotations:
+          maps_to_account: mechanistic
+          maps_to_feature: mediation
+      coherence:
+        description: "Causal interpretation fits with broader knowledge."
+        annotations:
+          maps_to_account: mechanistic
+          maps_to_feature: stability
+      experiment:
+        description: "Deliberate manipulation changes the outcome."
+        annotations:
+          maps_to_account: interventionist
+          maps_to_feature: direction
+      analogy:
+        description: "Similar cause-effect relationships are known in analogous systems."
+        annotations:
+          maps_to_account: mechanistic
+          maps_to_feature: stability
+
+  CertaintyGradeEnum:
+    description: >-
+      GRADE-style certainty assessment for causal claims. Controls downstream
+      language in Rosetta Statement rendering.
+    permissible_values:
+      high:
+        description: "High certainty. Rosetta rendering: 'X increases Y'."
+        annotations:
+          rosetta_verb_modifier: ""
+      moderate:
+        description: "Moderate certainty. Rosetta rendering: 'X probably increases Y'."
+        annotations:
+          rosetta_verb_modifier: "probably"
+      low:
+        description: "Low certainty. Rosetta rendering: 'X may increase Y'."
+        annotations:
+          rosetta_verb_modifier: "may"
+      very_low:
+        description: "Very low certainty. Rosetta rendering: 'X might increase Y'."
+        annotations:
+          rosetta_verb_modifier: "might"
+      not_assessed:
+        description: "Certainty not formally assessed."
+
+  # ---------------------------------------------------------------------------
+  # ELMO Entity Structure: Variable Direction and Entity Type
+  # ---------------------------------------------------------------------------
+  # These enums implement ELMO's qualifier pattern (Alamenciak et al. 2025).
+  # Causation in ecology is between changes in state, not between things.
+  # A node decomposes into: entity (what thing) + attribute (what property)
+  # + direction (which way it changed). E.g., entity = Canis lupus,
+  # attribute = PATO:0000070 (abundance), direction = increased
+  # → "increased abundance of Canis lupus"
+
+  VariableDirectionEnum:
+    description: >-
+      Direction of change in the variable's attribute. Corresponds to ELMO's
+      direction_qualifier slot. Together with variable_attribute and the
+      entity ontology mapping, forms the full semantic content of a node:
+      "direction of attribute of entity."
+    permissible_values:
+      increased:
+        description: "The attribute value increases."
+        annotations:
+          rosetta_prefix: "increased"
+          fcm_sign: positive
+      decreased:
+        description: "The attribute value decreases."
+        annotations:
+          rosetta_prefix: "decreased"
+          fcm_sign: negative
+      present:
+        description: "The entity or attribute is present (binary state)."
+        annotations:
+          rosetta_prefix: "presence of"
+          fcm_sign: positive
+      absent:
+        description: "The entity or attribute is absent (binary state)."
+        annotations:
+          rosetta_prefix: "absence of"
+          fcm_sign: negative
+      introduced:
+        description: "The entity has been introduced to the system (invasion, reintroduction)."
+        annotations:
+          rosetta_prefix: "introduction of"
+          fcm_sign: positive
+      removed:
+        description: "The entity has been removed from the system (extirpation, management removal)."
+        annotations:
+          rosetta_prefix: "removal of"
+          fcm_sign: negative
+      unchanged:
+        description: "The attribute did not change (control, null result, baseline)."
+        annotations:
+          rosetta_prefix: ""
+          fcm_sign: neutral
+      unspecified:
+        description: "Direction of change is not specified in the text."
+        annotations:
+          rosetta_prefix: ""
+          fcm_sign: neutral
+
+  NodeEntityTypeEnum:
+    description: >-
+      The type of ecological entity at the core of a node, following ELMO's
+      distinction between environmental variables and environmental processes.
+      This classification determines how the node's attribute and direction
+      are interpreted.
+    permissible_values:
+      environmental_variable:
+        description: >-
+          A measurable aspect of ecosystem state at a point in time. Examples:
+          bare soil cover, species abundance, soil pH, canopy height,
+          phylogenetic diversity. Corresponds to "state variables" in
+          ecological modeling (Jørgensen and Fath 2011; Palmeri et al. 2013).
+        meaning: BFO:0000019
+      environmental_process:
+        description: >-
+          A process that changes the state of an ecosystem over time. Examples:
+          prescribed burning, sod translocation, nitrogen deposition,
+          competitive exclusion, trophic cascade. Corresponds to "flows" in
+          ecological modeling.
+        meaning: BFO:0000015
+      management_intervention:
+        description: >-
+          A deliberate human action intended to change an ecological outcome.
+          A subtype of environmental_process with an implied human agent.
+          Examples: invasive species removal, prescribed fire, seeding,
+          hydrological restoration.
+        meaning: elmo_cas:ConservationAction
+
+  # ---------------------------------------------------------------------------
+  # Node categories (Biolink-aligned)
+  # ---------------------------------------------------------------------------
+
+  NodeCategoryEnum:
+    description: >-
+      Biolink-compatible categories for causal nodes, extended with
+      ecology-specific types.
+    permissible_values:
+      biological_process:
+        meaning: biolink:BiologicalProcess
+      environmental_process:
+        meaning: biolink:EnvironmentalProcess
+      chemical_exposure:
+        meaning: biolink:ChemicalExposure
+      environmental_exposure:
+        meaning: biolink:EnvironmentalExposure
+      organism_taxon:
+        meaning: biolink:OrganismTaxon
+      population:
+        meaning: causal_mosaic:Population
+      community:
+        meaning: causal_mosaic:EcologicalCommunity
+      ecosystem:
+        meaning: causal_mosaic:Ecosystem
+      phenotypic_feature:
+        meaning: biolink:PhenotypicFeature
+      molecular_activity:
+        meaning: biolink:MolecularActivity
+      management_intervention:
+        meaning: causal_mosaic:ManagementIntervention
+        annotations:
+          egm_role: intervention
+          description: >-
+            A deliberate human action intended to change an ecological outcome.
+            Maps to the 'intervention' axis of evidence gap maps.
+      ecological_outcome:
+        meaning: causal_mosaic:EcologicalOutcome
+        annotations:
+          egm_role: outcome
+          description: >-
+            A measurable ecological state or change. Maps to the 'outcome'
+            axis of evidence gap maps.
+      abiotic_factor:
+        meaning: causal_mosaic:AbioticFactor
+      disturbance_event:
+        meaning: causal_mosaic:DisturbanceEvent
+      land_use:
+        meaning: causal_mosaic:LandUse
+      policy:
+        meaning: causal_mosaic:Policy
+      named_thing:
+        meaning: biolink:NamedThing
+
+  # ---------------------------------------------------------------------------
+  # Document section (for RAG retrieval)
+  # ---------------------------------------------------------------------------
+
+  DocumentSectionEnum:
+    permissible_values:
+      title:
+        description: "Paper title."
+      abstract:
+        description: "Abstract."
+      introduction:
+        description: "Introduction or background."
+      methods:
+        description: "Methods or materials section."
+      results:
+        description: "Results section."
+      discussion:
+        description: "Discussion section."
+      conclusion:
+        description: "Conclusion."
+      supplementary:
+        description: "Supplementary materials."
+
+  # ---------------------------------------------------------------------------
+  # Rendering targets
+  # ---------------------------------------------------------------------------
+
+  RenderingTargetEnum:
+    description: >-
+      The downstream rendering formats this graph can be projected into.
+      Each target consumes specific subsets of the annotation layers.
+    permissible_values:
+      rosetta_statement:
+        description: >-
+          Template-based natural language statement. Consumes: nodes, predicate,
+          claim_strength, certainty_grade, causal_features (mediation, strength,
+          context_dependence), and rosetta_template annotations on predicates.
+      fuzzy_cognitive_map:
+        description: >-
+          Weighted directed graph for causal modeling. Consumes: nodes, predicate
+          sign, fcm_weight, direction, and aggregated edge weights.
+      evidence_gap_map:
+        description: >-
+          Intervention × outcome matrix with evidence counts. Consumes: nodes
+          with egm_role annotations, evidence_types, certainty_grade, and
+          source_document metadata.
+      causal_diagram:
+        description: >-
+          Visual DAG rendering. Consumes: nodes, edges, direction, mediation
+          pathways, and predicate sign.
+      rag_retrieval:
+        description: >-
+          Source text retrieval for question answering. Consumes: source_spans,
+          source_document, embedding_vector, and semantic metadata on nodes/edges.
+      practitioner_summary:
+        description: >-
+          Plain-language summary for land managers. Consumes: nodes, predicate,
+          certainty_grade, reversibility, context_dependence, and agency account
+          annotations.
+
+
+## =============================================================================
+## CLASSES
+## =============================================================================
+
+classes:
+
+  # ---------------------------------------------------------------------------
+  # Top-level graph container
+  # ---------------------------------------------------------------------------
+
+  CausalGraph:
+    description: >-
+      A labeled property graph of causal claims extracted from scientific
+      literature. The top-level container for nodes and edges.
+    tree_root: true
+    attributes:
+      graph_id:
+        description: "Unique identifier for this graph or sub-graph."
+        range: string
+        required: true
+        identifier: true
+      schema_version:
+        description: "Schema version for compatibility tracking."
+        range: string
+        required: true
+        ifabsent: string(0.4.0)
+      provenance:
+        description: "Provenance metadata for the graph."
+        range: GraphProvenance
+        required: true
+      nodes:
+        description: "All causal entities (causes, effects, mediators, moderators)."
+        range: CausalNode
+        multivalued: true
+        inlined_as_list: true
+        required: true
+      edges:
+        description: "All annotated causal relationships."
+        range: CausalEdge
+        multivalued: true
+        inlined_as_list: true
+        required: true
+
+  GraphProvenance:
+    description: "Provenance and metadata for a causal graph."
+    attributes:
+      ontology_framework:
+        range: string
+        ifabsent: string(ELMO + CAMO)
+      elm_version:
+        description: "Version of the Ecolink Model Ontology entity structure used."
+        range: string
+      causal_mosaic_version:
+        description: "Version of the CAMO annotation framework used."
+        range: string
+      annotation_guide_version:
+        range: string
+      created:
+        range: datetime
+      source_corpus:
+        description: "Description of the annotated corpus or literature set."
+        range: string
+      annotation_protocol:
+        description: "DOI or URL of the annotation protocol document."
+        range: uri
+      project:
+        description: "Project name (e.g., 'EcoWeaver', 'Grassland Systematic Map')."
+        range: string
+
+  # ---------------------------------------------------------------------------
+  # Nodes
+  # ---------------------------------------------------------------------------
+
+  CausalNode:
+    description: >-
+      A node in the labeled property graph representing a causally active
+      ecological entity — specifically, a CHANGE IN STATE of an environmental
+      variable or process. Merges ELMO's entity structure (Alamenciak et al.
+      2025) with CAMO's annotation requirements.
+
+      Key design principle: causation in ecology is always between changes in
+      state, not between things. A taxon does not cause anything; a change in
+      an attribute of a taxon does. Therefore each node decomposes into:
+
+        entity  →  what thing (taxon, chemical, abiotic factor, process)
+        attribute  →  what measurable property (abundance, cover, rate)
+        direction  →  which way it changed (increased, decreased, etc.)
+
+      The human-readable 'name' is the composed form: "Increased abundance
+      of Canis lupus". The structured fields allow decomposed querying:
+      "show me all claims involving Canis lupus" or "all claims about
+      abundance changes" or "all claims where abundance decreased."
+
+      This pattern corresponds to ELMO's subject/object value + derivative
+      qualifier + direction qualifier structure.
+    attributes:
+      id:
+        description: >-
+          Unique node identifier. Use ontology CURIEs where possible
+          (e.g., 'ENVO:01000253'). For novel entities, use pattern
+          'causal_mosaic:{snake_case_label}'.
+        range: uriorcurie
+        required: true
+        identifier: true
+      name:
+        description: >-
+          Human-readable composed label for the node. Should express the
+          full semantic content: "Increased wolf population abundance" or
+          "Prescribed burning process" or "Elevated soil nitrogen." This
+          is what appears in Rosetta Statements and graph visualizations.
+        range: string
+        required: true
+      categories:
+        description: "Biolink-compatible categories."
+        range: NodeCategoryEnum
+        multivalued: true
+      description:
+        description: "Free-text description as characterized in the source."
+        range: string
+      synonyms:
+        description: "Alternative names or labels for this entity."
+        range: string
+        multivalued: true
+
+      ## --- ELMO Entity Decomposition ---
+      ## These fields implement ELMO's qualifier pattern. Together they
+      ## decompose the node's semantic content into structured, queryable
+      ## components: entity_type + entity_term + variable_attribute +
+      ## variable_direction → composed name.
+
+      entity_type:
+        description: >-
+          Whether this node represents an environmental variable (state),
+          an environmental process (flow), or a management intervention.
+          Corresponds to ELMO's fundamental distinction between state
+          variables and processes (Palmeri et al. 2013).
+        range: NodeEntityTypeEnum
+
+      entity_term:
+        description: >-
+          The core ecological entity as an ontology CURIE. This is the
+          "what thing" — the taxon, chemical, abiotic factor, or process
+          class. Corresponds to ELMO's subject_value / object_value slot.
+          Examples: NCBITaxon:9612 (Canis lupus), CHEBI:24279
+          (glucosinolate), ENVO:01000253 (grassland).
+        range: uriorcurie
+        annotations:
+          note: >-
+            For taxa use NCBITaxon; for chemicals CHEBI; for environments
+            ENVO; for processes GO or ENVO process terms; for qualities PATO.
+
+      variable_attribute:
+        description: >-
+          The measurable attribute of the entity that participates in the
+          causal relationship. Corresponds to ELMO's derivative_qualifier slot.
+          Together with entity_term and variable_direction, forms the full
+          semantic content: "direction of attribute of entity."
+          Use PATO terms for qualities (abundance, density, cover, height),
+          GO terms for process rates, or free text if no ontology term exists.
+        range: uriorcurie
+        annotations:
+          examples: >-
+            PATO:0000070 (abundance), PATO:0000918 (width),
+            PATO:0000574 (density), PATO:0001019 (mass),
+            PATO:0000033 (concentration), PATO:0001708 (1-D extent/cover),
+            GO:0008150 (biological process for rates)
+
+      variable_direction:
+        description: >-
+          Direction of change in the attribute. Corresponds to ELMO's
+          direction_qualifier slot. Combined with entity_term and
+          variable_attribute to produce the node's full meaning:
+          e.g., entity=Canis lupus, attribute=abundance,
+          direction=increased → "increased abundance of Canis lupus."
+        range: VariableDirectionEnum
+
+      part_qualifiers:
+        description: >-
+          Additional entities that are compositional parts of this node's
+          meaning. Corresponds to ELMO's part_qualifier slots. Used when
+          the variable requires reference to multiple entities. For example,
+          phylogenetic distance between two taxa, or competitive interaction
+          between two species. Each part qualifier is an ontology CURIE.
+        range: uriorcurie
+        multivalued: true
+        annotations:
+          elm_correspondence: "part_qualifier_1, part_qualifier_2"
+          examples: >-
+            For "phylogenetic distance between Quercus rubra and Acer
+            saccharum": entity_term = some distance metric,
+            part_qualifiers = [NCBITaxon:3760, NCBITaxon:4023]
+
+      ecosystem_context:
+        description: >-
+          Ecosystem type or ecological setting constraining the node meaning.
+          Mirrors ELMO's ecosystem-context qualifier pattern for node-local
+          grounding.
+        range: uriorcurie
+        multivalued: true
+        annotations:
+          elm_correspondence: ecosystem_context_qualifier
+          examples: "elmo:elmo_3620249, ENVO:01000180"
+
+      ## --- Ontology Grounding ---
+
+      source_spans:
+        description: "Text spans grounding this node in the source document."
+        range: TextSpan
+        multivalued: true
+        inlined_as_list: true
+      ontology_mappings:
+        description: >-
+          Cross-references to domain ontologies via SSSOM-style mappings.
+          These are additional mappings beyond entity_term. For example,
+          if entity_term maps to NCBITaxon, an ontology_mapping might
+          cross-reference to a functional trait database or IUCN Red List.
+        range: OntologyMapping
+        multivalued: true
+        inlined_as_list: true
+
+      ## --- Evidence Gap Map support ---
+      egm_intervention_category:
+        description: >-
+          For nodes with entity_type ManagementIntervention: the high-level
+          intervention category for EGM row grouping. E.g., 'invasive species
+          removal', 'prescribed fire', 'seeding', 'hydrological restoration'.
+        range: string
+      egm_outcome_category:
+        description: >-
+          For outcome nodes: the high-level outcome category for EGM column
+          grouping. E.g., 'species richness', 'vegetation cover', 'soil
+          properties', 'ecosystem function'.
+        range: string
+
+      ## --- RAG support ---
+      embedding_text:
+        description: >-
+          Concatenated text used for generating the embedding vector.
+          Typically: name + description + synonym list.
+        range: string
+      embedding_vector:
+        description: >-
+          Pre-computed embedding vector for RAG retrieval. Stored as
+          serialized float array. Generated by the indexing pipeline,
+          not by annotators.
+        range: string
+        annotations:
+          note: "Serialized float32 array; decode with numpy/arrow"
+
+  OntologyMapping:
+    description: "SSSOM-style mapping to a domain ontology term."
+    attributes:
+      ontology:
+        description: "Ontology prefix: ENVO, CHEBI, NCBITaxon, GO, PATO, etc."
+        range: string
+        required: true
+      curie:
+        description: "CURIE identifier (e.g., 'ENVO:01000253')."
+        range: uriorcurie
+        required: true
+      label:
+        description: "Human-readable label from the ontology."
+        range: string
+      mapping_justification:
+        description: "SSSOM mapping justification."
+        range: string
+      mapping_confidence:
+        description: "Confidence score 0.0-1.0."
+        range: float
+        minimum_value: 0.0
+        maximum_value: 1.0
+
+  # ---------------------------------------------------------------------------
+  # Text grounding
+  # ---------------------------------------------------------------------------
+
+  TextSpan:
+    description: "A span of text in the source document, for provenance and RAG."
+    attributes:
+      text:
+        description: "Verbatim text."
+        range: string
+        required: true
+      start_char:
+        description: "Character offset start in source document."
+        range: integer
+      end_char:
+        description: "Character offset end."
+        range: integer
+      sentence_id:
+        description: "Sentence identifier."
+        range: string
+      paragraph_id:
+        description: "Paragraph identifier."
+        range: string
+
+  # ---------------------------------------------------------------------------
+  # Source document (for RAG and EGM)
+  # ---------------------------------------------------------------------------
+
+  SourceDocument:
+    description: >-
+      Bibliographic metadata and study-level context for the source document.
+      Supports RAG retrieval, evidence gap map construction, and spatiotemporal
+      analysis of the evidence base. Spatial fields enable map-based evidence
+      visualization and proximity-weighted retrieval. Temporal fields enable
+      tracking of when evidence was collected and whether causal relationships
+      vary over time.
+    attributes:
+      doi:
+        range: string
+      pmid:
+        range: string
+      title:
+        range: string
+      authors:
+        range: string
+        multivalued: true
+      year:
+        range: integer
+        description: "Publication year."
+      journal:
+        range: string
+      section:
+        description: "Section of the paper where the claim appears."
+        range: DocumentSectionEnum
+
+      ## --- Spatial context ---
+
+      study_location:
+        description: >-
+          Human-readable geographic location of the study. Free text for
+          findability: "Pinery Provincial Park, Ontario, Canada" or
+          "Yellowstone National Park, Wyoming, USA."
+        range: string
+      study_site:
+        description: >-
+          Structured spatial coordinates for the study site. Enables
+          map-based evidence gap maps, proximity-weighted retrieval
+          ("show me evidence from sites near mine"), and spatial analysis
+          of where causal relationships have been tested.
+        range: StudySite
+        inlined: true
+      study_sites:
+        description: >-
+          Multiple study sites, if the paper reports results from more
+          than one location. Each site has its own coordinates and
+          optional name. Use this instead of study_site for multi-site
+          studies. If both are provided, study_sites takes precedence.
+        range: StudySite
+        multivalued: true
+        inlined_as_list: true
+
+      ## --- Temporal context ---
+
+      study_period_start:
+        description: >-
+          Start date of data collection. Not the publication date — when
+          the fieldwork or measurements actually began. ISO 8601 format.
+          Can be year-only (2015), year-month (2015-06), or full date
+          (2015-06-15). For paleontological or historical ecology studies,
+          use negative years or descriptive text in study_temporal_note.
+        range: string
+        annotations:
+          format: "ISO 8601 (YYYY, YYYY-MM, or YYYY-MM-DD)"
+          examples: "2015, 2015-06, 2015-06-15"
+      study_period_end:
+        description: >-
+          End date of data collection. Same format as study_period_start.
+        range: string
+        annotations:
+          format: "ISO 8601 (YYYY, YYYY-MM, or YYYY-MM-DD)"
+      study_duration_months:
+        description: >-
+          Duration of the study in months. Computed from start/end if
+          both are provided, or entered directly if the paper reports
+          duration without specific dates. Useful for filtering: "show
+          me only studies with at least 24 months of monitoring."
+        range: float
+      study_temporal_note:
+        description: >-
+          Free-text note for temporal context that doesn't fit structured
+          fields. E.g., "data collected over three growing seasons",
+          "historical records from 1850-1950", "pollen core spanning
+          6,700 years."
+        range: string
+
+      ## --- Ecological context ---
+
+      study_ecosystem:
+        description: >-
+          Ecosystem type, ideally mapped to IUCN GET typology.
+          E.g., "T4.4 Temperate woodlands" or ENVO:01000180.
+        range: string
+      study_taxa:
+        description: "Focal taxa of the study."
+        range: string
+        multivalued: true
+      study_design:
+        description: "Study design classification for EGM quality assessment."
+        range: EvidenceTypeEnum
+      study_sample_size:
+        description: >-
+          Sample size or replication level reported in the study.
+          Free text: "n = 12 plots per treatment", "47 studies", "182 survey respondents."
+        range: string
+
+  StudySite:
+    description: >-
+      Structured spatial representation of a study site. At minimum,
+      provide latitude and longitude as a centroid. Optionally provide
+      a bounding box for larger study areas, a site name, and elevation.
+      Coordinates should be in WGS 84 (EPSG:4326), which is what GPS
+      devices and most ecology papers report.
+    attributes:
+      site_name:
+        description: >-
+          Human-readable name for the study site. E.g., "Pinery Provincial
+          Park Plot A" or "Lake Erie coastal wetland site 3."
+        range: string
+      latitude:
+        description: >-
+          Latitude of the study site centroid in decimal degrees (WGS 84).
+          Positive = North, negative = South. E.g., 43.2642 for southern
+          Ontario.
+        range: float
+        minimum_value: -90.0
+        maximum_value: 90.0
+      longitude:
+        description: >-
+          Longitude of the study site centroid in decimal degrees (WGS 84).
+          Positive = East, negative = West. E.g., -81.7567 for southern
+          Ontario.
+        range: float
+        minimum_value: -180.0
+        maximum_value: 180.0
+      elevation_m:
+        description: >-
+          Elevation of the study site in metres above sea level, if
+          reported. Useful for montane and altitudinal gradient studies.
+        range: float
+      coordinate_uncertainty_m:
+        description: >-
+          Uncertainty radius in metres around the centroid coordinates.
+          If the paper reports coordinates to the nearest minute (~1850m)
+          vs. second (~30m) vs. high-precision GPS (~5m), this field
+          captures that. Follows Darwin Core dwc:coordinateUncertaintyInMeters.
+        range: float
+      bbox_north:
+        description: "Northern boundary of study area bounding box (decimal degrees)."
+        range: float
+      bbox_south:
+        description: "Southern boundary of study area bounding box (decimal degrees)."
+        range: float
+      bbox_east:
+        description: "Eastern boundary of study area bounding box (decimal degrees)."
+        range: float
+      bbox_west:
+        description: "Western boundary of study area bounding box (decimal degrees)."
+        range: float
+      country:
+        description: "Country of the study site. ISO 3166-1 alpha-2 code preferred (CA, US, AU, etc.)."
+        range: string
+      admin_region:
+        description: >-
+          Administrative region (state, province, territory). E.g.,
+          "Ontario", "Wyoming", "Queensland."
+        range: string
+
+  TemporalExtent:
+    description: >-
+      The temporal window over which a causal effect was observed or
+      measured. Distinct from the study period (when was fieldwork done):
+      this captures the timescale of the causal relationship itself.
+      For example, a study conducted from 2015-2020 might report that
+      invasive removal led to native recovery "within three growing
+      seasons" — the study period is 5 years, but the temporal extent
+      of the causal effect is 3 growing seasons (~18 months).
+      
+      This is important for practitioners who need to know how long
+      to wait for results, and for meta-analysts investigating whether
+      effect sizes vary with observation duration.
+    attributes:
+      duration_months:
+        description: >-
+          Duration of the observed causal effect in months. E.g., 36
+          for "within three years", 6 for "one growing season."
+        range: float
+      duration_text:
+        description: >-
+          Free-text description of the temporal extent as stated in the
+          source. E.g., "within three growing seasons", "over a 20-year
+          period", "immediately following treatment."
+        range: string
+      lag_months:
+        description: >-
+          Time lag between the cause and the onset of the effect, in
+          months. E.g., if invasive removal happens in year 0 and
+          native recovery begins in year 2, lag = 24. Null if the
+          effect is immediate or lag is not reported.
+        range: float
+      observation_grain:
+        description: >-
+          The temporal grain at which the effect was measured. E.g.,
+          "daily", "monthly", "seasonal", "annual", "decadal." Affects
+          interpretability — a relationship detected at annual grain
+          may not hold at daily grain.
+        range: string
+        annotations:
+          examples: "daily, weekly, monthly, seasonal, annual, decadal, centennial"
+      observation_seasons:
+        description: >-
+          Seasons during which the effect was observed, if seasonally
+          restricted. E.g., ["spring", "summer"] for a growing-season
+          study. Important for context-dependent effects that may not
+          hold year-round.
+        range: string
+        multivalued: true
+
+  # ---------------------------------------------------------------------------
+  # Edges — the core annotation unit
+  # ---------------------------------------------------------------------------
+
+  CausalEdge:
+    description: >-
+      An edge in the labeled property graph representing a causal relationship.
+      Carries all four annotation layers as properties:
+        Layer 1: Claim strength and linguistic expression
+        Layer 2: Philosophical account classification
+        Layer 3: Fifteen causal features
+        Layer 4: Evidential basis
+      Plus rendering metadata for each downstream target.
+    attributes:
+      id:
+        description: "Unique edge identifier."
+        range: string
+        required: true
+        identifier: true
+      subject:
+        description: "Node ID of the cause entity."
+        range: CausalNode
+        required: true
+      predicate:
+        description: "Edge type from controlled vocabulary."
+        range: CausalPredicateEnum
+        required: true
+      object:
+        description: "Node ID of the effect entity."
+        range: CausalNode
+        required: true
+      negated:
+        description: "True if the claim is that the relationship does NOT hold."
+        range: boolean
+        ifabsent: boolean(false)
+
+      ## ---- Layer 1: Claim Strength & Linguistic Expression ----
+
+      claim_strength:
+        description: "How strong is the causal language used?"
+        range: ClaimStrengthEnum
+        required: true
+      causal_connective:
+        description: >-
+          The linguistic trigger or connective that signals causation.
+          E.g., 'because', 'leads to', 'mechanism by which'.
+        range: TextSpan
+        inlined: true
+      original_sentence:
+        description: >-
+          The full original sentence(s) from which this edge was extracted.
+          Preserved for RAG retrieval and rendering validation.
+        range: string
+
+      ## ---- ELMO Statement Context Qualifiers ----
+      ## These correspond to ELMO's statement qualifier slots that apply to
+      ## the entire association, providing the context in which the causal
+      ## claim was observed or studied. They complement Layer 3's
+      ## context_dependence feature, which captures scope conditions stated
+      ## in the text; these qualifiers capture structured study metadata.
+
+      process_context:
+        description: >-
+          The ecological or management process during which this causal
+          relationship was observed. Corresponds to ELMO's
+          process_context_qualifier slot. Use ontology CURIEs from ENVO
+          or GO process terms. E.g., ENVO:01001332 (sod translocation),
+          GO:0009636 (response to toxic substance).
+        range: uriorcurie
+        annotations:
+          elm_correspondence: process_context_qualifier
+          examples: "ENVO:01001332, GO:0009636, elmo:elmo_3621036"
+
+      ecosystem_context:
+        description: >-
+          The ecosystem type in which this causal relationship was observed.
+          Corresponds to ELMO's ecosystem_context_qualifier slot. Should be
+          a subclass of ecosystem functional group, ideally from IUCN GET
+          typology as represented in ENVO. E.g., 'T4.4 Temperate woodlands'
+          or ENVO:01000180 (grassland ecosystem).
+        range: uriorcurie
+        annotations:
+          elm_correspondence: ecosystem_context_qualifier
+          examples: "ENVO:01000180, ENVO:01000253, IUCN-GET:T4.4"
+
+      conditioned_by:
+        description: >-
+          Environmental variables or processes that condition (moderate,
+          dampen, or enhance) this causal relationship. Corresponds to
+          ELMO's conditioned_by_qualifier slot, which mimics the concept
+          of "forcing functions" from ecological modeling (Jørgensen and
+          Fath 2011). These are variables that have a meaningful impact
+          on the association but are not on the causal pathway (those go
+          in the moderation annotation in Layer 3 instead). Can reference
+          node IDs in this graph or ontology CURIEs.
+        range: uriorcurie
+        multivalued: true
+        annotations:
+          elm_correspondence: conditioned_by_qualifier
+          examples: "node:soil_moisture, ENVO:01000335"
+
+      ## ---- Layer 2: Philosophical Account ----
+
+      philosophical_accounts:
+        description: >-
+          Which philosophical account(s) of causation does this claim invoke?
+          A claim may invoke multiple accounts simultaneously.
+        range: PhilosophicalAccountEnum
+        multivalued: true
+        required: true
+      account_families:
+        description: "High-level family grouping(s)."
+        range: AccountFamilyEnum
+        multivalued: true
+
+      ## ---- Layer 3: Causal Features (15 features) ----
+
+      necessity:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:necessity
+      sufficiency:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:sufficiency
+      direction:
+        range: DirectionAnnotation
+        inlined: true
+        slot_uri: camo:direction
+      temporal_ordering:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:temporal_ordering
+      mediation:
+        range: MediationAnnotation
+        inlined: true
+        slot_uri: camo:mediation
+      moderation:
+        range: ModerationAnnotation
+        inlined: true
+        slot_uri: camo:moderation
+      strength:
+        range: StrengthAnnotation
+        inlined: true
+        slot_uri: camo:strength
+      specificity:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:specificity
+      stability:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:stability
+      token_or_type:
+        range: TokenTypeEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:token_or_type
+      determinism:
+        range: DeterminismEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:determinism
+      proximate_distal:
+        range: ProximateDistalEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:proximate_distal
+      contributing_sole:
+        range: ContributingSoleEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:contributing_sole
+      reversibility:
+        range: ReversibilityEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:reversibility
+      proportionality:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+        slot_uri: camo:proportionality
+      context_dependence:
+        range: ContextAnnotation
+        inlined: true
+
+      ## ---- Layer 4: Evidential Basis ----
+
+      evidential_basis:
+        range: EvidentialBasis
+        inlined: true
+
+      ## ---- FCM / Causal Modeling support ----
+
+      fcm_weight:
+        description: >-
+          Numeric edge weight for Fuzzy Cognitive Map rendering. Range: -1.0
+          (strong negative) to +1.0 (strong positive). Derived from predicate
+          sign, claim_strength, and strength annotation. Can be overridden
+          by expert elicitation.
+        range: float
+        minimum_value: -1.0
+        maximum_value: 1.0
+      fcm_weight_source:
+        description: "How the FCM weight was determined."
+        range: string
+        annotations:
+          examples: "derived_from_schema, expert_elicitation, meta_analysis_effect_size"
+
+      ## ---- Spatiotemporal Extent of the Causal Effect ----
+
+      temporal_extent:
+        description: >-
+          The temporal window over which this causal effect was observed.
+          Distinct from the study period in source_document (when fieldwork
+          was done): this captures the timescale of the causal relationship
+          itself. E.g., "native recovery occurred within three growing
+          seasons of invasive removal." Enables filtering by effect
+          duration and analysis of whether effect sizes vary with
+          observation window.
+        range: TemporalExtent
+        inlined: true
+
+      ## ---- Provenance ----
+
+      source_spans:
+        description: "Text spans grounding this edge."
+        range: TextSpan
+        multivalued: true
+        inlined_as_list: true
+        required: true
+      source_document:
+        range: SourceDocument
+        inlined: true
+      annotator:
+        description: "Annotator identifier (human ORCID or model ID)."
+        range: string
+      annotation_confidence:
+        description: "Annotator confidence in the overall annotation, 0.0-1.0."
+        range: float
+        minimum_value: 0.0
+        maximum_value: 1.0
+      annotation_timestamp:
+        range: datetime
+      annotation_notes:
+        description: "Free-text notes from the annotator about this edge."
+        range: string
+
+  # ---------------------------------------------------------------------------
+  # Feature sub-structures (inlined in CausalEdge)
+  # ---------------------------------------------------------------------------
+
+  DirectionAnnotation:
+    description: "Direction and asymmetry of the causal relationship."
+    attributes:
+      status:
+        range: DirectionStatusEnum
+        ifabsent: string(not_addressed)
+      evidence_for_direction:
+        range: DirectionEvidenceEnum
+
+  MediationAnnotation:
+    description: "Whether a mediating pathway is identified between cause and effect."
+    attributes:
+      status:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+      mediator_node_ids:
+        description: >-
+          Node IDs of mediating entities. These should also appear as separate
+          nodes in the graph with their own edges.
+        range: uriorcurie
+        multivalued: true
+      pathway_description:
+        description: "Free-text description of the mediating pathway."
+        range: string
+
+  ModerationAnnotation:
+    description: "Whether effect modification by a third variable is noted."
+    attributes:
+      status:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+      moderator_node_ids:
+        description: "Node IDs of moderating entities."
+        range: uriorcurie
+        multivalued: true
+      interaction_type:
+        range: InteractionTypeEnum
+
+  StrengthAnnotation:
+    description: "Effect size, magnitude, or dose-response characterization."
+    attributes:
+      status:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+      quantitative_value:
+        description: "Effect size as reported: 'RR = 2.0', 'd = 0.8', '60% reduction'."
+        range: string
+      quantitative_numeric:
+        description: >-
+          Numeric value extracted for computation (e.g., FCM weight derivation).
+          Use the primary effect size; specify the metric in quantitative_value.
+        range: float
+      qualitative_descriptor:
+        range: StrengthQualitativeEnum
+      dose_response:
+        description: "Is a dose-response or gradient relationship described?"
+        range: boolean
+        ifabsent: boolean(false)
+
+  ContextAnnotation:
+    description: "Scope conditions or enabling conditions for the causal relationship."
+    attributes:
+      status:
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+      scope_conditions:
+        description: >-
+          Named conditions under which the relationship holds. E.g., 'in acidic
+          soils', 'at elevations above 2000m', 'in temperate grasslands'.
+        range: string
+        multivalued: true
+      geographic_scope:
+        description: "Geographic scope of the claim."
+        range: string
+      temporal_scope:
+        description: "Temporal scope of the claim."
+        range: string
+      ecosystem_scope:
+        description: "Ecosystem type scope, ideally mapped to IUCN GET."
+        range: string
+
+  # ---------------------------------------------------------------------------
+  # Evidential Basis (Layer 4)
+  # ---------------------------------------------------------------------------
+
+  EvidentialBasis:
+    description: >-
+      Operationalizes Illari's type/object distinction and the Russo-Williamson
+      Thesis. Tracks what kinds of evidence support the claim and whether
+      evidential pluralism criteria are met.
+    attributes:
+      evidence_types:
+        description: "TYPE of evidence: what kind of study or reasoning."
+        range: EvidenceTypeEnum
+        multivalued: true
+      evidence_objects:
+        description: >-
+          OBJECT of evidence: whether it supports correlation, mechanism, or
+          both. Per the Russo-Williamson Thesis.
+        range: EvidenceObjectEnum
+        multivalued: true
+      russo_williamson_satisfied:
+        description: >-
+          Does the evidence base include BOTH difference-making AND production
+          evidence? True = evidential pluralism criterion met.
+        range: boolean
+      bradford_hill_viewpoints:
+        description: "Which of Bradford Hill's nine viewpoints does the evidence address?"
+        range: BradfordHillViewpointEnum
+        multivalued: true
+      bradford_hill_count:
+        description: >-
+          Count of Bradford Hill viewpoints addressed. Useful for evidence gap
+          map shading and meta-analysis.
+        range: integer
+        minimum_value: 0
+        maximum_value: 9
+      certainty_grade:
+        description: >-
+          GRADE-style certainty. Controls verb modifiers in Rosetta Statement
+          rendering: high='increases', moderate='probably increases',
+          low='may increase', very_low='might increase'.
+        range: CertaintyGradeEnum
+        ifabsent: string(not_assessed)
+      certainty_rationale:
+        description: "Brief rationale for the certainty assessment."
+        range: string
+      evidence_count:
+        description: "Number of independent studies supporting this claim."
+        range: integer

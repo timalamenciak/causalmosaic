@@ -104,7 +104,7 @@ ELMO is an application ontology that describes ecosystem management processes, e
 
 **Environmental variables and processes.** ELMO contains terms for common environmental variables (state variables like soil moisture, canopy cover, species abundance) and environmental processes (flows like nitrogen deposition, competitive exclusion, prescribed burning). When annotating nodes, look for an ELMO term first. If one exists, use it as the `entity_term`.
 
-**The ELM qualifier pattern.** ELMO implements the Ecolink Model (ELM) pattern for decomposing ecological relationships into entity + measurable attribute + direction of change, with qualifier slots for ecosystem context, process context, and conditioning variables. This is the structural pattern you will use for every node.
+**The ELM qualifier pattern.** ELMO implements the Ecolink Model (ELM) pattern for decomposing ecological relationships into entity + measurable attribute + state/change qualifier, with qualifier slots for ecosystem context, process context, and conditioning variables. This is the structural pattern you will use for every node.
 
 ### 3.2 CAMO — The Causal Mosaic Ontology
 
@@ -221,7 +221,7 @@ Common attributes:
 | Mass/Biomass | `PATO:0001019` | Above-ground biomass, body mass |
 | Density | `PATO:0000574` | Stem density, population density |
 
-**variable_direction** — Which way did the attribute change? Choose one:
+**state_or_change_qualifier** — What state or change qualifies the attribute? Choose one:
 
 | Value | Use When | Rosetta Prefix |
 |---|---|---|
@@ -259,18 +259,18 @@ Assign one or more categories from the controlled vocabulary. These are compatib
 
 ### 5.5 Evidence Gap Map Support
 
-If a node represents a **management intervention** (something managers do), fill in `egm_intervention_category` with a high-level label like "invasive species removal" or "prescribed fire."
+Evidence gap map groupings are inferred from ontology terms and node categories rather than entered manually.
 
-If a node represents an **ecological outcome** (something we measure), fill in `egm_outcome_category` with a high-level label like "species richness" or "vegetation cover."
+If a node represents a **management intervention** or an **ecological outcome**, make sure `entity_term`, `variable_attribute`, `entity_type`, and `categories` are as accurate as possible. Downstream tooling can use these ontology-grounded fields to infer intervention and outcome groupings.
 
-These fields are used to build evidence gap maps — matrices showing which intervention-outcome combinations have been studied and which have not.
+External crosswalks between ontology terms and evidence gap map groupings should be maintained outside article annotations, for example as SSSOM files.
 
 ### 5.6 Step-by-Step: How to Annotate a Node
 
 1. **Read the sentence or passage** that introduces the ecological entity.
 2. **Identify the entity.** What thing is being discussed? A species? A chemical? An abiotic factor? A management action?
 3. **Identify the attribute.** What measurable property is relevant? Abundance? Cover? Concentration? Biomass?
-4. **Identify the direction of change.** Did it increase, decrease, appear, disappear, or is the direction unspecified?
+4. **Identify the state/change qualifier.** Did it increase, decrease, appear, disappear, remain unchanged, or is the qualifier unspecified?
 5. **Compose the name** using the pattern: "[Direction] [attribute] of [entity]." For example: "Increased abundance of *Andropogon gerardii*."
 6. **Look up the ontology terms** for the entity and attribute. Record them as CURIEs.
 7. **Fill in context qualifiers** if the passage specifies an ecosystem, process, or conditioning variable.
@@ -782,8 +782,9 @@ Record bibliographic metadata for the source paper:
 | `year` | Publication year |
 | `journal` | Journal name |
 | `section` | Which section of the paper the claim comes from (abstract, results, discussion, etc.) |
-| `study_location` | Where the study was conducted (free text) |
-| `study_site` | Structured coordinates (latitude, longitude, country, etc.) |
+| `study_country` | Country or countries where the study was conducted; separate multiple countries with semicolons |
+| `study_state_or_province` | State, province, territory, or comparable region; separate multiple regions with semicolons |
+| `study_coordinates` | Structured coordinate set or sets; use one entry per reported centroid or bounded study area |
 | `study_period_start` / `study_period_end` | When data was collected |
 | `study_ecosystem` | Ecosystem type |
 | `study_design` | Study design classification |
@@ -851,14 +852,14 @@ Let us walk through annotating one edge in detail, using the sample data from a 
 - entity_type: `environmental_variable`
 - entity_term: `ENVO:00010165` (light)
 - variable_attribute: PAR in mol/m²/day
-- variable_direction: `increased`
+- state_or_change_qualifier: `increased`
 
 **Target node:** Native Grass Growth
 
 - entity_type: `biological_process`
 - entity_term: `GO:0009056` (growth)
 - variable_attribute: above-ground grass biomass in g/m²
-- variable_direction: `increased`
+- state_or_change_qualifier: `increased`
 
 ### 13.3 Annotating the Edge
 
@@ -1056,9 +1057,9 @@ Stay at "moderate"
 | moderates | mod | 0.0 | "{subject} moderates the relationship with {object}" |
 | precedes | time | 0.0 | "{subject} precedes {object}" |
 
-### 16.2 Variable Direction Quick Reference
+### 16.2 State/Change Qualifier Quick Reference
 
-| Direction | Use When | FCM Sign |
+| Qualifier | Use When | FCM Sign |
 |---|---|---|
 | increased | Attribute went up | + |
 | decreased | Attribute went down | − |
@@ -1067,7 +1068,7 @@ Stay at "moderate"
 | introduced | Entity introduced to system | + |
 | removed | Entity removed from system | − |
 | unchanged | No change (control/baseline) | neutral |
-| unspecified | Direction not stated | neutral |
+| unspecified | State/change qualifier not stated | neutral |
 
 ### 16.3 Certainty Grade Summary
 
@@ -1284,7 +1285,7 @@ The recommended workflow has four stages:
 After receiving LLM output, walk through this checklist for every edge:
 
 - [ ] **Source spans verified.** Every `text` field in `source_spans` is a verbatim quote from the paper (not paraphrased).
-- [ ] **Ontology CURIEs verified.** Every `entity_term`, `variable_attribute`, and ontology mapping has been checked against an ontology browser.
+- [ ] **Ontology CURIEs verified.** Every `entity_term` and `variable_attribute` has been checked against an ontology browser.
 - [ ] **Claim strength matches author language.** Re-read the source sentence and confirm the verb/hedge level matches the assigned `claim_strength`.
 - [ ] **Philosophical accounts match text framing.** Cross-check against linguistic cues (Section 8.2).
 - [ ] **Causal features are text-grounded.** For every feature coded as anything other than `not_addressed`, confirm the paper explicitly or clearly implicitly supports that coding.
@@ -1607,7 +1608,6 @@ Build a Python CLI tool called `validate_curies.py` that:
    - ecosystem_context
    - process_context
    - conditioned_by
-   - ontology_mappings[].curie
 3. Groups CURIEs by prefix (NCBITaxon, ENVO, CHEBI, GO, PATO, etc.).
 4. Validates each CURIE against the appropriate API:
    - NCBITaxon: use NCBI E-utilities (esummary on taxonomy database)
