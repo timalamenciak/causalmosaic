@@ -2,10 +2,107 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.6.0 -> 0.7.0 changes
+
+### Detailed changes
+- Standardized `EvidenceTypeEnum` values to use ECO IRIs.
+  - Rationale: Ensures interoperability with community ontologies (ECO, SEPIO, RO), eliminates custom IRI drift, and supports semantic validation across tools.
+- Changed `variable_attribute` to `measured_attribute` for clarity.
+- Removed `conditioned_by` from `CausalEdge` and subsumed under `ContextAnnotation.scope_conditions`
+  - Rationale: Removes duplication between CausalEdge.conditioned_by and ContextAnnotation.scope_conditions, while expanding scope_conditions to accept both node IDs and ontology terms — critical for modeling context dependence in ecology.
+- Added `evidential_basis` to `EvidenceBaseAssessmentEdge`
+    - Rationale: Aligns EvidenceBaseAssessmentEdge with CausalEdge.evidential_basis, ensuring consistent layer 4 modeling and reducing downstream confusion.
+- Added process-based terms to `StateOrChangeQualifierEnum` to capture that.
+  - Rationale: Maintaining semantic accuracy.
+  
+
+
+## 0.4.2 -> 0.6.0 changes
+
+### New annotation
+- `loom_role:` added to several fields. This has the values: 
+    - `hidden` - hidden from annotators.
+    - `collapsed` - Starts off collapsed in the annotation form but can be revealed and entered.
+    - `calculated` - Loom should auto calculate a value to suggest here.
+    - `auto_generated` - Loom should auto generate a value and not allow users to edit this field.
+
+### Detailed changes
+
+- Removed `study_taxa` from `SourceDocument`
+  - Rationale: This duplicates information contained in the `CausalNode`. Ultimately
+    we only care about the species for which causal claims were made, not all species
+    in a particular article.
+- Removed `study_ecosystem` from `SourceDocument`
+  - Rationale: This duplicates information contained in the `CausalEdge`. Again, if 
+    we decide this is important, we can roll up information from the edges to the `SourceDocument`.
+- Commented out `conditioned_by` slot on `CausalEdge`
+  - Rationale: This could be surfaced in mediation analyses but I think is an unspecific
+    way of discussing context-specific variables like ecosystem type, time, etc. It also may
+    be better to include these as a node in an INUS or probabilistic relationship.
+- Removed `account_families` on `CausalEdge` 
+  - Rationale: This can be inferred from the `philosophical_accounts` enum. Kept `AccountFamilyEnum` 
+    as it may be used to resolve the annotation `family:`
+- Removed `description` from `CausalNode`
+  - Rationale: Name and text span are sufficient.
+- Added `required: true` to `CausalNode` `entity_term`.
+  - Rationale: A node needs an entity.
+- Removed `synonyms` from `CausalNode`
+  - Rationale: Synonyms are handled at the ontology level, and by WikiData content negotiation. 
+    It may be sensible to pull those in, but not necessary as a graph attribute.
+- Removed `categories` from `CausalNode`
+  - Rationale: This is for BioLink interoperability and may interfere with extraction.
+    Categories can be inferred from the full causal node and filled in later.
+- Removed `entity_type` from `CausalNode`
+  - Rationale: Again, handled at the ontology level. Could be classified post-hoc.
+- Added `loom_role: hidden` to `start_char`, `end_char`, `sentence_id`, `paragraph_id`
+  - Rationale: These fields may be annotated automatically but will not be populated by
+    human annotators.
+- Removed `document_source` field `section:` 
+  - Rationale: One document source should be valid for all edges extracted from document. Section is unhelpful.
+- Removed `causal_connective` from `CausalEdge`
+  - Rationale: This is covered by `original_sentence` and is redundant.
+- Changed Layer 1 name to "Layer 1: Claim Strength & Context"
+- Added `annotation: hidden` to `fcm_weight` and `fcm_weight_source`
+  - Rationale: These are calculated and/or expert elicited and should be part of a different process.
+- Added `annotator:` to `CausalNode` and made it a hidden field to auto-populate with ORCID.
+- `EvidenceBaseAssessmentEdge` is introduced as a new edge type that will be calculated in the final reified graph. It should not be annotated at this stage.
+
+
+
 ## Unreleased
 
 ### Changed
 
+- Removed `process_context` from `CausalEdge`.
+  - Rationale: ecological and management processes should be represented as
+    nodes when they participate in the causal relationship, using the existing
+    entity, attribute, and state/change qualifier structure.
+- Added `EcosystemFunctionalGroupEnum` from ELMO's IUCN GET Level 3
+  ecosystem functional groups and changed edge-level `ecosystem_context` to use
+  that enum. Enum values use LinkML-friendly names grounded to ELMO terms and
+  include annotations for the ELMO CURIE, GET code, plain ecosystem name, and
+  code-prefixed display label.
+  - Rationale: EFGs are included to simplify auto-complete.
+- Removed `ecosystem_context` from `CausalNode`, leaving ecosystem context on
+  `CausalEdge`.
+  - Rationale: ecosystem context constrains the causal relationship rather than
+    the reusable node meaning; the same node can participate in causal edges
+    observed in different ecosystems, so node-level context can be misleading
+    or force duplicate context-specific nodes.
+- Improved the `CausalNode.description` slot description to distinguish the
+  source-text characterization from the composed canonical `name`.
+  - Rationale: annotator clarity.
+- Clarified `CausalNode.id` as an annotation-tool-generated field and added
+  `loom_role: auto_generated`; Loom uses `entity_term` when provided, otherwise
+  generates `causal_mosaic:{slugified_name}_{4-char-hash}`.
+  - Rationale: annotator simplification.
+- Replaced `DeterminismEnum` values `deterministic` and `stochastic` with
+  `deterministic_process`, `indeterministic_process`,
+  `epistemic_probability_only`, `ambiguous`, and `not_addressed`; updated the
+  enum and slot descriptions to distinguish ontic causal process claims from
+  epistemic uncertainty.
+  - Rationale: Robert noted that Bayesian probabilities may represent
+    uncertainty even when the modeled cause is deterministic.
 - Removed `ontology_mappings` from `CausalNode`, removed the `OntologyMapping`
   class, and removed manual `egm_intervention_category` and
   `egm_outcome_category` fields. Ontology grounding is now centralized in

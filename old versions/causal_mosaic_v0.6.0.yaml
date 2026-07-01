@@ -24,7 +24,7 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.4.2
+## Schema version: 0.6.0
 ## =============================================================================
 
 id: https://w3id.org/causal-mosaic
@@ -40,7 +40,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.4.2
+version: 0.6.0
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -52,7 +52,7 @@ prefixes:
   node: https://w3id.org/causal-mosaic/node/
   edge: https://w3id.org/causal-mosaic/edge/
   camo: https://w3id.org/camo/
-  elmo: https://w3id.org/elmo/
+  elmo: https://w3id.org/elmo/elmo_
   elmo_cas: https://w3id.org/elmo/cas/
   biolink: https://w3id.org/biolink/vocab/
   schema: http://schema.org/
@@ -63,7 +63,6 @@ prefixes:
   doi: https://doi.org/
   ENVO: http://purl.obolibrary.org/obo/ENVO_
   CHEBI: http://purl.obolibrary.org/obo/CHEBI_
-  NCBITaxon: http://purl.obolibrary.org/obo/NCBITaxon_
   GO: http://purl.obolibrary.org/obo/GO_
   PATO: http://purl.obolibrary.org/obo/PATO_
   ECO: http://purl.obolibrary.org/obo/ECO_
@@ -243,7 +242,7 @@ enums:
         description: "Asks WHETHER C makes a difference to E."
         meaning: camo:DifferenceMakingAccount
       production:
-        description: "Asks HOW C brings about E."
+        description: "Asks HOW C brings about E. Also known as mechanism account."
         meaning: camo:ProductionAccount
       complementary:
         description: "Additional structural accounts (regularity, INUS, capacities, agency)."
@@ -306,14 +305,16 @@ enums:
         description: "Not relevant or not discussed."
 
   DeterminismEnum:
-    description: "Whether the causal relationship is framed as deterministic or stochastic."
+    description: "Whether the causal relationship frames the underlying process as deterministic or indeterministic, or uses probability only to express epistemic uncertainty."
     permissible_values:
-      deterministic:
-        description: "C invariably produces E."
-      stochastic:
-        description: "C raises the probability of E but does not guarantee it."
+      deterministic_process:
+        description: "The modeled causal process is treated as deterministic: C invariably produces E under the specified conditions."
+      indeterministic_process:
+        description: "The modeled causal process is treated as ontically indeterministic: C changes the probability of E without guaranteeing it."
+      epistemic_probability_only:
+        description: "Probability is used only to represent uncertainty about the causal relationship, without implying an indeterministic causal process."
       ambiguous:
-        description: "Cannot determine deterministic or stochastic framing."
+        description: "Cannot determine whether probability reflects the modeled process or only epistemic uncertainty."
       not_addressed:
         description: "Not discussed."
 
@@ -822,6 +823,899 @@ enums:
         meaning: biolink:NamedThing
 
   # ---------------------------------------------------------------------------
+  # Ecosystem functional groups
+  # ---------------------------------------------------------------------------
+
+  EcosystemFunctionalGroupEnum:
+    description: >-
+      IUCN Global Ecosystem Typology Level 3 ecosystem functional groups as
+      represented by ELMO ecosystem type terms. Enum values use LinkML-friendly
+      names and are grounded to ELMO terms with meaning; annotations retain the
+      ELMO CURIE, IUCN GET code, plain ecosystem name, and code-prefixed display
+      label for autocomplete.
+    permissible_values:
+      tropical_subtropical_lowland_rainforests:
+        description: "Tropical-subtropical lowland rainforests."
+        meaning: elmo:3620100
+        annotations:
+          ontology_curie: "ELMO:3620100"
+          iucn_get_code: "T1.1"
+          preferred_label: "Tropical-subtropical lowland rainforests"
+          display_label: "T1.1 Tropical-subtropical lowland rainforests"
+      tropical_subtropical_dry_forests_and_thickets:
+        description: "Tropical-subtropical dry forests and thickets."
+        meaning: elmo:3620101
+        annotations:
+          ontology_curie: "ELMO:3620101"
+          iucn_get_code: "T1.2"
+          preferred_label: "Tropical-subtropical dry forests and thickets"
+          display_label: "T1.2 Tropical-subtropical dry forests and thickets"
+      tropical_subtropical_montane_rainforests:
+        description: "Tropical-subtropical montane rainforests."
+        meaning: elmo:3620102
+        annotations:
+          ontology_curie: "ELMO:3620102"
+          iucn_get_code: "T1.3"
+          preferred_label: "Tropical-subtropical montane rainforests"
+          display_label: "T1.3 Tropical-subtropical montane rainforests"
+      tropical_heath_forests:
+        description: "Tropical heath forests."
+        meaning: elmo:3620103
+        annotations:
+          ontology_curie: "ELMO:3620103"
+          iucn_get_code: "T1.4"
+          preferred_label: "Tropical heath forests"
+          display_label: "T1.4 Tropical heath forests"
+      boreal_and_temperate_high_montane_forests_and_woodlands:
+        description: "Boreal and temperate high montane forests and woodlands."
+        meaning: elmo:3620104
+        annotations:
+          ontology_curie: "ELMO:3620104"
+          iucn_get_code: "T2.1"
+          preferred_label: "Boreal and temperate high montane forests and woodlands"
+          display_label: "T2.1 Boreal and temperate high montane forests and woodlands"
+      deciduous_temperate_forests:
+        description: "Deciduous temperate forests."
+        meaning: elmo:3620105
+        annotations:
+          ontology_curie: "ELMO:3620105"
+          iucn_get_code: "T2.2"
+          preferred_label: "Deciduous temperate forests"
+          display_label: "T2.2 Deciduous temperate forests"
+      oceanic_cool_temperate_rainforests:
+        description: "Oceanic cool temperate rainforests."
+        meaning: elmo:3620106
+        annotations:
+          ontology_curie: "ELMO:3620106"
+          iucn_get_code: "T2.3"
+          preferred_label: "Oceanic cool temperate rainforests"
+          display_label: "T2.3 Oceanic cool temperate rainforests"
+      warm_temperate_laurophyll_forests:
+        description: "Warm temperate laurophyll forests."
+        meaning: elmo:3620107
+        annotations:
+          ontology_curie: "ELMO:3620107"
+          iucn_get_code: "T2.4"
+          preferred_label: "Warm temperate laurophyll forests"
+          display_label: "T2.4 Warm temperate laurophyll forests"
+      temperate_pyric_humid_forests:
+        description: "Temperate pyric humid forests."
+        meaning: elmo:3620108
+        annotations:
+          ontology_curie: "ELMO:3620108"
+          iucn_get_code: "T2.5"
+          preferred_label: "Temperate pyric humid forests"
+          display_label: "T2.5 Temperate pyric humid forests"
+      temperate_pyric_sclerophyll_forests_and_woodlands:
+        description: "Temperate pyric sclerophyll forests and woodlands."
+        meaning: elmo:3620109
+        annotations:
+          ontology_curie: "ELMO:3620109"
+          iucn_get_code: "T2.6"
+          preferred_label: "Temperate pyric sclerophyll forests and woodlands"
+          display_label: "T2.6 Temperate pyric sclerophyll forests and woodlands"
+      seasonally_dry_tropical_shrublands:
+        description: "Seasonally dry tropical shrublands."
+        meaning: elmo:3620110
+        annotations:
+          ontology_curie: "ELMO:3620110"
+          iucn_get_code: "T3.1"
+          preferred_label: "Seasonally dry tropical shrublands"
+          display_label: "T3.1 Seasonally dry tropical shrublands"
+      seasonally_dry_temperate_heaths_and_shrublands:
+        description: "Seasonally dry temperate heaths and shrublands."
+        meaning: elmo:3620111
+        annotations:
+          ontology_curie: "ELMO:3620111"
+          iucn_get_code: "T3.2"
+          preferred_label: "Seasonally dry temperate heaths and shrublands"
+          display_label: "T3.2 Seasonally dry temperate heaths and shrublands"
+      cool_temperate_heathlands:
+        description: "Cool temperate heathlands."
+        meaning: elmo:3620112
+        annotations:
+          ontology_curie: "ELMO:3620112"
+          iucn_get_code: "T3.3"
+          preferred_label: "Cool temperate heathlands"
+          display_label: "T3.3 Cool temperate heathlands"
+      young_rocky_pavements_screes_and_lava_flows:
+        description: "Young rocky pavements, screes and lava flows."
+        meaning: elmo:3620113
+        annotations:
+          ontology_curie: "ELMO:3620113"
+          iucn_get_code: "T3.4"
+          preferred_label: "Young rocky pavements, screes and lava flows"
+          display_label: "T3.4 Young rocky pavements, screes and lava flows"
+      trophic_savannas:
+        description: "Trophic savannas."
+        meaning: elmo:3620114
+        annotations:
+          ontology_curie: "ELMO:3620114"
+          iucn_get_code: "T4.1"
+          preferred_label: "Trophic savannas"
+          display_label: "T4.1 Trophic savannas"
+      pyric_tussock_savannas:
+        description: "Pyric tussock savannas."
+        meaning: elmo:3620115
+        annotations:
+          ontology_curie: "ELMO:3620115"
+          iucn_get_code: "T4.2"
+          preferred_label: "Pyric tussock savannas"
+          display_label: "T4.2 Pyric tussock savannas"
+      hummock_savannas:
+        description: "Hummock savannas."
+        meaning: elmo:3620116
+        annotations:
+          ontology_curie: "ELMO:3620116"
+          iucn_get_code: "T4.3"
+          preferred_label: "Hummock savannas"
+          display_label: "T4.3 Hummock savannas"
+      temperate_woodlands:
+        description: "Temperate woodlands."
+        meaning: elmo:3620117
+        annotations:
+          ontology_curie: "ELMO:3620117"
+          iucn_get_code: "T4.4"
+          preferred_label: "Temperate woodlands"
+          display_label: "T4.4 Temperate woodlands"
+      temperate_subhumid_grasslands:
+        description: "Temperate subhumid grasslands."
+        meaning: elmo:3620118
+        annotations:
+          ontology_curie: "ELMO:3620118"
+          iucn_get_code: "T4.5"
+          preferred_label: "Temperate subhumid grasslands"
+          display_label: "T4.5 Temperate subhumid grasslands"
+      semi_desert_steppe:
+        description: "Semi-desert steppe."
+        meaning: elmo:3620119
+        annotations:
+          ontology_curie: "ELMO:3620119"
+          iucn_get_code: "T5.1"
+          preferred_label: "Semi-desert steppe"
+          display_label: "T5.1 Semi-desert steppe"
+      succulent_or_thorny_deserts_and_semi_deserts:
+        description: "Succulent or thorny deserts and semi-deserts."
+        meaning: elmo:3620120
+        annotations:
+          ontology_curie: "ELMO:3620120"
+          iucn_get_code: "T5.2"
+          preferred_label: "Succulent or thorny deserts and semi-deserts"
+          display_label: "T5.2 Succulent or thorny deserts and semi-deserts"
+      sclerophyll_hot_deserts_and_semi_deserts:
+        description: "Sclerophyll hot deserts and semi-deserts."
+        meaning: elmo:3620121
+        annotations:
+          ontology_curie: "ELMO:3620121"
+          iucn_get_code: "T5.3"
+          preferred_label: "Sclerophyll hot deserts and semi-deserts"
+          display_label: "T5.3 Sclerophyll hot deserts and semi-deserts"
+      cool_deserts_and_semi_deserts:
+        description: "Cool deserts and semi-deserts."
+        meaning: elmo:3620122
+        annotations:
+          ontology_curie: "ELMO:3620122"
+          iucn_get_code: "T5.4"
+          preferred_label: "Cool deserts and semi-deserts"
+          display_label: "T5.4 Cool deserts and semi-deserts"
+      hyper_arid_deserts:
+        description: "Hyper-arid deserts."
+        meaning: elmo:3620123
+        annotations:
+          ontology_curie: "ELMO:3620123"
+          iucn_get_code: "T5.5"
+          preferred_label: "Hyper-arid deserts"
+          display_label: "T5.5 Hyper-arid deserts"
+      ice_sheets_glaciers_and_perennial_snowfields:
+        description: "Ice sheets, glaciers and perennial snowfields."
+        meaning: elmo:3620124
+        annotations:
+          ontology_curie: "ELMO:3620124"
+          iucn_get_code: "T6.1"
+          preferred_label: "Ice sheets, glaciers and perennial snowfields"
+          display_label: "T6.1 Ice sheets, glaciers and perennial snowfields"
+      polar_alpine_cliffs_screes_outcrops_and_lava_flows:
+        description: "Polar/alpine cliffs, screes, outcrops and lava flows."
+        meaning: elmo:3620125
+        annotations:
+          ontology_curie: "ELMO:3620125"
+          iucn_get_code: "T6.2"
+          preferred_label: "Polar/alpine cliffs, screes, outcrops and lava flows"
+          display_label: "T6.2 Polar/alpine cliffs, screes, outcrops and lava flows"
+      polar_tundra_and_deserts:
+        description: "Polar tundra and deserts."
+        meaning: elmo:3620126
+        annotations:
+          ontology_curie: "ELMO:3620126"
+          iucn_get_code: "T6.3"
+          preferred_label: "Polar tundra and deserts"
+          display_label: "T6.3 Polar tundra and deserts"
+      temperate_alpine_grasslands_and_shrublands:
+        description: "Temperate alpine grasslands and shrublands."
+        meaning: elmo:3620127
+        annotations:
+          ontology_curie: "ELMO:3620127"
+          iucn_get_code: "T6.4"
+          preferred_label: "Temperate alpine grasslands and shrublands"
+          display_label: "T6.4 Temperate alpine grasslands and shrublands"
+      sown_pastures_and_fields:
+        description: "Sown pastures and fields."
+        meaning: elmo:3620128
+        annotations:
+          ontology_curie: "ELMO:3620128"
+          iucn_get_code: "T7.2"
+          preferred_label: "Sown pastures and fields"
+          display_label: "T7.2 Sown pastures and fields"
+      plantations:
+        description: "Plantations."
+        meaning: elmo:3620129
+        annotations:
+          ontology_curie: "ELMO:3620129"
+          iucn_get_code: "T7.3"
+          preferred_label: "Plantations"
+          display_label: "T7.3 Plantations"
+      urban_and_industrial_ecosystems:
+        description: "Urban and industrial ecosystems."
+        meaning: elmo:3620130
+        annotations:
+          ontology_curie: "ELMO:3620130"
+          iucn_get_code: "T7.4"
+          preferred_label: "Urban and industrial ecosystems"
+          display_label: "T7.4 Urban and industrial ecosystems"
+      derived_semi_natural_pastures_and_oldfields:
+        description: "Derived semi-natural pastures and oldfields."
+        meaning: elmo:3620131
+        annotations:
+          ontology_curie: "ELMO:3620131"
+          iucn_get_code: "T7.5"
+          preferred_label: "Derived semi-natural pastures and oldfields"
+          display_label: "T7.5 Derived semi-natural pastures and oldfields"
+      aerobic_caves:
+        description: "Aerobic caves."
+        meaning: elmo:3620132
+        annotations:
+          ontology_curie: "ELMO:3620132"
+          iucn_get_code: "S1.1"
+          preferred_label: "Aerobic caves"
+          display_label: "S1.1 Aerobic caves"
+      endolithic_systems:
+        description: "Endolithic systems."
+        meaning: elmo:3620133
+        annotations:
+          ontology_curie: "ELMO:3620133"
+          iucn_get_code: "S1.2"
+          preferred_label: "Endolithic systems"
+          display_label: "S1.2 Endolithic systems"
+      anthropogenic_subterranean_voids:
+        description: "Anthropogenic subterranean voids."
+        meaning: elmo:3620134
+        annotations:
+          ontology_curie: "ELMO:3620134"
+          iucn_get_code: "S2.1"
+          preferred_label: "Anthropogenic subterranean voids"
+          display_label: "S2.1 Anthropogenic subterranean voids"
+      underground_streams_and_pools:
+        description: "Underground streams and pools."
+        meaning: elmo:3620135
+        annotations:
+          ontology_curie: "ELMO:3620135"
+          iucn_get_code: "SF1.1"
+          preferred_label: "Underground streams and pools"
+          display_label: "SF1.1 Underground streams and pools"
+      groundwater_ecosystems:
+        description: "Groundwater ecosystems."
+        meaning: elmo:3620136
+        annotations:
+          ontology_curie: "ELMO:3620136"
+          iucn_get_code: "SF1.2"
+          preferred_label: "Groundwater ecosystems"
+          display_label: "SF1.2 Groundwater ecosystems"
+      water_pipes_and_subterranean_canals:
+        description: "Water pipes and subterranean canals."
+        meaning: elmo:3620137
+        annotations:
+          ontology_curie: "ELMO:3620137"
+          iucn_get_code: "SF2.1"
+          preferred_label: "Water pipes and subterranean canals"
+          display_label: "SF2.1 Water pipes and subterranean canals"
+      flooded_mines_and_other_voids:
+        description: "Flooded mines and other voids."
+        meaning: elmo:3620138
+        annotations:
+          ontology_curie: "ELMO:3620138"
+          iucn_get_code: "SF2.2"
+          preferred_label: "Flooded mines and other voids"
+          display_label: "SF2.2 Flooded mines and other voids"
+      anchialine_caves:
+        description: "Anchialine caves."
+        meaning: elmo:3620140
+        annotations:
+          ontology_curie: "ELMO:3620140"
+          iucn_get_code: "SM1.1"
+          preferred_label: "Anchialine caves"
+          display_label: "SM1.1 Anchialine caves"
+      anchialine_pools:
+        description: "Anchialine pools."
+        meaning: elmo:3620141
+        annotations:
+          ontology_curie: "ELMO:3620141"
+          iucn_get_code: "SM1.2"
+          preferred_label: "Anchialine pools"
+          display_label: "SM1.2 Anchialine pools"
+      sea_caves:
+        description: "Sea caves."
+        meaning: elmo:3620142
+        annotations:
+          ontology_curie: "ELMO:3620142"
+          iucn_get_code: "SM1.3"
+          preferred_label: "Sea caves"
+          display_label: "SM1.3 Sea caves"
+      tropical_flooded_forests_and_peat_forests:
+        description: "Tropical flooded forests and peat forests."
+        meaning: elmo:3620143
+        annotations:
+          ontology_curie: "ELMO:3620143"
+          iucn_get_code: "TF1.1"
+          preferred_label: "Tropical flooded forests and peat forests"
+          display_label: "TF1.1 Tropical flooded forests and peat forests"
+      subtropical_temperate_forested_wetlands:
+        description: "Subtropical/temperate forested wetlands."
+        meaning: elmo:3620144
+        annotations:
+          ontology_curie: "ELMO:3620144"
+          iucn_get_code: "TF1.2"
+          preferred_label: "Subtropical/temperate forested wetlands"
+          display_label: "TF1.2 Subtropical/temperate forested wetlands"
+      permanent_marshes:
+        description: "Permanent marshes."
+        meaning: elmo:3620145
+        annotations:
+          ontology_curie: "ELMO:3620145"
+          iucn_get_code: "TF1.3"
+          preferred_label: "Permanent marshes"
+          display_label: "TF1.3 Permanent marshes"
+      seasonal_floodplain_marshes:
+        description: "Seasonal floodplain marshes."
+        meaning: elmo:3620146
+        annotations:
+          ontology_curie: "ELMO:3620146"
+          iucn_get_code: "TF1.4"
+          preferred_label: "Seasonal floodplain marshes"
+          display_label: "TF1.4 Seasonal floodplain marshes"
+      episodic_arid_floodplains:
+        description: "Episodic arid floodplains."
+        meaning: elmo:3620147
+        annotations:
+          ontology_curie: "ELMO:3620147"
+          iucn_get_code: "TF1.5"
+          preferred_label: "Episodic arid floodplains"
+          display_label: "TF1.5 Episodic arid floodplains"
+      boreal_temperate_and_montane_peat_bogs:
+        description: "Boreal, temperate and montane peat bogs."
+        meaning: elmo:3620148
+        annotations:
+          ontology_curie: "ELMO:3620148"
+          iucn_get_code: "TF1.6"
+          preferred_label: "Boreal, temperate and montane peat bogs"
+          display_label: "TF1.6 Boreal, temperate and montane peat bogs"
+      boreal_and_temperate_fens:
+        description: "Boreal and temperate fens."
+        meaning: elmo:3620149
+        annotations:
+          ontology_curie: "ELMO:3620149"
+          iucn_get_code: "TF1.7"
+          preferred_label: "Boreal and temperate fens"
+          display_label: "TF1.7 Boreal and temperate fens"
+      permanent_upland_streams:
+        description: "Permanent upland streams."
+        meaning: elmo:3620150
+        annotations:
+          ontology_curie: "ELMO:3620150"
+          iucn_get_code: "F1.1"
+          preferred_label: "Permanent upland streams"
+          display_label: "F1.1 Permanent upland streams"
+      permanent_lowland_rivers:
+        description: "Permanent lowland rivers."
+        meaning: elmo:3620151
+        annotations:
+          ontology_curie: "ELMO:3620151"
+          iucn_get_code: "F1.2"
+          preferred_label: "Permanent lowland rivers"
+          display_label: "F1.2 Permanent lowland rivers"
+      freeze_thaw_rivers_and_streams:
+        description: "Freeze-thaw rivers and streams."
+        meaning: elmo:3620152
+        annotations:
+          ontology_curie: "ELMO:3620152"
+          iucn_get_code: "F1.3"
+          preferred_label: "Freeze-thaw rivers and streams"
+          display_label: "F1.3 Freeze-thaw rivers and streams"
+      seasonal_upland_streams:
+        description: "Seasonal upland streams."
+        meaning: elmo:3620153
+        annotations:
+          ontology_curie: "ELMO:3620153"
+          iucn_get_code: "F1.4"
+          preferred_label: "Seasonal upland streams"
+          display_label: "F1.4 Seasonal upland streams"
+      seasonal_lowland_rivers:
+        description: "Seasonal lowland rivers."
+        meaning: elmo:3620154
+        annotations:
+          ontology_curie: "ELMO:3620154"
+          iucn_get_code: "F1.5"
+          preferred_label: "Seasonal lowland rivers"
+          display_label: "F1.5 Seasonal lowland rivers"
+      episodic_arid_rivers:
+        description: "Episodic arid rivers."
+        meaning: elmo:3620155
+        annotations:
+          ontology_curie: "ELMO:3620155"
+          iucn_get_code: "F1.6"
+          preferred_label: "Episodic arid rivers"
+          display_label: "F1.6 Episodic arid rivers"
+      large_lowland_rivers:
+        description: "Large lowland rivers."
+        meaning: elmo:3620156
+        annotations:
+          ontology_curie: "ELMO:3620156"
+          iucn_get_code: "F1.7"
+          preferred_label: "Large lowland rivers"
+          display_label: "F1.7 Large lowland rivers"
+      large_permanent_freshwater_lakes:
+        description: "Large permanent freshwater lakes."
+        meaning: elmo:3620157
+        annotations:
+          ontology_curie: "ELMO:3620157"
+          iucn_get_code: "F2.1"
+          preferred_label: "Large permanent freshwater lakes"
+          display_label: "F2.1 Large permanent freshwater lakes"
+      small_permanent_freshwater_lakes:
+        description: "Small permanent freshwater lakes."
+        meaning: elmo:3620158
+        annotations:
+          ontology_curie: "ELMO:3620158"
+          iucn_get_code: "F2.2"
+          preferred_label: "Small permanent freshwater lakes"
+          display_label: "F2.2 Small permanent freshwater lakes"
+      seasonal_freshwater_lakes:
+        description: "Seasonal freshwater lakes."
+        meaning: elmo:3620159
+        annotations:
+          ontology_curie: "ELMO:3620159"
+          iucn_get_code: "F2.3"
+          preferred_label: "Seasonal freshwater lakes"
+          display_label: "F2.3 Seasonal freshwater lakes"
+      freeze_thaw_freshwater_lakes:
+        description: "Freeze-thaw freshwater lakes."
+        meaning: elmo:3620160
+        annotations:
+          ontology_curie: "ELMO:3620160"
+          iucn_get_code: "F2.4"
+          preferred_label: "Freeze-thaw freshwater lakes"
+          display_label: "F2.4 Freeze-thaw freshwater lakes"
+      ephemeral_freshwater_lakes:
+        description: "Ephemeral freshwater lakes."
+        meaning: elmo:3620161
+        annotations:
+          ontology_curie: "ELMO:3620161"
+          iucn_get_code: "F2.5"
+          preferred_label: "Ephemeral freshwater lakes"
+          display_label: "F2.5 Ephemeral freshwater lakes"
+      permanent_salt_and_soda_lakes:
+        description: "Permanent salt and soda lakes."
+        meaning: elmo:3620162
+        annotations:
+          ontology_curie: "ELMO:3620162"
+          iucn_get_code: "F2.6"
+          preferred_label: "Permanent salt and soda lakes"
+          display_label: "F2.6 Permanent salt and soda lakes"
+      ephemeral_salt_lakes:
+        description: "Ephemeral salt lakes."
+        meaning: elmo:3620163
+        annotations:
+          ontology_curie: "ELMO:3620163"
+          iucn_get_code: "F2.7"
+          preferred_label: "Ephemeral salt lakes"
+          display_label: "F2.7 Ephemeral salt lakes"
+      artesian_springs_and_oases:
+        description: "Artesian springs and oases."
+        meaning: elmo:3620164
+        annotations:
+          ontology_curie: "ELMO:3620164"
+          iucn_get_code: "F2.8"
+          preferred_label: "Artesian springs and oases"
+          display_label: "F2.8 Artesian springs and oases"
+      geothermal_pools_and_wetlands:
+        description: "Geothermal pools and wetlands."
+        meaning: elmo:3620165
+        annotations:
+          ontology_curie: "ELMO:3620165"
+          iucn_get_code: "F2.9"
+          preferred_label: "Geothermal pools and wetlands"
+          display_label: "F2.9 Geothermal pools and wetlands"
+      subglacial_lakes:
+        description: "Subglacial lakes."
+        meaning: elmo:3620166
+        annotations:
+          ontology_curie: "ELMO:3620166"
+          iucn_get_code: "F2.10"
+          preferred_label: "Subglacial lakes"
+          display_label: "F2.10 Subglacial lakes"
+      large_reservoirs:
+        description: "Large reservoirs."
+        meaning: elmo:3620167
+        annotations:
+          ontology_curie: "ELMO:3620167"
+          iucn_get_code: "F3.1"
+          preferred_label: "Large reservoirs"
+          display_label: "F3.1 Large reservoirs"
+      rice_paddies:
+        description: "Rice paddies."
+        meaning: elmo:3620168
+        annotations:
+          ontology_curie: "ELMO:3620168"
+          iucn_get_code: "F3.3"
+          preferred_label: "Rice paddies"
+          display_label: "F3.3 Rice paddies"
+      freshwater_aquafarms:
+        description: "Freshwater aquafarms."
+        meaning: elmo:3620169
+        annotations:
+          ontology_curie: "ELMO:3620169"
+          iucn_get_code: "F3.4"
+          preferred_label: "Freshwater aquafarms"
+          display_label: "F3.4 Freshwater aquafarms"
+      canals_ditches_and_drains:
+        description: "Canals, ditches and drains."
+        meaning: elmo:3620170
+        annotations:
+          ontology_curie: "ELMO:3620170"
+          iucn_get_code: "F3.5"
+          preferred_label: "Canals, ditches and drains"
+          display_label: "F3.5 Canals, ditches and drains"
+      deepwater_coastal_inlets:
+        description: "Deepwater coastal inlets."
+        meaning: elmo:3620171
+        annotations:
+          ontology_curie: "ELMO:3620171"
+          iucn_get_code: "FM1.1"
+          preferred_label: "Deepwater coastal inlets"
+          display_label: "FM1.1 Deepwater coastal inlets"
+      permanently_open_riverine_estuaries_and_bays:
+        description: "Permanently open riverine estuaries and bays."
+        meaning: elmo:3620172
+        annotations:
+          ontology_curie: "ELMO:3620172"
+          iucn_get_code: "FM1.2"
+          preferred_label: "Permanently open riverine estuaries and bays"
+          display_label: "FM1.2 Permanently open riverine estuaries and bays"
+      intermittently_closed_and_open_lakes_and_lagoons:
+        description: "Intermittently closed and open lakes and lagoons."
+        meaning: elmo:3620173
+        annotations:
+          ontology_curie: "ELMO:3620173"
+          iucn_get_code: "FM1.3"
+          preferred_label: "Intermittently closed and open lakes and lagoons"
+          display_label: "FM1.3 Intermittently closed and open lakes and lagoons"
+      seagrass_meadows:
+        description: "Seagrass meadows."
+        meaning: elmo:3620174
+        annotations:
+          ontology_curie: "ELMO:3620174"
+          iucn_get_code: "M1.1"
+          preferred_label: "Seagrass meadows"
+          display_label: "M1.1 Seagrass meadows"
+      kelp_forests:
+        description: "Kelp forests."
+        meaning: elmo:3620175
+        annotations:
+          ontology_curie: "ELMO:3620175"
+          iucn_get_code: "M1.2"
+          preferred_label: "Kelp forests"
+          display_label: "M1.2 Kelp forests"
+      photic_coral_reefs:
+        description: "Photic coral reefs."
+        meaning: elmo:3620176
+        annotations:
+          ontology_curie: "ELMO:3620176"
+          iucn_get_code: "M1.3"
+          preferred_label: "Photic coral reefs"
+          display_label: "M1.3 Photic coral reefs"
+      shellfish_beds_and_reefs:
+        description: "Shellfish beds and reefs."
+        meaning: elmo:3620177
+        annotations:
+          ontology_curie: "ELMO:3620177"
+          iucn_get_code: "M1.4"
+          preferred_label: "Shellfish beds and reefs"
+          display_label: "M1.4 Shellfish beds and reefs"
+      photo_limited_marine_animal_forests:
+        description: "Photo-limited marine animal forests."
+        meaning: elmo:3620178
+        annotations:
+          ontology_curie: "ELMO:3620178"
+          iucn_get_code: "M1.5"
+          preferred_label: "Photo-limited marine animal forests"
+          display_label: "M1.5 Photo-limited marine animal forests"
+      subtidal_rocky_reefs:
+        description: "Subtidal rocky reefs."
+        meaning: elmo:3620179
+        annotations:
+          ontology_curie: "ELMO:3620179"
+          iucn_get_code: "M1.6"
+          preferred_label: "Subtidal rocky reefs"
+          display_label: "M1.6 Subtidal rocky reefs"
+      subtidal_sand_beds:
+        description: "Subtidal sand beds."
+        meaning: elmo:3620180
+        annotations:
+          ontology_curie: "ELMO:3620180"
+          iucn_get_code: "M1.7"
+          preferred_label: "Subtidal sand beds"
+          display_label: "M1.7 Subtidal sand beds"
+      subtidal_mud_plains:
+        description: "Subtidal mud plains."
+        meaning: elmo:3620181
+        annotations:
+          ontology_curie: "ELMO:3620181"
+          iucn_get_code: "M1.8"
+          preferred_label: "Subtidal mud plains"
+          display_label: "M1.8 Subtidal mud plains"
+      upwelling_zones:
+        description: "Upwelling zones."
+        meaning: elmo:3620182
+        annotations:
+          ontology_curie: "ELMO:3620182"
+          iucn_get_code: "M1.9"
+          preferred_label: "Upwelling zones"
+          display_label: "M1.9 Upwelling zones"
+      rhodolith_maerl_beds:
+        description: "Rhodolith/Maërl beds."
+        meaning: elmo:3620183
+        annotations:
+          ontology_curie: "ELMO:3620183"
+          iucn_get_code: "M1.10"
+          preferred_label: "Rhodolith/Maërl beds"
+          display_label: "M1.10 Rhodolith/Maërl beds"
+      epipelagic_ocean_waters:
+        description: "Epipelagic ocean waters."
+        meaning: elmo:3620184
+        annotations:
+          ontology_curie: "ELMO:3620184"
+          iucn_get_code: "M2.1"
+          preferred_label: "Epipelagic ocean waters"
+          display_label: "M2.1 Epipelagic ocean waters"
+      mesopelagic_ocean_waters:
+        description: "Mesopelagic ocean waters."
+        meaning: elmo:3620185
+        annotations:
+          ontology_curie: "ELMO:3620185"
+          iucn_get_code: "M2.2"
+          preferred_label: "Mesopelagic ocean waters"
+          display_label: "M2.2 Mesopelagic ocean waters"
+      bathypelagic_ocean_waters:
+        description: "Bathypelagic ocean waters."
+        meaning: elmo:3620186
+        annotations:
+          ontology_curie: "ELMO:3620186"
+          iucn_get_code: "M2.3"
+          preferred_label: "Bathypelagic ocean waters"
+          display_label: "M2.3 Bathypelagic ocean waters"
+      abyssopelagic_ocean_waters:
+        description: "Abyssopelagic ocean waters."
+        meaning: elmo:3620187
+        annotations:
+          ontology_curie: "ELMO:3620187"
+          iucn_get_code: "M2.4"
+          preferred_label: "Abyssopelagic ocean waters"
+          display_label: "M2.4 Abyssopelagic ocean waters"
+      sea_ice:
+        description: "Sea ice."
+        meaning: elmo:3620188
+        annotations:
+          ontology_curie: "ELMO:3620188"
+          iucn_get_code: "M2.5"
+          preferred_label: "Sea ice"
+          display_label: "M2.5 Sea ice"
+      continental_and_island_slopes:
+        description: "Continental and island slopes."
+        meaning: elmo:3620189
+        annotations:
+          ontology_curie: "ELMO:3620189"
+          iucn_get_code: "M3.1"
+          preferred_label: "Continental and island slopes"
+          display_label: "M3.1 Continental and island slopes"
+      submarine_canyons:
+        description: "Submarine canyons."
+        meaning: elmo:3620190
+        annotations:
+          ontology_curie: "ELMO:3620190"
+          iucn_get_code: "M3.2"
+          preferred_label: "Submarine canyons"
+          display_label: "M3.2 Submarine canyons"
+      abyssal_plains:
+        description: "Abyssal plains."
+        meaning: elmo:3620191
+        annotations:
+          ontology_curie: "ELMO:3620191"
+          iucn_get_code: "M3.3"
+          preferred_label: "Abyssal plains"
+          display_label: "M3.3 Abyssal plains"
+      seamounts_ridges_and_plateaus:
+        description: "Seamounts, ridges and plateaus."
+        meaning: elmo:3620192
+        annotations:
+          ontology_curie: "ELMO:3620192"
+          iucn_get_code: "M3.4"
+          preferred_label: "Seamounts, ridges and plateaus"
+          display_label: "M3.4 Seamounts, ridges and plateaus"
+      deepwater_biogenic_beds:
+        description: "Deepwater biogenic beds."
+        meaning: elmo:3620193
+        annotations:
+          ontology_curie: "ELMO:3620193"
+          iucn_get_code: "M3.5"
+          preferred_label: "Deepwater biogenic beds"
+          display_label: "M3.5 Deepwater biogenic beds"
+      hadal_trenches_and_troughs:
+        description: "Hadal trenches and troughs."
+        meaning: elmo:3620194
+        annotations:
+          ontology_curie: "ELMO:3620194"
+          iucn_get_code: "M3.6"
+          preferred_label: "Hadal trenches and troughs"
+          display_label: "M3.6 Hadal trenches and troughs"
+      chemosynthetically_based_ecosystems:
+        description: "Chemosynthetically-based ecosystems."
+        meaning: elmo:3620195
+        annotations:
+          ontology_curie: "ELMO:3620195"
+          iucn_get_code: "M3.7"
+          preferred_label: "Chemosynthetically-based ecosystems"
+          display_label: "M3.7 Chemosynthetically-based ecosystems"
+      submerged_artificial_structures:
+        description: "Submerged artificial structures."
+        meaning: elmo:3620196
+        annotations:
+          ontology_curie: "ELMO:3620196"
+          iucn_get_code: "M4.1"
+          preferred_label: "Submerged artificial structures"
+          display_label: "M4.1 Submerged artificial structures"
+      rocky_shorelines:
+        description: "Rocky shorelines."
+        meaning: elmo:3620197
+        annotations:
+          ontology_curie: "ELMO:3620197"
+          iucn_get_code: "MT1.1"
+          preferred_label: "Rocky shorelines"
+          display_label: "MT1.1 Rocky shorelines"
+      muddy_shorelines:
+        description: "Muddy shorelines."
+        meaning: elmo:3620198
+        annotations:
+          ontology_curie: "ELMO:3620198"
+          iucn_get_code: "MT1.2"
+          preferred_label: "Muddy shorelines"
+          display_label: "MT1.2 Muddy shorelines"
+      sandy_shorelines:
+        description: "Sandy shorelines."
+        meaning: elmo:3620199
+        annotations:
+          ontology_curie: "ELMO:3620199"
+          iucn_get_code: "MT1.3"
+          preferred_label: "Sandy shorelines"
+          display_label: "MT1.3 Sandy shorelines"
+      boulder_and_cobble_shores:
+        description: "Boulder and cobble shores."
+        meaning: elmo:3620200
+        annotations:
+          ontology_curie: "ELMO:3620200"
+          iucn_get_code: "MT1.4"
+          preferred_label: "Boulder and cobble shores"
+          display_label: "MT1.4 Boulder and cobble shores"
+      coastal_shrublands_and_grasslands:
+        description: "Coastal shrublands and grasslands."
+        meaning: elmo:3620201
+        annotations:
+          ontology_curie: "ELMO:3620201"
+          iucn_get_code: "MT2.1"
+          preferred_label: "Coastal shrublands and grasslands"
+          display_label: "MT2.1 Coastal shrublands and grasslands"
+      large_seabird_and_pinniped_colonies:
+        description: "Large seabird and pinniped colonies."
+        meaning: elmo:3620202
+        annotations:
+          ontology_curie: "ELMO:3620202"
+          iucn_get_code: "MT2.2"
+          preferred_label: "Large seabird and pinniped colonies"
+          display_label: "MT2.2 Large seabird and pinniped colonies"
+      artificial_shorelines:
+        description: "Artificial shorelines."
+        meaning: elmo:3620203
+        annotations:
+          ontology_curie: "ELMO:3620203"
+          iucn_get_code: "MT3.1"
+          preferred_label: "Artificial shorelines"
+          display_label: "MT3.1 Artificial shorelines"
+      coastal_river_deltas:
+        description: "Coastal river deltas."
+        meaning: elmo:3620204
+        annotations:
+          ontology_curie: "ELMO:3620204"
+          iucn_get_code: "MFT1.1"
+          preferred_label: "Coastal river deltas"
+          display_label: "MFT1.1 Coastal river deltas"
+      intertidal_forests_and_shrublands:
+        description: "Intertidal forests and shrublands."
+        meaning: elmo:3620205
+        annotations:
+          ontology_curie: "ELMO:3620205"
+          iucn_get_code: "MFT1.2"
+          preferred_label: "Intertidal forests and shrublands"
+          display_label: "MFT1.2 Intertidal forests and shrublands"
+      coastal_saltmarshes_and_reedbeds:
+        description: "Coastal saltmarshes and reedbeds."
+        meaning: elmo:3620206
+        annotations:
+          ontology_curie: "ELMO:3620206"
+          iucn_get_code: "MFT1.3"
+          preferred_label: "Coastal saltmarshes and reedbeds"
+          display_label: "MFT1.3 Coastal saltmarshes and reedbeds"
+      tropical_alpine_grasslands_and_herbfields:
+        description: "Tropical alpine grasslands and herbfields."
+        meaning: elmo:3620230
+        annotations:
+          ontology_curie: "ELMO:3620230"
+          iucn_get_code: "T6.5"
+          preferred_label: "Tropical alpine grasslands and herbfields"
+          display_label: "T6.5 Tropical alpine grasslands and herbfields"
+      annual_croplands:
+        description: "Annual croplands."
+        meaning: elmo:3620231
+        annotations:
+          ontology_curie: "ELMO:3620231"
+          iucn_get_code: "T7.1"
+          preferred_label: "Annual croplands"
+          display_label: "T7.1 Annual croplands"
+      constructed_lacustrine_wetlands:
+        description: "Constructed lacustrine wetlands."
+        meaning: elmo:3620232
+        annotations:
+          ontology_curie: "ELMO:3620232"
+          iucn_get_code: "F3.2"
+          preferred_label: "Constructed lacustrine wetlands"
+          display_label: "F3.2 Constructed lacustrine wetlands"
+      marine_aquafarms:
+        description: "Marine aquafarms."
+        meaning: elmo:3620233
+        annotations:
+          ontology_curie: "ELMO:3620233"
+          iucn_get_code: "M4.2"
+          preferred_label: "Marine aquafarms"
+          display_label: "M4.2 Marine aquafarms"
+
+  # ---------------------------------------------------------------------------
   # Document section (for RAG retrieval)
   # ---------------------------------------------------------------------------
 
@@ -994,12 +1888,15 @@ classes:
     attributes:
       id:
         description: >-
-          Unique node identifier. Use ontology CURIEs where possible
-          (e.g., 'ENVO:01000253'). For novel entities, use pattern
-          'causal_mosaic:{snake_case_label}'.
+          Unique node identifier. This field is populated automatically by the
+          annotation tool; annotators do not need to fill it in. If entity_term
+          is provided, Loom uses that CURIE; otherwise, Loom generates
+          causal_mosaic:{slugified_name}_{4-char-hash}.
         range: uriorcurie
         required: true
         identifier: true
+        annotations:
+          loom_role: auto_generated
       name:
         description: >-
           Human-readable composed label for the node. Should express the
@@ -1008,36 +1905,8 @@ classes:
           is what appears in Rosetta Statements and graph visualizations.
         range: string
         required: true
-      categories:
-        description: >-
-          Biolink-compatible categories. These may be inferred from entity_term,
-          variable_attribute, and ontology class membership where possible.
-        range: NodeCategoryEnum
-        multivalued: true
-      description:
-        description: "Free-text description as characterized in the source."
-        range: string
-      synonyms:
-        description: >-
-          Alternative names or labels for this entity. May be populated
-          automatically from ontology labels and synonyms for entity_term and
-          variable_attribute.
-        range: string
-        multivalued: true
 
-      ## --- ELMO Entity Decomposition ---
-      ## These fields implement ELMO's qualifier pattern. Together they
-      ## decompose the node's semantic content into structured, queryable
-      ## components: entity_type + entity_term + variable_attribute +
-      ## state_or_change_qualifier → composed name.
-
-      entity_type:
-        description: >-
-          Whether this node represents an environmental variable (state),
-          an environmental process (flow), or a management intervention.
-          Corresponds to ELMO's fundamental distinction between state
-          variables and processes (Palmeri et al. 2013).
-        range: NodeEntityTypeEnum
+      ## Node decomposition.
 
       entity_term:
         description: >-
@@ -1045,14 +1914,15 @@ classes:
           "what thing" — the taxon, chemical, abiotic factor, or process
           class, and is the authoritative ontology grounding for the node's
           entity. Corresponds to ELMO's subject_value / object_value slot.
-          Examples: NCBITaxon:9612 (Canis lupus), CHEBI:24279
+          Examples: WD:18498 (Canis lupus), CHEBI:24279
           (glucosinolate), ENVO:01000253 (grassland). Secondary ontology
           crosswalks, if needed, should be maintained outside article
           annotations in SSSOM files.
         range: uriorcurie
+        required: true
         annotations:
           note: >-
-            For taxa use NCBITaxon; for chemicals CHEBI; for environments
+            For taxa use Wikidata; for chemicals CHEBI; for environments
             ENVO; for processes GO or ENVO process terms; for qualities PATO.
 
       variable_attribute:
@@ -1083,16 +1953,6 @@ classes:
           qualifier=increased → "increased abundance of Canis lupus."
         range: StateOrChangeQualifierEnum
 
-      ecosystem_context:
-        description: >-
-          Ecosystem type or ecological setting constraining the node meaning.
-          Mirrors ELMO's ecosystem-context qualifier pattern for node-local
-          grounding.
-        range: uriorcurie
-        multivalued: true
-        annotations:
-          elm_correspondence: ecosystem_context_qualifier
-          examples: "elmo:elmo_3620249, ENVO:01000180"
 
       ## --- Text Grounding ---
 
@@ -1108,6 +1968,8 @@ classes:
           Concatenated text used for generating the embedding vector.
           Typically: name + description + synonym list.
         range: string
+        annotation:
+          loom_role: hidden
       embedding_vector:
         description: >-
           Pre-computed embedding vector for RAG retrieval. Stored as
@@ -1115,8 +1977,13 @@ classes:
           not by annotators.
         range: string
         annotations:
+          loom_role: hidden
           note: "Serialized float32 array; decode with numpy/arrow"
-
+      annotator:
+        description: "Annotator identifier (human ORCID or model ID)."
+        range: string
+        annotations:
+          loom_role: hidden
   # ---------------------------------------------------------------------------
   # Text grounding
   # ---------------------------------------------------------------------------
@@ -1131,15 +1998,23 @@ classes:
       start_char:
         description: "Character offset start in source document."
         range: integer
+        annotation:
+          loom_role: hidden
       end_char:
         description: "Character offset end."
         range: integer
+        annotation:
+          loom_role: hidden
       sentence_id:
         description: "Sentence identifier."
         range: string
+        annotation:
+          loom_role: hidden
       paragraph_id:
         description: "Paragraph identifier."
         range: string
+        annotation:
+          loom_role: hidden
 
   # ---------------------------------------------------------------------------
   # Source document (for RAG and EGM)
@@ -1173,12 +2048,19 @@ classes:
       journal:
         description: "Journal or publication venue for the source document."
         range: string
-      section:
-        description: "Section of the paper where the claim appears (e.g. Introduction, Methods, Results)."
-        range: DocumentSectionEnum
 
       ## --- Spatial context ---
-
+      study_coordinates:
+        description: >-
+          Coordinate set or sets reported for the study. Use one entry per
+          reported centroid or bounded study area. This supports multi-site
+          studies without requiring site names that the source may not report.
+          Coordinates enable map-based evidence gap maps, proximity-weighted
+          retrieval ("show me evidence from sites near mine"), and spatial
+          analysis of where causal relationships have been tested.
+        range: StudyCoordinates
+        multivalued: true
+        inlined_as_list: true
       study_country:
         description: >-
           Country or countries where the study was conducted. Use country
@@ -1191,17 +2073,6 @@ classes:
           where the study was conducted. If multiple regions are reported,
           separate them with semicolons.
         range: string
-      study_coordinates:
-        description: >-
-          Coordinate set or sets reported for the study. Use one entry per
-          reported centroid or bounded study area. This supports multi-site
-          studies without requiring site names that the source may not report.
-          Coordinates enable map-based evidence gap maps, proximity-weighted
-          retrieval ("show me evidence from sites near mine"), and spatial
-          analysis of where causal relationships have been tested.
-        range: StudyCoordinates
-        multivalued: true
-        inlined_as_list: true
 
       ## --- Temporal context ---
 
@@ -1229,6 +2100,8 @@ classes:
           duration without specific dates. Useful for filtering: "show
           me only studies with at least 24 months of monitoring."
         range: float
+        annotation:
+          loom_role: calculated
       study_temporal_note:
         description: >-
           Free-text note for temporal context that doesn't fit structured
@@ -1239,15 +2112,6 @@ classes:
 
       ## --- Ecological context ---
 
-      study_ecosystem:
-        description: >-
-          Ecosystem type, ideally mapped to IUCN GET typology.
-          E.g., "T4.4 Temperate woodlands" or ENVO:01000180.
-        range: string
-      study_taxa:
-        description: "Focal taxa of the study."
-        range: string
-        multivalued: true
       study_design:
         description: "Study design classification for EGM quality assessment."
         range: EvidenceTypeEnum
@@ -1296,15 +2160,23 @@ classes:
       bbox_north:
         description: "Northern boundary of study area bounding box (decimal degrees)."
         range: float
+        annotations:
+          loom_role: collapsed
       bbox_south:
         description: "Southern boundary of study area bounding box (decimal degrees)."
         range: float
+        annotations:
+          loom_role: collapsed
       bbox_east:
         description: "Eastern boundary of study area bounding box (decimal degrees)."
         range: float
+        annotations:
+          loom_role: collapsed
       bbox_west:
         description: "Western boundary of study area bounding box (decimal degrees)."
         range: float
+        annotations:
+          loom_role: collapsed
 
   TemporalExtent:
     description: >-
@@ -1375,6 +2247,8 @@ classes:
         range: string
         required: true
         identifier: true
+        annotations:
+          loom_role: auto-generated
       subject:
         description: "Node ID of the cause entity."
         range: CausalNode
@@ -1392,73 +2266,47 @@ classes:
         range: boolean
         ifabsent: boolean(false)
 
-      ## ---- Layer 1: Claim Strength & Linguistic Expression ----
+      ## ---- Layer 1: Claim Strength & Context ----
 
       claim_strength:
         description: "How strong is the causal language used?"
         range: ClaimStrengthEnum
         required: true
-      causal_connective:
-        description: >-
-          The linguistic trigger or connective that signals causation.
-          E.g., 'because', 'leads to', 'mechanism by which'.
-        range: TextSpan
-        inlined: true
       original_sentence:
         description: >-
           The full original sentence(s) from which this edge was extracted.
           Preserved for RAG retrieval and rendering validation.
         range: string
-
-      ## ---- ELMO Statement Context Qualifiers ----
-      ## These correspond to ELMO's statement qualifier slots that apply to
-      ## the entire association, providing the context in which the causal
-      ## claim was observed or studied. They complement Layer 3's
-      ## context_dependence feature, which captures scope conditions stated
-      ## in the text; these qualifiers capture structured study metadata.
-
-      process_context:
-        description: >-
-          The ecological or management process during which this causal
-          relationship was observed. Corresponds to ELMO's
-          process_context_qualifier slot. Use ontology CURIEs from ENVO
-          or GO process terms. E.g., ENVO:01001332 (sod translocation),
-          GO:0009636 (response to toxic substance).
-        range: uriorcurie
-        annotations:
-          elm_correspondence: process_context_qualifier
-          examples: "ENVO:01001332, GO:0009636, elmo:elmo_3621036"
-
       ecosystem_context:
         description: >-
-          The ecosystem type in which this causal relationship was observed.
-          Corresponds to ELMO's ecosystem_context_qualifier slot. Should be
-          a subclass of ecosystem functional group, ideally from IUCN GET
-          typology as represented in ENVO. E.g., 'T4.4 Temperate woodlands'
-          or ENVO:01000180 (grassland ecosystem).
-        range: uriorcurie
+          The IUCN Global Ecosystem Typology Level 3 ecosystem functional
+          group in which this causal relationship was observed, represented by
+          an ELMO ecosystem type term. Use this edge-level field for the
+          ecosystem setting of the causal claim.
+        range: EcosystemFunctionalGroupEnum
         annotations:
           elm_correspondence: ecosystem_context_qualifier
-          examples: "ENVO:01000180, ENVO:01000253, IUCN-GET:T4.4"
+          examples: "temperate_subhumid_grasslands, seagrass_meadows"
 
-      conditioned_by:
-        description: >-
-          Environmental variables or processes that condition (moderate,
-          dampen, or enhance) this causal relationship. Corresponds to
-          ELMO's conditioned_by_qualifier slot, which mimics the concept
-          of "forcing functions" from ecological modeling (Jørgensen and
-          Fath 2011). These are variables that have a meaningful impact
-          on the association but are not on the causal pathway (those go
-          in the moderation annotation in Layer 3 instead). Can reference
-          node IDs in this graph or ontology CURIEs.
-        range: uriorcurie
-        multivalued: true
-        annotations:
-          elm_correspondence: conditioned_by_qualifier
-          examples: "node:soil_moisture, ENVO:01000335"
+## Setting this down for now until we can think through whether it is useful.
+#      conditioned_by:
+#        description: >-
+#          Environmental variables or processes that condition (moderate,
+#          dampen, or enhance) this causal relationship. Corresponds to
+#          ELMO's conditioned_by_qualifier slot, which mimics the concept
+#          of "forcing functions" from ecological modeling (Jørgensen and
+#          Fath 2011). These are variables that have a meaningful impact
+#          on the association but are not on the causal pathway (those go
+#          in the moderation annotation in Layer 3 instead). Can reference
+#          node IDs in this graph or ontology CURIEs.
+#        range: uriorcurie
+#        multivalued: true
+#        annotations:
+#          elm_correspondence: conditioned_by_qualifier
+#          examples: "node:soil_moisture, ENVO:01000335"
 
       ## ---- Layer 2: Philosophical Account ----
-
+      
       philosophical_accounts:
         description: >-
           Which philosophical account(s) of causation does this claim invoke?
@@ -1466,10 +2314,6 @@ classes:
         range: PhilosophicalAccountEnum
         multivalued: true
         required: true
-      account_families:
-        description: "High-level family grouping(s)."
-        range: AccountFamilyEnum
-        multivalued: true
 
       ## ---- Layer 3: Causal Features (15 features) ----
 
@@ -1524,7 +2368,7 @@ classes:
         ifabsent: string(not_addressed)
         slot_uri: camo:token_or_type
       determinism:
-        description: "Whether the causal relationship is framed as deterministic or stochastic."
+        description: "Whether the causal relationship frames the underlying process as deterministic or indeterministic, or uses probability only to express epistemic uncertainty."
         range: DeterminismEnum
         ifabsent: string(not_addressed)
         slot_uri: camo:determinism
@@ -1571,11 +2415,14 @@ classes:
         range: float
         minimum_value: -1.0
         maximum_value: 1.0
+        annotations:
+          loom_role: hidden
       fcm_weight_source:
         description: "How the FCM weight was determined."
         range: string
         annotations:
           examples: "derived_from_schema, expert_elicitation, meta_analysis_effect_size"
+          loom_role: hidden
 
       ## ---- Spatiotemporal Extent of the Causal Effect ----
 
