@@ -24,7 +24,7 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.6.0
+## Schema version: 0.7.1
 ## =============================================================================
 
 id: https://w3id.org/causal-mosaic
@@ -40,7 +40,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.6.0
+version: 0.7.1
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -768,16 +768,6 @@ enums:
         description: "The process/event was stopped before completion (e.g., management intervention)."
         annotations: 
           rosetta_prefix: "aborted" 
-          fcm_sign: negative 
-      introduced:
-        description: "The entity has been introduced to the system (e.g., invasion, reintroduction)."
-        annotations: 
-          rosetta_prefix: "introduction of"
-          fcm_sign: positive 
-      removed:
-        description: "The entity has been removed from the system (e.g., culling, removal)."
-        annotations: 
-          rosetta_prefix: "removal of" 
           fcm_sign: negative 
 
   EntityTypeEnum:
@@ -2213,22 +2203,22 @@ classes:
         description: "Northern boundary of study area bounding box (decimal degrees)."
         range: float
         annotations:
-          loom_role: collapsed
+          loom_role: collapse
       bbox_south:
         description: "Southern boundary of study area bounding box (decimal degrees)."
         range: float
         annotations:
-          loom_role: collapsed
+          loom_role: collapse
       bbox_east:
         description: "Eastern boundary of study area bounding box (decimal degrees)."
         range: float
         annotations:
-          loom_role: collapsed
+          loom_role: collapse
       bbox_west:
         description: "Western boundary of study area bounding box (decimal degrees)."
         range: float
         annotations:
-          loom_role: collapsed
+          loom_role: collapse
 
   TemporalExtent:
     description: >-
