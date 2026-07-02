@@ -2010,7 +2010,7 @@ classes:
           Concatenated text used for generating the embedding vector.
           Typically: name + description + synonym list.
         range: string
-        annotation:
+        annotations:
           loom_role: hidden
       embedding_vector:
         description: >-
@@ -2040,22 +2040,22 @@ classes:
       start_char:
         description: "Character offset start in source document."
         range: integer
-        annotation:
+        annotations:
           loom_role: hidden
       end_char:
         description: "Character offset end."
         range: integer
-        annotation:
+        annotations:
           loom_role: hidden
       sentence_id:
         description: "Sentence identifier."
         range: string
-        annotation:
+        annotations:
           loom_role: hidden
       paragraph_id:
         description: "Paragraph identifier."
         range: string
-        annotation:
+        annotations:
           loom_role: hidden
 
   # ---------------------------------------------------------------------------
@@ -2142,7 +2142,7 @@ classes:
           duration without specific dates. Useful for filtering: "show
           me only studies with at least 24 months of monitoring."
         range: float
-        annotation:
+        annotations:
           loom_role: calculated
       study_temporal_note:
         description: >-
