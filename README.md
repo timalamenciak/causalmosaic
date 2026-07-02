@@ -51,9 +51,3 @@ The five questions the schema answers for each claim:
 
 ---
 
-## Open questions
-
-- Which node categories should be grounded directly to stable external ontology terms rather than local placeholders?
-- How strict should validation be for partially grounded claims when no exact ontology term exists?
-- Should the project maintain one canonical sample dataset or both a compact grounded sample and a fuller narrative sample?
-- What downstream renderers should be treated as first-class targets in the next iteration?
