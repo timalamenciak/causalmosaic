@@ -4,6 +4,20 @@ All notable changes to the active LinkML schema and its supporting governance fi
 
 ## 0.6.0 -> 0.7.0 changes
 
+### Machine-readable summary
+
+```yaml
+renamed_slots:
+  - {from: variable_attribute, to: measured_attribute}
+removed_slots:
+  - {slot: conditioned_by, class: CausalEdge, note: "subsumed into ContextAnnotation.scope_conditions"}
+added_slots:
+  - {slot: evidential_basis, class: EvidenceBaseAssessmentEdge}
+enum_changes:
+  - {enum: EvidenceTypeEnum, change: "values standardized to ECO IRIs"}
+  - {enum: StateOrChangeQualifierEnum, change: "added process-based terms"}
+```
+
 ### Detailed changes
 - Standardized `EvidenceTypeEnum` values to use ECO IRIs.
   - Rationale: Ensures interoperability with community ontologies (ECO, SEPIO, RO), eliminates custom IRI drift, and supports semantic validation across tools.
@@ -18,6 +32,28 @@ All notable changes to the active LinkML schema and its supporting governance fi
 
 
 ## 0.4.2 -> 0.6.0 changes
+
+### Machine-readable summary
+
+```yaml
+removed_slots:
+  - {slot: study_taxa, class: SourceDocument}
+  - {slot: study_ecosystem, class: SourceDocument}
+  - {slot: conditioned_by, class: CausalEdge, note: "commented out, not deleted"}
+  - {slot: account_families, class: CausalEdge}
+  - {slot: description, class: CausalNode}
+  - {slot: synonyms, class: CausalNode}
+  - {slot: categories, class: CausalNode}
+  - {slot: entity_type, class: CausalNode}
+  - {slot: causal_connective, class: CausalEdge}
+  - {slot: section, class: document_source}
+added_slots:
+  - {slot: annotator, class: CausalNode, note: "loom_role: hidden, auto-populated with ORCID"}
+added_classes:
+  - EvidenceBaseAssessmentEdge
+new_schema_annotations:
+  - {annotation: loom_role, values: [hidden, collapsed, calculated, auto_generated]}
+```
 
 ### New annotation
 - `loom_role:` added to several fields. This has the values: 

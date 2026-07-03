@@ -4,8 +4,23 @@ These instructions apply to this repository and all files beneath it.
 
 ## Active schema
 
-- The schema currently under development is `causal_mosaic_v0.4.2.yaml`.
+- The active schema is the highest-versioned `causal_mosaic_v*.yaml` file at
+  the repository root (currently `causal_mosaic_v0.7.1.yaml`) — check the
+  filenames and each file's internal `version:` field rather than trusting a
+  hardcoded name here, since this note will otherwise drift out of date again
+  as new versions ship.
 - Do not modify an earlier or later schema version unless the user explicitly directs you to do so.
+
+## Releasing a new version
+
+When the `version:` field in the root schema file changes:
+
+1. Update `CHANGELOG.md` with the change and its rationale (see Changelog below).
+2. `git tag vX.Y.Z && git push --tags`
+3. `gh release create vX.Y.Z causal_mosaic_vX.Y.Z.yaml --notes-file <changelog-excerpt>`
+   — attaching the schema file itself as a release asset is the important part:
+   downstream consumers (e.g. Loom) poll GitHub Releases for this repo and
+   download that asset to pick up the new schema.
 
 ## Change control
 
