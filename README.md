@@ -37,6 +37,43 @@ The five questions the schema answers for each claim:
 
 ---
 
+## Core graph objects
+
+### `CausalNode`
+
+A `CausalNode` represents something ecologically relevant in a particular state
+or undergoing a particular change. It does not represent a species, chemical,
+environment, or process in isolation. Instead, it combines the entity, the
+measurable attribute of interest, and a state-or-change qualifier. For example,
+*increased abundance of wolves* combines the entity *wolf*, the attribute
+*abundance*, and the qualifier *increased*. Keeping these components structured
+makes it possible to search and compare claims by entity, attribute, or kind of
+change while retaining a readable name for displays and summaries.
+
+### `CausalEdge`
+
+A `CausalEdge` represents an article-level causal claim connecting a cause node
+to an effect node through a controlled predicate. Beyond the basic
+subject-predicate-object relationship, it records how strongly the source makes
+the claim, which philosophical accounts of causation it invokes, the causal
+features it exhibits, and the evidence supporting it. It can also retain the
+original sentence, ecosystem context, and rendering metadata. In other words,
+the edge captures both *what causal relationship was claimed* and *how that
+claim was expressed and supported in its source*.
+
+### `EvidenceBaseAssessmentEdge`
+
+An `EvidenceBaseAssessmentEdge` represents a synthesis-level judgment across
+multiple article-level `CausalEdge` records concerning the same or comparable
+causal relationship. It records which edges were included or excluded and
+summarizes properties of the combined evidence, such as the evidence types,
+effect direction, consistency, and the presence of difference-making or
+mechanistic evidence. It is intended for systematic synthesis and graph
+analysis rather than direct annotation of an individual article, and it can be
+regenerated when the underlying evidence base changes.
+
+---
+
 ## What goes in?
 
 - Ecological causal claims extracted from papers, reports, or synthesis products

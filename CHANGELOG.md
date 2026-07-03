@@ -2,6 +2,22 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## Supporting documentation and CI (2026-07-03)
+
+- Added a GitHub Actions workflow that validates the active schema against the
+  LinkML metamodel and runs the LinkML linter on pushes and pull requests.
+  - Rationale: continuously lint and validate the LinkML schema in GitHub CI.
+- Added a single-page schema reference covering every class and inline slot in
+  the active schema.
+  - Rationale: provide one documentation page detailing the schema's classes
+    and slots.
+- Expanded `README.md` with a high-level explanation of `CausalNode`,
+  `CausalEdge`, and `EvidenceBaseAssessmentEdge`.
+  - Rationale: explain the schema's three core graph objects at a conceptual
+    level.
+- These changes affect only supporting documentation and CI configuration; they
+  do not change the schema.
+
 ## 0.7.0 -> 0.7.1 changes
 
 This entry was reconstructed from a file diff (`old versions/causal_mosaic_v0.7.0.yaml`
