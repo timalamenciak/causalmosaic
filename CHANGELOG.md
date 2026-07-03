@@ -21,6 +21,10 @@ All notable changes to the active LinkML schema and its supporting governance fi
   `CausalEdge`, and `EvidenceBaseAssessmentEdge`.
   - Rationale: explain the schema's three core graph objects at a conceptual
     level.
+- Added README badges for the latest version tag and LinkML schema CI status.
+  - Rationale: make the current release version and CI result visible from the
+    repository landing page. The version badge uses tags because the repository
+    does not yet have a published GitHub Release.
 - These changes affect only supporting documentation and CI configuration; they
   do not change the schema.
 

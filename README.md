@@ -1,5 +1,8 @@
 # Causal Mosaic
 
+[![Latest release](https://img.shields.io/github/v/tag/timalamenciak/causalmosaic?label=release)](https://github.com/timalamenciak/causalmosaic/tags)
+[![LinkML schema](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml/badge.svg)](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml)
+
 A LinkML schema for representing ecological causal claims as an ontology-grounded graph. Combines ELMO-style entity decomposition with the Illari–Russo causal mosaic framework (CAMO), so the same curated claims can drive causal diagrams, evidence gap maps, fuzzy cognitive models, and practitioner summaries.
 
 ---
@@ -87,4 +90,3 @@ regenerated when the underlying evidence base changes.
 - Structured evidence for practitioner summaries and systematic reviews
 
 ---
-
