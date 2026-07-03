@@ -507,7 +507,8 @@ enums:
       precedes:
         description: "Temporal precedence without causal commitment."
         meaning: biolink:precedes
-        notes: "This maps to the Biolink Model because precedes is well-defined there."
+        notes:
+          - "This maps to the Biolink Model because precedes is well-defined there."
         annotations:
           sign: temporal
           fcm_default_weight: "0.0"

@@ -2,6 +2,12 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.7.2 LinkML compatibility fix (2026-07-03)
+
+- Changed `CausalPredicateEnum.precedes.notes` from a scalar string to a
+  one-item list, as required by the LinkML metamodel.
+  - Rationale: LinkML compatibility.
+
 ## Supporting documentation and CI (2026-07-03)
 
 - Added a GitHub Actions workflow that validates the active schema against the
