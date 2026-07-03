@@ -2,6 +2,62 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.7.0 -> 0.7.1 changes
+
+This entry was reconstructed from a file diff (`old versions/causal_mosaic_v0.7.0.yaml`
+vs `causal_mosaic_v0.7.1.yaml`) rather than logged at the time, so several
+items are missing the rationale the schema owner would normally supply here —
+marked below where that's the case.
+
+### Machine-readable summary
+
+```yaml
+renamed_enums:
+  - {from: NodeEntityTypeEnum, to: EntityTypeEnum}
+added_enum_values:
+  - {enum: EntityTypeEnum, value: taxon}
+removed_enum_values:
+  - {enum: StateOrChangeQualifierEnum, values: [introduced, removed]}
+added_slots:
+  - {slot: entity_type, class: CausalNode, range: EntityTypeEnum}
+bug_fixes:
+  - {issue: "annotation: (singular) is not a valid LinkML key and was silently ignored",
+     fix: "corrected to annotations: on embedding_text, start_char, end_char, sentence_id, paragraph_id, study_duration_months",
+     effect: "these fields' loom_role: hidden annotation (declared in 0.4.2->0.6.0) now actually takes effect"}
+  - {issue: "loom_role: collapsed does not match the value Loom's schema_engine.py checks for (\"collapse\")",
+     fix: "corrected loom_role: collapsed -> collapse on bbox_north, bbox_south, bbox_east, bbox_west",
+     effect: "these StudyCoordinates bounding-box fields now actually start collapsed in the annotation form"}
+```
+
+### Detailed changes
+
+- Fixed `annotation:` (singular) to `annotations:` (plural — the correct LinkML
+  key) on `embedding_text`, `start_char`, `end_char`, `sentence_id`,
+  `paragraph_id`, and `study_duration_months`.
+  - Rationale: not recorded. This looks like an unintentional typo in 0.7.0
+    rather than a deliberate design decision — the singular key silently
+    failed to register as a LinkML annotation, so these fields' intended
+    `loom_role: hidden` (declared back in the 0.4.2 -> 0.6.0 entry) never
+    actually took effect until this fix.
+- Fixed `loom_role: collapsed` to `loom_role: collapse` on the `StudyCoordinates`
+  bounding-box fields `bbox_north`, `bbox_south`, `bbox_east`, `bbox_west`.
+  - Rationale: not recorded. Same pattern as above — Loom's schema-engine code
+    only recognizes the value `collapse`, so these fields never actually
+    started collapsed in the annotation form until this fix.
+- Renamed `NodeEntityTypeEnum` to `EntityTypeEnum` and added a `taxon`
+  permissible value.
+  - Rationale: not recorded — ask Tim Alamenciak if this should be documented
+    further.
+- Added `entity_type` to `CausalNode` (range `EntityTypeEnum`), annotated as
+  "Recommended but not required; inferred from entity_term when missing."
+  - Rationale: not recorded — ask Tim Alamenciak if this should be documented
+    further.
+- Removed the `introduced` and `removed` permissible values from
+  `StateOrChangeQualifierEnum` (both had been added in the 0.6.0 -> 0.7.0
+  process-based-terms expansion).
+  - Rationale: not recorded — ask Tim Alamenciak if this should be documented
+    further.
+
 ## 0.6.0 -> 0.7.0 changes
 
 ### Machine-readable summary
