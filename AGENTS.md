@@ -1,44 +1,71 @@
-# Schema Editing Instructions
+# AGENTS.md — Causal Mosaic Schema (CAMO)
 
-These instructions apply to this repository and all files beneath it.
+Instructions for coding agents working in the CAMO repository. Read by Claude
+Code (via a `CLAUDE.md` symlink), Codex, and OpenCode. Keep it lean.
 
-## Active schema
+## What this repo is
 
-- The active schema is the highest-versioned `causal_mosaic_v*.yaml` file at
-  the repository root (currently `causal_mosaic_v0.7.1.yaml`) — check the
-  filenames and each file's internal `version:` field rather than trusting a
-  hardcoded name here, since this note will otherwise drift out of date again
-  as new versions ship.
-- Do not modify an earlier or later schema version unless the user explicitly directs you to do so.
+The **source of truth** for the Causal Mosaic schema — a **LinkML data model**
+(YAML), grounded in Illari & Russo's causal mosaic framework, used to annotate
+restoration-ecology causal evidence. Current version: **v0.7.1**.
 
-## Releasing a new version
+This is a **schema, not an ontology and not app code.** The `.yaml` is authored
+by hand; everything else (Pydantic, JSON Schema, SHACL, OWL, docs) is
+*generated* from it. Downstream repos — notably loom — generate code and
+validate data against what is released here, so class and slot **names are a
+published contract.**
 
-When the `version:` field in the root schema file changes:
+## The loop (non-negotiable)
 
-1. Update `CHANGELOG.md` with the change and its rationale (see Changelog below).
-2. `git tag vX.Y.Z && git push --tags`
-3. `gh release create vX.Y.Z causal_mosaic_vX.Y.Z.yaml --notes-file <changelog-excerpt>`
-   — attaching the schema file itself as a release asset is the important part:
-   downstream consumers (e.g. Loom) poll GitHub Releases for this repo and
-   download that asset to pick up the new schema.
+```bash
+./validate.sh
+```
 
-## Change control
+Green means: the schema lints (`linkml-lint`), the example / test data validates
+against it (`linkml-validate`), and all generated artifacts regenerate cleanly
+with no uncommitted diff. Never hand back a state that fails. Fix the schema, not
+the checks.
 
-- Only make changes explicitly requested by the user.
-- Do not make opportunistic fixes, cleanups, formatting changes, renames, refactors, or inferred improvements.
-- Ask the user for clarification whenever a requested change is ambiguous, incomplete, or could reasonably be implemented in materially different ways.
-- Do not modify unrelated files or overwrite existing user changes.
-- Familiarization, review, and validation do not authorize changes to the schema.
+## Commands
 
-## Changelog
+<!-- CONFIRM each; replace guesses -->
 
-- Record every requested change in `CHANGELOG.md`.
-- For each change, identify what changed and include the rationale supplied by the user.
-- Do not invent a rationale. If the rationale is required but has not been supplied, ask the user for it before finalizing the change log entry.
-- Explicitly note when an action changes only supporting documentation and does not change the schema.
+| Task                | Command                                       |
+| ------------------- | --------------------------------------------- |
+| Validate (all)      | `./validate.sh`                               |
+| Lint schema         | `linkml-lint camo.yaml`                        |
+| Validate data       | `linkml-validate -s camo.yaml «data».yaml`     |
+| Regenerate artifacts| `gen-project -d generated/ camo.yaml`          |
+| Pydantic models     | `gen-pydantic camo.yaml`                       |
+| Tests               | `pytest`                                        |
 
-## Validation and reporting
+## Authoring conventions (this is a LinkML schema)
 
-- After an authorized schema edit, validate the edited schema when suitable validation tooling is available.
-- Report validation results separately from the requested changes; do not silently fix unrelated validation findings.
-- In the final response, list the files changed and confirm whether `causal_mosaic_v0.4.2.yaml` was modified.
+- **The `.yaml` is the source; generated artifacts are outputs.** Regenerate
+  them — never hand-edit Pydantic, JSON Schema, SHACL, OWL, or docs.
+- **Class and slot names are the public API.** Downstream code is generated from
+  them and existing data keys on them. Do not rename or remove without a
+  deprecation path and a changelog entry — a silent rename breaks loom's
+  generated models and existing annotations.
+- **Every class and slot needs a `description`; every slot needs an explicit
+  `range`.** No untyped or undocumented slots.
+- **Declare every prefix in the `prefixes` block and set `id_prefixes` on
+  identified classes.** Consistent CURIE prefixes are what let identifiers
+  resolve — this is the schema-side version of the CURIE hygiene that keeps
+  biting annotation runs.
+- **Model causal-relation categories as closed enums grounded in the causal
+  mosaic framework**, not free-text strings or ad hoc permissible values.
+- **Bump the schema `version:` on any breaking change**, with a changelog note.
+
+## Hard "do not"
+
+- Do **not** hand-edit any generated artifact. Change the schema and regenerate.
+- Do **not** rename/remove a released class, slot, or enum without a deprecation
+  path + changelog + migration note for loom.
+- Do **not** add a slot without a `range` and `description`.
+- Do **not** bump the version without recording the breaking changes.
+
+## Maintaining this file
+
+Human-owned. Do not rewrite it wholesale or append notes mid-task. Propose
+durable conventions in your response and let a human fold them in.

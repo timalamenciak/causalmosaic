@@ -1,4 +1,6 @@
-# Causal Mosaic
+# Causal Mosaic Schema
+
+![Pieces arranged in a mosaic](mosaic_icon.png)
 
 [![Latest release](https://img.shields.io/github/v/tag/timalamenciak/causalmosaic?label=release)](https://github.com/timalamenciak/causalmosaic/tags)
 [![LinkML schema](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml/badge.svg)](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml)
@@ -90,3 +92,5 @@ regenerated when the underlying evidence base changes.
 - Structured evidence for practitioner summaries and systematic reviews
 
 ---
+
+Mosaic by Andrejs Kirma from <a href="https://thenounproject.com/browse/icons/term/mosaic/" target="_blank" title="Mosaic Icons">Noun Project</a> (CC BY 3.0)
