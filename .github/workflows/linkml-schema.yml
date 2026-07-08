@@ -3,11 +3,11 @@ name: LinkML schema
 on:
   pull_request:
     paths:
-      - "camo-0.7.2.yaml"
+      - "camo-0.7.3.yaml"
       - ".github/workflows/linkml-schema.yml"
   push:
     paths:
-      - "camo-0.7.2.yaml"
+      - "camo-0.7.3.yaml"
       - ".github/workflows/linkml-schema.yml"
   workflow_dispatch:
 
@@ -32,8 +32,8 @@ jobs:
         run: python -m pip install --disable-pip-version-check "linkml==1.11.1"
 
       - name: Validate against the LinkML metamodel
-        run: linkml validate camo-0.7.2.yaml
+        run: linkml validate camo-0.7.3.yaml
 
       - name: Lint the schema
         if: ${{ !cancelled() }}
-        run: linkml lint camo-0.7.2.yaml
+        run: linkml lint camo-0.7.3.yaml
