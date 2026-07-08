@@ -2,6 +2,10 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.7.4 Changed filename
+
+Renamed camo-0.7.3.yaml to causalmosaic.yaml so that CI doesn't keep breaking.
+
 ## 0.7.3 Taxon-scope two-path model (2026-07-07)
 
 ### Machine-readable summary

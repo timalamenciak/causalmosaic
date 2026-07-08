@@ -24,7 +24,7 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.7.3
+## Schema version: 0.7.4
 ##   - entity_term widened to any_of [uriorcurie, string] so annotators can
 ##     record a term as free text when no cached ontology term matches yet
 ##     (mirrors the existing pattern already used by measured_attribute).
@@ -41,6 +41,13 @@
 ##     model: single-taxon measurements use a taxon node; multi-taxon
 ##     aggregates and ecological guilds use environmental_variable +
 ##     taxonomic_scope.
+##   - Added applied_to (multivalued AppliedToEntity) to CausalNode for
+##     environmental_process and management_intervention nodes that are directed
+##     at a specific entity (e.g. "herbivory on Sphagnum", "invasive species
+##     removal of Alliaria petiolata"). Not used on environmental_variable nodes
+##     — use taxonomic_scope there instead. Distinct from taxonomic_scope:
+##     taxonomic_scope scopes a multi-taxon measurement; applied_to names the
+##     directional target of a process or intervention.
 ## =============================================================================
 
 id: https://w3id.org/causal-mosaic
@@ -56,7 +63,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.7.3
+version: 0.7.4
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -2076,6 +2083,26 @@ classes:
             guild scope. Leave empty for taxon nodes and for variables with no
             taxonomic scope (e.g., soil pH, water table level).
 
+      applied_to:
+        description: >-
+          The specific entity that this process or management intervention is
+          directed at or acts upon. Use when the node's meaning is only
+          complete with reference to a target entity — for example, "herbivory
+          on Sphagnum" or "invasive species removal of Alliaria petiolata".
+          Accepts any entity type (taxon, community, habitat, etc.) using the
+          same entity_type / entity_term decomposition as CausalNode itself.
+
+          Use only on environmental_process and management_intervention nodes.
+          For environmental_variable nodes that are scoped to one or more taxa,
+          use taxonomic_scope instead.
+        range: AppliedToEntity
+        multivalued: true
+        inlined_as_list: true
+        annotations:
+          note: >-
+            Only populate for environmental_process and management_intervention
+            nodes. Leave empty for environmental_variable nodes (use
+            taxonomic_scope there) and for processes with no directional target.
 
       ## --- Text Grounding ---
 
@@ -2110,6 +2137,24 @@ classes:
   # ---------------------------------------------------------------------------
   # Text grounding
   # ---------------------------------------------------------------------------
+
+  AppliedToEntity:
+    description: >-
+      A structured reference to the entity that a CausalNode (environmental
+      variable, process, or intervention) is directed at or acts upon.
+      Uses the same entity_type / entity_term decomposition as CausalNode.
+    attributes:
+      entity_type:
+        description: "High-level category of the target entity."
+        range: EntityTypeEnum
+      entity_term:
+        description: >-
+          The target entity as an ontology CURIE (preferred) or free text.
+          For taxa use Wikidata QIDs; for environments ENVO; for processes GO.
+        any_of:
+          - range: uriorcurie
+          - range: string
+        required: true
 
   TextSpan:
     description: "A span of text in the source document, for provenance and RAG."

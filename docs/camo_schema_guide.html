@@ -1,0 +1,1845 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Causal Mosaic Schema Guide - CAMO 0.7.3</title>
+  <style>
+    :root {
+      --forest: #243F32;
+      --charcoal: #373535;
+      --sage: #8BAD8C;
+      --mint: #8FBF9F;
+      --rose: #C98D84;
+      --burgundy: #7A2D3A;
+      --cream: #E8DDD0;
+      --tan: #D4C4A0;
+      --paper: #F7F2EA;
+      --ink-soft: #5B5550;
+      --line: rgba(55, 53, 53, 0.18);
+      --shadow: 0 18px 48px rgba(36, 63, 50, 0.16);
+      --radius: 8px;
+      --measure: 76ch;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--charcoal);
+      background:
+        linear-gradient(90deg, rgba(36, 63, 50, 0.05) 0, rgba(36, 63, 50, 0.05) 1px, transparent 1px),
+        linear-gradient(180deg, var(--cream) 0%, var(--paper) 42%, #fffaf2 100%);
+      background-size: 72px 72px, auto;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: var(--burgundy);
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+    }
+
+    a:hover,
+    a:focus {
+      color: var(--forest);
+    }
+
+    code,
+    pre {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    code {
+      padding: 0.12rem 0.28rem;
+      color: var(--forest);
+      background: rgba(143, 191, 159, 0.22);
+      border: 1px solid rgba(36, 63, 50, 0.14);
+      border-radius: 6px;
+      font-size: 0.93em;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 1rem 0 0;
+      padding: 1.1rem;
+      color: #f8f3ec;
+      background: var(--charcoal);
+      border-radius: var(--radius);
+      border-left: 6px solid var(--mint);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    pre code {
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 0;
+      font-size: 0.96rem;
+    }
+
+    th,
+    td {
+      padding: 0.72rem 0.78rem;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: var(--cream);
+      background: var(--forest);
+      font-weight: 720;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(212, 196, 160, 0.22);
+    }
+
+    .skip-link {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
+      z-index: 20;
+      padding: 0.5rem 0.75rem;
+      color: var(--cream);
+      background: var(--burgundy);
+      border-radius: var(--radius);
+      transform: translateY(-150%);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .site-shell {
+      display: grid;
+      grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 1.3rem;
+      color: var(--cream);
+      background: var(--forest);
+      border-right: 1px solid rgba(232, 221, 208, 0.22);
+    }
+
+    .brand {
+      display: flex;
+      gap: 0.85rem;
+      align-items: center;
+      padding-bottom: 1.15rem;
+      border-bottom: 1px solid rgba(232, 221, 208, 0.24);
+    }
+
+    .brand img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      background: var(--cream);
+      border-radius: var(--radius);
+      padding: 0.35rem;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 0.16rem;
+      color: rgba(232, 221, 208, 0.78);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .nav-title {
+      margin: 1.2rem 0 0.55rem;
+      color: rgba(232, 221, 208, 0.78);
+      font-size: 0.78rem;
+      font-weight: 760;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 0.2rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-list a {
+      display: block;
+      padding: 0.45rem 0.55rem;
+      color: var(--cream);
+      text-decoration: none;
+      border-radius: 6px;
+    }
+
+    .nav-list a:hover,
+    .nav-list a:focus {
+      color: var(--forest);
+      background: var(--mint);
+      outline: none;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      align-items: end;
+      min-height: 74vh;
+      padding: clamp(2rem, 4vw, 4rem);
+      color: var(--cream);
+      background:
+        linear-gradient(120deg, rgba(36, 63, 50, 0.96), rgba(36, 63, 50, 0.78) 54%, rgba(122, 45, 58, 0.72)),
+        url("../mosaic_icon.png") right clamp(1rem, 7vw, 5rem) center / min(32vw, 330px) no-repeat,
+        var(--forest);
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 12px;
+      background: linear-gradient(90deg, var(--mint), var(--sage), var(--rose), var(--burgundy), var(--tan));
+    }
+
+    .hero-content {
+      position: relative;
+      max-width: 850px;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin: 0 0 1rem;
+      padding: 0.38rem 0.58rem;
+      color: var(--forest);
+      background: var(--mint);
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 790;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0;
+      line-height: 1.16;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 13ch;
+      font-size: clamp(2.8rem, 8vw, 6.6rem);
+      font-weight: 830;
+    }
+
+    .hero p {
+      max-width: 62ch;
+      margin: 1.1rem 0 0;
+      color: rgba(232, 221, 208, 0.91);
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1.4rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.58rem;
+      color: var(--cream);
+      background: rgba(55, 53, 53, 0.58);
+      border: 1px solid rgba(232, 221, 208, 0.24);
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 680;
+    }
+
+    .content {
+      width: min(100%, 1080px);
+      margin: 0 auto;
+      padding: clamp(1.4rem, 4vw, 4rem);
+    }
+
+    section {
+      scroll-margin-top: 1rem;
+      margin-top: clamp(2.4rem, 5vw, 4.6rem);
+    }
+
+    section:first-child {
+      margin-top: 0;
+    }
+
+    .section-kicker {
+      display: inline-block;
+      margin-bottom: 0.55rem;
+      color: var(--burgundy);
+      font-size: 0.8rem;
+      font-weight: 820;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    h2 {
+      color: var(--forest);
+      font-size: clamp(1.85rem, 4vw, 3rem);
+    }
+
+    h3 {
+      margin-top: 1.8rem;
+      color: var(--forest);
+      font-size: clamp(1.2rem, 2vw, 1.55rem);
+    }
+
+    h4 {
+      margin-top: 1.35rem;
+      color: var(--burgundy);
+      font-size: 1.05rem;
+    }
+
+    p {
+      max-width: var(--measure);
+      margin: 0.85rem 0 0;
+    }
+
+    ul,
+    ol {
+      max-width: var(--measure);
+      margin: 0.85rem 0 0;
+      padding-left: 1.25rem;
+    }
+
+    li + li {
+      margin-top: 0.45rem;
+    }
+
+    .lead {
+      max-width: 78ch;
+      font-size: 1.12rem;
+    }
+
+    .callout {
+      margin-top: 1.2rem;
+      padding: 1rem 1.05rem;
+      background: rgba(143, 191, 159, 0.2);
+      border: 1px solid rgba(36, 63, 50, 0.18);
+      border-left: 6px solid var(--forest);
+      border-radius: var(--radius);
+    }
+
+    .callout.warning {
+      background: rgba(201, 141, 132, 0.17);
+      border-left-color: var(--burgundy);
+    }
+
+    .callout strong {
+      color: var(--forest);
+    }
+
+    .grid {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.1rem;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .tile,
+    .mini-card {
+      padding: 1rem;
+      background: rgba(255, 250, 242, 0.86);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 22px rgba(36, 63, 50, 0.08);
+    }
+
+    .tile h3,
+    .mini-card h3,
+    .mini-card h4 {
+      margin-top: 0;
+    }
+
+    .tile p,
+    .mini-card p {
+      margin-top: 0.55rem;
+    }
+
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1.3rem;
+    }
+
+    .stat {
+      padding: 0.9rem;
+      color: var(--cream);
+      background: var(--charcoal);
+      border-radius: var(--radius);
+    }
+
+    .stat:nth-child(2) {
+      background: var(--forest);
+    }
+
+    .stat:nth-child(3) {
+      color: var(--charcoal);
+      background: var(--mint);
+    }
+
+    .stat:nth-child(4) {
+      background: var(--burgundy);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.7rem;
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 0.88rem;
+    }
+
+    .model {
+      margin-top: 1.2rem;
+      padding: clamp(1rem, 2.5vw, 1.5rem);
+      background: var(--forest);
+      color: var(--cream);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .model-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .model-part {
+      min-height: 118px;
+      padding: 0.95rem;
+      color: var(--charcoal);
+      background: var(--cream);
+      border-radius: var(--radius);
+      border-top: 5px solid var(--mint);
+    }
+
+    .model-part:nth-child(3) {
+      border-top-color: var(--rose);
+    }
+
+    .model-part:nth-child(5) {
+      border-top-color: var(--tan);
+    }
+
+    .model-part strong {
+      display: block;
+      color: var(--forest);
+      font-size: 1.02rem;
+    }
+
+    .model-part span {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 0.92rem;
+    }
+
+    .arrow {
+      color: var(--mint);
+      font-size: 1.8rem;
+      font-weight: 820;
+      line-height: 1;
+    }
+
+    .graph-demo {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 9rem minmax(0, 1fr);
+      gap: 1rem;
+      align-items: center;
+      margin-top: 1.1rem;
+      padding: 1.05rem;
+      background: rgba(55, 53, 53, 0.04);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .node-box {
+      min-height: 142px;
+      padding: 1rem;
+      border-radius: var(--radius);
+      background: #fffaf2;
+      border: 2px solid var(--forest);
+    }
+
+    .node-box.effect {
+      border-color: var(--burgundy);
+    }
+
+    .node-box .label {
+      display: block;
+      color: var(--forest);
+      font-size: 0.8rem;
+      font-weight: 820;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .node-box strong {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--charcoal);
+      font-size: 1.07rem;
+      line-height: 1.28;
+    }
+
+    .node-box small {
+      display: block;
+      margin-top: 0.6rem;
+      color: var(--ink-soft);
+      line-height: 1.45;
+    }
+
+    .edge-box {
+      text-align: center;
+      color: var(--forest);
+      font-weight: 800;
+    }
+
+    .edge-box .line {
+      display: block;
+      margin: 0.45rem auto;
+      height: 4px;
+      width: 100%;
+      background: linear-gradient(90deg, var(--forest), var(--burgundy));
+      border-radius: 999px;
+    }
+
+    .edge-box code {
+      display: inline-block;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.75rem;
+      padding: 0;
+      list-style: none;
+    }
+
+    .tag-list li {
+      margin: 0;
+      padding: 0.28rem 0.5rem;
+      color: var(--forest);
+      background: rgba(139, 173, 140, 0.28);
+      border: 1px solid rgba(36, 63, 50, 0.16);
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 660;
+    }
+
+    .feature-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .feature-list li {
+      margin: 0;
+      padding: 0.85rem;
+      background: rgba(255, 250, 242, 0.9);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .feature-list strong {
+      display: block;
+      color: var(--burgundy);
+    }
+
+    .palette-row {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 0.45rem;
+      margin-top: 1rem;
+    }
+
+    .swatch {
+      min-height: 74px;
+      padding: 0.55rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(55, 53, 53, 0.16);
+      font-size: 0.78rem;
+      font-weight: 760;
+    }
+
+    .swatch.dark {
+      color: var(--cream);
+    }
+
+    .swatch.light {
+      color: var(--charcoal);
+    }
+
+    .toc-card {
+      margin-top: 1rem;
+      padding: 1rem;
+      color: var(--cream);
+      background: var(--burgundy);
+      border-radius: var(--radius);
+    }
+
+    .toc-card a {
+      color: var(--cream);
+    }
+
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      position: relative;
+      padding-left: 1.85rem;
+    }
+
+    .checklist li::before {
+      content: "";
+      position: absolute;
+      top: 0.42rem;
+      left: 0;
+      width: 0.9rem;
+      height: 0.9rem;
+      border: 2px solid var(--forest);
+      background: var(--mint);
+      border-radius: 3px;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      padding: 2rem clamp(1.4rem, 4vw, 4rem);
+      color: var(--cream);
+      background: var(--charcoal);
+    }
+
+    .footer p {
+      max-width: 900px;
+    }
+
+    @media (max-width: 980px) {
+      .site-shell {
+        display: block;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+
+      .nav-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero {
+        min-height: 66vh;
+        background:
+          linear-gradient(120deg, rgba(36, 63, 50, 0.96), rgba(36, 63, 50, 0.78) 58%, rgba(122, 45, 58, 0.72)),
+          url("../mosaic_icon.png") right 1.25rem bottom 1.25rem / 160px no-repeat,
+          var(--forest);
+      }
+
+      .grid.two,
+      .grid.three,
+      .stat-strip,
+      .feature-list {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .model-flow,
+      .graph-demo {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow {
+        transform: rotate(90deg);
+        justify-self: center;
+      }
+
+      .edge-box .line {
+        width: 4px;
+        height: 48px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .nav-list,
+      .grid.two,
+      .grid.three,
+      .stat-strip,
+      .feature-list,
+      .palette-row {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: clamp(2.45rem, 16vw, 3.8rem);
+      }
+
+      th,
+      td {
+        padding: 0.62rem 0.55rem;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .sidebar,
+      .skip-link {
+        display: none;
+      }
+
+      .site-shell {
+        display: block;
+      }
+
+      .hero {
+        min-height: auto;
+        color: var(--charcoal);
+        background: #fff;
+        padding: 1rem 0;
+      }
+
+      .hero::after {
+        display: none;
+      }
+
+      .hero p,
+      .eyebrow {
+        color: var(--charcoal);
+        background: transparent;
+        padding-left: 0;
+      }
+
+      .content {
+        padding: 0;
+      }
+
+      a {
+        color: var(--charcoal);
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to guide</a>
+  <div class="site-shell">
+    <aside class="sidebar" aria-label="Guide sections">
+      <div class="brand">
+        <img src="../mosaic_icon.png" alt="Mosaic icon">
+        <div>
+          <strong>Causal Mosaic Schema</strong>
+          <span>Guide 0.7.3</span>
+        </div>
+      </div>
+      <p class="nav-title">Contents</p>
+      <nav>
+        <ul class="nav-list">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#mental-model">Mental Model</a></li>
+          <li><a href="#schema-map">Schema Map</a></li>
+          <li><a href="#nodes">Nodes</a></li>
+          <li><a href="#edges">Edges</a></li>
+          <li><a href="#features">Causal Features</a></li>
+          <li><a href="#evidence">Evidence</a></li>
+          <li><a href="#example">Murphy Example</a></li>
+          <li><a href="#workflow">Annotation Workflow</a></li>
+          <li><a href="#quality">Quality Checks</a></li>
+          <li><a href="#contribute">Contribute</a></li>
+          <li><a href="#reading">Further Reading</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main id="main" class="main">
+      <header class="hero">
+        <div class="hero-content">
+          <p class="eyebrow">Readable schema guide</p>
+          <h1>Causal Mosaic Schema</h1>
+          <p>
+            A practical guide to CAMO 0.7.3: how ecological causal claims become
+            validated LinkML records that can power evidence maps, causal diagrams,
+            fuzzy cognitive maps, retrieval systems, and practitioner summaries.
+          </p>
+          <div class="hero-meta" aria-label="Guide metadata">
+            <span class="pill">Version 0.7.3</span>
+            <span class="pill">Source: camo-0.7.3.yaml</span>
+            <span class="pill">Example: Murphy 2005</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+        <section id="overview">
+          <span class="section-kicker">Start Here</span>
+          <h2>What CAMO Is</h2>
+          <p class="lead">
+            The Causal Mosaic Schema is a LinkML data model for recording causal
+            evidence in restoration ecology. It is not an app, not a general-purpose
+            ontology, and not a pile of prose notes. It is a versioned contract for
+            turning claims from literature into a graph that people and software can
+            inspect consistently.
+          </p>
+          <div class="grid three">
+            <article class="tile">
+              <h3>Schema</h3>
+              <p>
+                CAMO defines the classes, slots, ranges, and controlled vocabularies
+                used by annotations. The hand-authored YAML is the source of truth.
+              </p>
+            </article>
+            <article class="tile">
+              <h3>Graph</h3>
+              <p>
+                Each annotation becomes a labeled property graph: nodes are ecological
+                states or changes, edges are causal claims between those states or changes.
+              </p>
+            </article>
+            <article class="tile">
+              <h3>Evidence</h3>
+              <p>
+                Each edge records how strong the claim is, which causal accounts it invokes,
+                which features are present, and what kind of evidence supports it.
+              </p>
+            </article>
+          </div>
+
+          <div class="stat-strip" aria-label="Schema summary">
+            <div class="stat">
+              <strong>3</strong>
+              <span>core graph objects</span>
+            </div>
+            <div class="stat">
+              <strong>4</strong>
+              <span>edge annotation layers</span>
+            </div>
+            <div class="stat">
+              <strong>15</strong>
+              <span>causal feature slots</span>
+            </div>
+            <div class="stat">
+              <strong>1</strong>
+              <span>canonical schema YAML</span>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>Version note.</strong>
+            This page is written for the public CAMO 0.7.3 schema and uses the supplied
+            Murphy annotation as a worked example. The local working schema may include
+            draft target-scoping fields; always check the active YAML before releasing
+            downstream code or data.
+          </div>
+        </section>
+
+        <section id="mental-model">
+          <span class="section-kicker">The Core Idea</span>
+          <h2>Causation Is Between Changes, Not Bare Things</h2>
+          <p>
+            CAMO's most important modeling rule is simple: in ecological evidence,
+            a species, process, or place does not usually cause something by itself.
+            The causally relevant unit is a state or change in a measurable attribute.
+          </p>
+
+          <div class="model" aria-label="Node decomposition model">
+            <div class="model-flow">
+              <div class="model-part">
+                <strong>Entity</strong>
+                <span>What thing is involved?</span>
+                <span><code>entity_term</code></span>
+              </div>
+              <div class="arrow" aria-hidden="true">&rarr;</div>
+              <div class="model-part">
+                <strong>Attribute</strong>
+                <span>What property is being measured?</span>
+                <span><code>measured_attribute</code></span>
+              </div>
+              <div class="arrow" aria-hidden="true">&rarr;</div>
+              <div class="model-part">
+                <strong>Qualifier</strong>
+                <span>How is that property stated or changed?</span>
+                <span><code>state_or_change_qualifier</code></span>
+              </div>
+            </div>
+          </div>
+
+          <p>
+            A node such as "decreased reproductive output of <i>Alliaria petiolata</i>"
+            decomposes into a taxon, a measured attribute, and a change qualifier.
+            This lets a computer find all claims involving garlic mustard, all claims
+            about reproductive output, or all claims involving decreases, without
+            losing the human-readable label.
+          </p>
+
+          <div class="graph-demo" aria-label="Example causal edge">
+            <div class="node-box">
+              <span class="label">Cause node</span>
+              <strong>Introduction of transplanted <i>Sanguinaria canadensis</i></strong>
+              <small>
+                <code>entity_type: management_intervention</code><br>
+                <code>state_or_change_qualifier: introduced</code>
+              </small>
+            </div>
+            <div class="edge-box">
+              causal edge
+              <span class="line" aria-hidden="true"></span>
+              <code>negatively_regulates</code>
+            </div>
+            <div class="node-box effect">
+              <span class="label">Effect node</span>
+              <strong>Decreased population performance of <i>Alliaria petiolata</i></strong>
+              <small>
+                <code>entity_type: taxon</code><br>
+                <code>measured_attribute: population performance</code>
+              </small>
+            </div>
+          </div>
+        </section>
+
+        <section id="schema-map">
+          <span class="section-kicker">Structure</span>
+          <h2>The Schema Map</h2>
+          <p>
+            A CAMO record is a <code>CausalGraph</code>. It contains provenance,
+            nodes, article-level edges, and optionally synthesis-level evidence
+            assessments.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>What It Represents</th>
+                <th>When You Use It</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>CausalGraph</code></td>
+                <td>The complete annotation graph and its metadata.</td>
+                <td>Every annotation file starts here.</td>
+              </tr>
+              <tr>
+                <td><code>GraphProvenance</code></td>
+                <td>Project, protocol, version, creation, and corpus metadata.</td>
+                <td>To document where the annotation came from and which framework version it uses.</td>
+              </tr>
+              <tr>
+                <td><code>CausalNode</code></td>
+                <td>An ecological state or change: entity plus attribute plus qualifier.</td>
+                <td>For causes, effects, mediators, and moderators.</td>
+              </tr>
+              <tr>
+                <td><code>CausalEdge</code></td>
+                <td>An article-level causal claim connecting a subject node to an object node.</td>
+                <td>For each causal relationship extracted from a paper or report.</td>
+              </tr>
+              <tr>
+                <td><code>EvidenceBaseAssessmentEdge</code></td>
+                <td>A synthesis-level assessment across multiple comparable article-level edges.</td>
+                <td>For systematic reviews, evidence maps, and aggregate causal judgments.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Top-Level YAML Shape</h3>
+          <pre><code>graph_id: camo_example_graph
+schema_version: 0.7.3
+provenance:
+  ontology_framework: ELMO + CAMO
+  causal_mosaic_version: 0.7.3
+  project: EcoWeaver
+nodes:
+  - id: node:example_cause
+    name: "Increased abundance of example taxon"
+    entity_type: taxon
+    entity_term: Q12345
+    measured_attribute: abundance
+    state_or_change_qualifier: increased
+  - id: node:example_effect
+    name: "Decreased cover of example invasive plant"
+    entity_type: taxon
+    entity_term: Q67890
+    measured_attribute: cover
+    state_or_change_qualifier: decreased
+edges:
+  - id: edge:example_claim
+    subject: node:example_cause
+    predicate: causes
+    object: node:example_effect
+    claim_strength: direct_causal
+    philosophical_accounts:
+      - interventionist
+    source_spans:
+      - text: "Short source span grounding this claim."</code></pre>
+        </section>
+
+        <section id="nodes">
+          <span class="section-kicker">Nodes</span>
+          <h2>How to Read a CausalNode</h2>
+          <p>
+            A <code>CausalNode</code> is the reusable unit of ecological meaning.
+            It should say enough to be understandable as a label, but it should also
+            be decomposed into structured fields so software can compare claims
+            across papers.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Slot</th>
+                <th>Range</th>
+                <th>Plain-Language Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td><code>uriorcurie</code></td>
+                <td>Stable node identifier, usually generated by the annotation tool.</td>
+              </tr>
+              <tr>
+                <td><code>name</code></td>
+                <td><code>string</code></td>
+                <td>Human-readable label that expresses the full node meaning.</td>
+              </tr>
+              <tr>
+                <td><code>entity_type</code></td>
+                <td><code>EntityTypeEnum</code></td>
+                <td>Broad kind of entity: variable, process, intervention, or taxon.</td>
+              </tr>
+              <tr>
+                <td><code>entity_term</code></td>
+                <td><code>uriorcurie</code> or <code>string</code></td>
+                <td>The thing being described: a taxon, process, chemical, habitat, or variable.</td>
+              </tr>
+              <tr>
+                <td><code>measured_attribute</code></td>
+                <td><code>uriorcurie</code> or <code>string</code></td>
+                <td>The measured property, such as abundance, cover, height, density, or reproduction.</td>
+              </tr>
+              <tr>
+                <td><code>state_or_change_qualifier</code></td>
+                <td><code>StateOrChangeQualifierEnum</code></td>
+                <td>The state or direction: increased, decreased, present, introduced, removed, and related values.</td>
+              </tr>
+              <tr>
+                <td><code>taxonomic_scope</code></td>
+                <td><code>uriorcurie</code> or <code>string</code>, multivalued</td>
+                <td>Scopes an environmental variable to a taxon set or guild, such as native understory species.</td>
+              </tr>
+              <tr>
+                <td><code>source_spans</code></td>
+                <td><code>TextSpan</code>, multivalued</td>
+                <td>Grounding snippets or local span references that explain why the node exists.</td>
+              </tr>
+              <tr>
+                <td><code>annotator</code></td>
+                <td><code>string</code></td>
+                <td>Human, ORCID, model, or workflow responsible for the node annotation.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Entity Types</h3>
+          <div class="grid two">
+            <article class="mini-card">
+              <h4><code>environmental_variable</code></h4>
+              <p>
+                A measurable aspect of ecosystem state: soil pH, resource availability,
+                canopy cover, species richness, water table level.
+              </p>
+            </article>
+            <article class="mini-card">
+              <h4><code>environmental_process</code></h4>
+              <p>
+                A process that changes ecosystem state over time: deposition,
+                decomposition, competition, succession, herbivory.
+              </p>
+            </article>
+            <article class="mini-card">
+              <h4><code>management_intervention</code></h4>
+              <p>
+                A deliberate human action: transplanting, prescribed burning,
+                invasive species removal, seeding, hydrological restoration.
+              </p>
+            </article>
+            <article class="mini-card">
+              <h4><code>taxon</code></h4>
+              <p>
+                A single taxon whose attribute is being measured. Use the taxon as
+                <code>entity_term</code> and the property as <code>measured_attribute</code>.
+              </p>
+            </article>
+          </div>
+
+          <h3>Taxon-Scope Two-Path Model</h3>
+          <p>
+            CAMO 0.7.3 adds <code>taxonomic_scope</code> so multi-taxon measurements
+            can be represented without adding non-causal graph edges.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Situation</th>
+                <th>Use</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Single-taxon measurement</td>
+                <td><code>entity_type: taxon</code></td>
+                <td><code>entity_term: Alliaria petiolata</code> and <code>measured_attribute: reproductive output</code></td>
+              </tr>
+              <tr>
+                <td>Multi-taxon aggregate or ecological guild</td>
+                <td><code>entity_type: environmental_variable</code> plus <code>taxonomic_scope</code></td>
+                <td><code>entity_term: re-establishment</code> with <code>taxonomic_scope: [native forest understory species]</code></td>
+              </tr>
+              <tr>
+                <td>Intervention or process directed at an entity</td>
+                <td>Use the active schema's target-scoping pattern when available</td>
+                <td>Transplanting as an intervention directed at <i>Sanguinaria canadensis</i></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>State and Change Qualifiers</h3>
+          <ul class="tag-list" aria-label="State and change qualifier examples">
+            <li>increased</li>
+            <li>decreased</li>
+            <li>present</li>
+            <li>absent</li>
+            <li>introduced</li>
+            <li>removed</li>
+            <li>unchanged</li>
+            <li>unspecified</li>
+            <li>occurred</li>
+            <li>initiated</li>
+            <li>terminated</li>
+            <li>ongoing</li>
+          </ul>
+        </section>
+
+        <section id="edges">
+          <span class="section-kicker">Edges</span>
+          <h2>How to Read a CausalEdge</h2>
+          <p>
+            A <code>CausalEdge</code> is the main annotation unit. It connects one
+            node to another and then carries four layers of interpretation:
+            language strength, philosophical account, causal features, and evidence.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>Slots</th>
+                <th>Question It Answers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Graph triple</td>
+                <td><code>subject</code>, <code>predicate</code>, <code>object</code>, <code>negated</code></td>
+                <td>What causal relationship is being claimed, and is the relation denied?</td>
+              </tr>
+              <tr>
+                <td>Layer 1</td>
+                <td><code>claim_strength</code>, <code>original_sentence</code>, <code>ecosystem_context</code></td>
+                <td>How strongly does the source text phrase the causal claim, and where was it observed?</td>
+              </tr>
+              <tr>
+                <td>Layer 2</td>
+                <td><code>philosophical_accounts</code></td>
+                <td>Which accounts of causation does the claim rely on?</td>
+              </tr>
+              <tr>
+                <td>Layer 3</td>
+                <td>Fifteen causal feature slots</td>
+                <td>What is said about necessity, direction, mechanism, context, reversibility, and related features?</td>
+              </tr>
+              <tr>
+                <td>Layer 4</td>
+                <td><code>evidential_basis</code></td>
+                <td>What kind of evidence supports the claim, and what is the evidence evidence of?</td>
+              </tr>
+              <tr>
+                <td>Rendering and provenance</td>
+                <td><code>fcm_weight</code>, <code>temporal_extent</code>, <code>source_document</code>, <code>annotation_confidence</code></td>
+                <td>How should downstream systems model, filter, and trace the claim?</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Predicate Vocabulary</h3>
+          <p>
+            Use controlled predicates. They are grounded in CAMO, Biolink, or RO
+            where possible and carry signs for downstream fuzzy cognitive maps.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Predicate</th>
+                <th>Sign</th>
+                <th>Use When</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>causes</code></td>
+                <td>positive</td>
+                <td>C directly produces or increases E.</td>
+              </tr>
+              <tr>
+                <td><code>contributes_to</code></td>
+                <td>positive</td>
+                <td>C is one contributing factor among others.</td>
+              </tr>
+              <tr>
+                <td><code>prevents</code></td>
+                <td>negative</td>
+                <td>C blocks, inhibits, or prevents E.</td>
+              </tr>
+              <tr>
+                <td><code>enables</code></td>
+                <td>positive</td>
+                <td>C facilitates E but is not necessarily sufficient.</td>
+              </tr>
+              <tr>
+                <td><code>disrupts</code></td>
+                <td>negative</td>
+                <td>C degrades, suppresses, or disturbs E.</td>
+              </tr>
+              <tr>
+                <td><code>regulates</code></td>
+                <td>variable</td>
+                <td>C modulates E but the sign is context-dependent or not fixed.</td>
+              </tr>
+              <tr>
+                <td><code>positively_regulates</code></td>
+                <td>positive</td>
+                <td>C upregulates, increases, or strengthens E.</td>
+              </tr>
+              <tr>
+                <td><code>negatively_regulates</code></td>
+                <td>negative</td>
+                <td>C downregulates, decreases, or suppresses E.</td>
+              </tr>
+              <tr>
+                <td><code>associated_with</code> / <code>correlated_with</code></td>
+                <td>unspecified</td>
+                <td>The source reports a relationship without causal commitment.</td>
+              </tr>
+              <tr>
+                <td><code>mediates</code> / <code>moderates</code></td>
+                <td>pathway / modifier</td>
+                <td>A node lies on a pathway or modifies another causal relationship.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Claim Strength</h3>
+          <div class="grid two">
+            <article class="mini-card">
+              <h4><code>no_relationship</code></h4>
+              <p>The source explicitly reports no effect or no relationship.</p>
+            </article>
+            <article class="mini-card">
+              <h4><code>associational</code></h4>
+              <p>The source reports association, correlation, or co-occurrence without causal language.</p>
+            </article>
+            <article class="mini-card">
+              <h4><code>uncertain_causal</code></h4>
+              <p>The source uses hedged causal language or a conditional causal interpretation.</p>
+            </article>
+            <article class="mini-card">
+              <h4><code>direct_causal</code></h4>
+              <p>The source uses unhedged causal language that asserts causation.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="features">
+          <span class="section-kicker">Layer 3</span>
+          <h2>The Fifteen Causal Features</h2>
+          <p>
+            CAMO keeps causal interpretation explicit. Most feature slots use a
+            four-value status: <code>explicitly_asserted</code>,
+            <code>implicitly_assumed</code>, <code>explicitly_denied</code>, or
+            <code>not_addressed</code>. More specialized features use their own
+            enums or small inlined structures.
+          </p>
+
+          <ul class="feature-list">
+            <li><strong>necessity</strong> Is C required for E?</li>
+            <li><strong>sufficiency</strong> Is C enough to produce E?</li>
+            <li><strong>direction</strong> Is C-to-E direction asserted, uncertain, or bidirectional?</li>
+            <li><strong>temporal_ordering</strong> Does the source establish that C precedes E?</li>
+            <li><strong>mediation</strong> Is a pathway or mediator identified?</li>
+            <li><strong>moderation</strong> Does a third variable alter the effect?</li>
+            <li><strong>strength</strong> Is magnitude, effect size, or dose response reported?</li>
+            <li><strong>specificity</strong> Is the relation specific to a cause, effect, or context?</li>
+            <li><strong>stability</strong> Is the relationship stable across settings or times?</li>
+            <li><strong>token_or_type</strong> Is the claim about one case or a general relation?</li>
+            <li><strong>determinism</strong> Is causation framed as deterministic, probabilistic, or ambiguous?</li>
+            <li><strong>proximate_distal</strong> Is the cause immediate, upstream, or both?</li>
+            <li><strong>contributing_sole</strong> Is C one factor or the only cause?</li>
+            <li><strong>reversibility</strong> Would removing C reverse E?</li>
+            <li><strong>proportionality</strong> Is the cause described at the right level of specificity?</li>
+          </ul>
+
+          <h3>Inlined Feature Structures</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Structure</th>
+                <th>Useful Fields</th>
+                <th>Example Use</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>DirectionAnnotation</code></td>
+                <td><code>status</code>, <code>evidence_for_direction</code></td>
+                <td>Direction established by a randomized field experiment.</td>
+              </tr>
+              <tr>
+                <td><code>MediationAnnotation</code></td>
+                <td><code>status</code>, <code>mediator_node_ids</code>, <code>pathway_description</code></td>
+                <td>Competition is inferred through reduced resource availability.</td>
+              </tr>
+              <tr>
+                <td><code>ModerationAnnotation</code></td>
+                <td><code>status</code>, <code>moderator_node_ids</code>, <code>interaction_type</code></td>
+                <td>Effect magnitude changes with treatment density.</td>
+              </tr>
+              <tr>
+                <td><code>StrengthAnnotation</code></td>
+                <td><code>quantitative_value</code>, <code>qualitative_descriptor</code>, <code>dose_response</code></td>
+                <td>A strong, dose-responsive suppressive effect is reported.</td>
+              </tr>
+              <tr>
+                <td><code>ContextAnnotation</code></td>
+                <td><code>scope_conditions</code>, <code>geographic_scope</code>, <code>temporal_scope</code>, <code>ecosystem_scope</code></td>
+                <td>The claim is scoped to a degraded deciduous forest edge in Ontario during 1997-2000.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="evidence">
+          <span class="section-kicker">Layer 4</span>
+          <h2>Evidence Basis</h2>
+          <p>
+            CAMO separates the type of evidence from the object of evidence. This
+            distinction makes it possible to see whether a paper supports
+            difference-making, production/mechanism, or both.
+          </p>
+
+          <div class="grid two">
+            <article class="tile">
+              <h3><code>evidence_types</code></h3>
+              <p>
+                What kind of study or reasoning produced the evidence? Examples
+                include <code>randomized_experiment</code>,
+                <code>observational_longitudinal</code>, <code>mechanistic_study</code>,
+                <code>structural_equation_model</code>, <code>meta_analysis</code>,
+                <code>modeling_simulation</code>, <code>expert_judgment</code>,
+                and <code>practitioner_experience</code>.
+              </p>
+            </article>
+            <article class="tile">
+              <h3><code>evidence_objects</code></h3>
+              <p>
+                What is the evidence evidence of? Use <code>correlation</code> for
+                difference-making evidence, <code>mechanism</code> for production
+                evidence, and <code>both</code> when the source supports both sides.
+              </p>
+            </article>
+          </div>
+
+          <h3>Philosophical Accounts</h3>
+          <p>
+            CAMO's causal mosaic layer lets one edge invoke more than one account
+            of causation. A management experiment, for example, may be
+            <code>interventionist</code> because a treatment was manipulated,
+            <code>probabilistic</code> because outcomes vary across plots, and
+            <code>agency</code> because the claim matters for management action.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Family</th>
+                <th>Question</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>counterfactual</code></td>
+                <td>difference-making</td>
+                <td>Would E have occurred without C?</td>
+              </tr>
+              <tr>
+                <td><code>probabilistic</code></td>
+                <td>difference-making</td>
+                <td>Does C change the probability or systematic variation of E?</td>
+              </tr>
+              <tr>
+                <td><code>interventionist</code></td>
+                <td>difference-making</td>
+                <td>Would intervening on C change E?</td>
+              </tr>
+              <tr>
+                <td><code>transmission</code></td>
+                <td>production</td>
+                <td>What material, signal, energy, or information passes from C to E?</td>
+              </tr>
+              <tr>
+                <td><code>mechanistic</code></td>
+                <td>production</td>
+                <td>What entities and activities produce E from C?</td>
+              </tr>
+              <tr>
+                <td><code>regularity</code></td>
+                <td>complementary</td>
+                <td>Does C-type regularly precede E-type?</td>
+              </tr>
+              <tr>
+                <td><code>inus_component</code></td>
+                <td>complementary</td>
+                <td>Is C a necessary part of one sufficient causal constellation?</td>
+              </tr>
+              <tr>
+                <td><code>agency</code></td>
+                <td>complementary</td>
+                <td>Can an agent bring about E by doing C?</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="example">
+          <span class="section-kicker">Worked Example</span>
+          <h2>Murphy 2005: Bloodroot, Garlic Mustard, and Restoration</h2>
+          <p>
+            The supplied example annotation is based on Stephen D. Murphy's 2005
+            <i>Restoration Ecology</i> article, "Concurrent Management of an Exotic
+            Species and Initial Restoration Efforts in Forests." The study tested
+            whether transplanted bloodroot, <i>Sanguinaria canadensis</i>, could
+            suppress garlic mustard, <i>Alliaria petiolata</i>, in a degraded deciduous
+            woodlot edge near Waterloo, Ontario.
+          </p>
+
+          <div class="grid three">
+            <article class="mini-card">
+              <h3>Study Design</h3>
+              <p>
+                Randomized complete blocks with 40 one-square-metre plots and ten
+                bloodroot density treatments observed across four growing seasons.
+              </p>
+            </article>
+            <article class="mini-card">
+              <h3>Main CAMO Claim</h3>
+              <p>
+                Transplanted bloodroot negatively regulates garlic mustard population
+                performance and reproductive output in the studied forest-edge context.
+              </p>
+            </article>
+            <article class="mini-card">
+              <h3>Important Limit</h3>
+              <p>
+                The annotation also records a null or delayed outcome: broader native
+                understory re-establishment was not detected by the end of the study.
+              </p>
+            </article>
+          </div>
+
+          <h3>From Paper to CAMO</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Ecological Idea</th>
+                <th>CAMO Representation</th>
+                <th>Why It Matters</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Bloodroot was transplanted at different densities.</td>
+                <td>A <code>management_intervention</code> node with qualifier <code>introduced</code>.</td>
+                <td>The intervention is represented as the cause-side node, not as a loose study note.</td>
+              </tr>
+              <tr>
+                <td>Garlic mustard performance decreased.</td>
+                <td>A <code>taxon</code> node for <i>Alliaria petiolata</i> with <code>measured_attribute: population performance</code> and qualifier <code>decreased</code>.</td>
+                <td>The taxon and measured property stay separable for search and synthesis.</td>
+              </tr>
+              <tr>
+                <td>Resource competition is the inferred pathway.</td>
+                <td>A mediator node for decreased resource availability, referenced by <code>mediation.mediator_node_ids</code>.</td>
+                <td>The annotation distinguishes observed treatment effects from inferred mechanism.</td>
+              </tr>
+              <tr>
+                <td>Density modifies effect magnitude.</td>
+                <td><code>moderation.status: explicitly_asserted</code> and <code>interaction_type: quantitative</code>.</td>
+                <td>The edge can record that more of the intervention does not always mean a simple linear benefit.</td>
+              </tr>
+              <tr>
+                <td>Suppression did not yet produce broad native recovery.</td>
+                <td>A negated edge with <code>claim_strength: no_relationship</code>.</td>
+                <td>Null results are still evidence and should remain visible in synthesis.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Example Edge, Condensed</h3>
+          <pre><code>- id: edge:murphy2005_sanguinaria_suppresses_alliaria_performance
+  subject: node:murphy2005_sanguinaria_transplanting
+  predicate: negatively_regulates
+  object: node:murphy2005_alliaria_population_performance
+  claim_strength: direct_causal
+  ecosystem_context: deciduous_temperate_forests
+  philosophical_accounts:
+    - interventionist
+    - probabilistic
+    - agency
+  direction:
+    status: asserted
+    evidence_for_direction: experimental
+  mediation:
+    status: implicitly_assumed
+    mediator_node_ids:
+      - node:murphy2005_resource_availability_to_alliaria
+  moderation:
+    status: explicitly_asserted
+    interaction_type: quantitative
+  strength:
+    status: explicitly_asserted
+    qualitative_descriptor: strong
+    dose_response: true
+  evidential_basis:
+    evidence_types:
+      - randomized_experiment
+    evidence_objects:
+      - both
+  temporal_extent:
+    duration_months: 48
+    observation_grain: seasonal</code></pre>
+
+          <div class="callout warning">
+            <strong>What the example teaches.</strong>
+            Do not make a separate causal node for every treatment density unless
+            the density itself is the causal object of analysis. In this annotation,
+            density is captured as strength, moderation, and context metadata on
+            the edge.
+          </div>
+        </section>
+
+        <section id="workflow">
+          <span class="section-kicker">Annotating</span>
+          <h2>A Practical Annotation Workflow</h2>
+          <ol>
+            <li>
+              <strong>Find causal language and causal design.</strong>
+              Look for explicit claims, null effects, inferred mechanisms, experimental
+              contrasts, temporal ordering, or management recommendations.
+            </li>
+            <li>
+              <strong>Create the nodes first.</strong>
+              For each cause, effect, mediator, and moderator, write the full human
+              label and then decompose it into entity, measured attribute, and qualifier.
+            </li>
+            <li>
+              <strong>Choose the edge predicate.</strong>
+              Pick the controlled predicate that best represents the direction and sign
+              of the claim: <code>causes</code>, <code>negatively_regulates</code>,
+              <code>enables</code>, <code>prevents</code>, and so on.
+            </li>
+            <li>
+              <strong>Set claim strength from the text.</strong>
+              This is about the source's wording, not your confidence. Hedged causal
+              language is <code>uncertain_causal</code>; direct causal language is
+              <code>direct_causal</code>.
+            </li>
+            <li>
+              <strong>Assign causal accounts.</strong>
+              Ask whether the claim is interventionist, probabilistic, mechanistic,
+              agency-oriented, regularity-based, or some combination.
+            </li>
+            <li>
+              <strong>Fill the causal feature layer conservatively.</strong>
+              Mark only what the source states or strongly implies. Use
+              <code>not_addressed</code> when the paper does not speak to a feature.
+            </li>
+            <li>
+              <strong>Record evidence and provenance.</strong>
+              Capture the study design, evidence type, evidence object, source document,
+              temporal extent, ecosystem context, and source spans.
+            </li>
+            <li>
+              <strong>Validate against the schema.</strong>
+              CAMO data should pass LinkML validation and the repository validation loop.
+            </li>
+          </ol>
+        </section>
+
+        <section id="quality">
+          <span class="section-kicker">Checks</span>
+          <h2>Quality Checklist</h2>
+          <ul class="checklist">
+            <li>Every node is a state or change, not just a bare species, process, or place.</li>
+            <li>Every node has a useful <code>name</code>, <code>entity_term</code>, and, where applicable, <code>measured_attribute</code>.</li>
+            <li>Single-taxon measurements use <code>entity_type: taxon</code>; multi-taxon or guild measurements use <code>taxonomic_scope</code>.</li>
+            <li>Every edge has <code>subject</code>, <code>predicate</code>, <code>object</code>, <code>claim_strength</code>, and <code>philosophical_accounts</code>.</li>
+            <li>Null results are represented with <code>claim_strength: no_relationship</code> and, when appropriate, <code>negated: true</code>.</li>
+            <li>Feature statuses distinguish explicit claims from assumptions and from silence.</li>
+            <li>Mechanisms are marked as inferred when the source does not directly test them.</li>
+            <li><code>evidential_basis.evidence_types</code> describes study design; <code>evidence_objects</code> describes what the evidence supports.</li>
+            <li>Source document metadata is present enough for citation, filtering, and later retrieval.</li>
+            <li>The file passes the repo validation workflow before it is released.</li>
+          </ul>
+
+          <h3>Common Pitfalls</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Pitfall</th>
+                <th>Better CAMO Habit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Annotating "garlic mustard" as an effect.</td>
+                <td>Annotate "decreased reproductive output of garlic mustard" or the exact measured state/change.</td>
+              </tr>
+              <tr>
+                <td>Treating all experimental claims as mechanistic.</td>
+                <td>Experimental evidence often supports difference-making; mechanism needs pathway evidence or a clearly stated mechanistic interpretation.</td>
+              </tr>
+              <tr>
+                <td>Using free-text predicates.</td>
+                <td>Choose from <code>CausalPredicateEnum</code> so downstream rendering and FCM signs stay consistent.</td>
+              </tr>
+              <tr>
+                <td>Encoding context as extra causal edges.</td>
+                <td>Use <code>ecosystem_context</code>, <code>context_dependence</code>, <code>temporal_extent</code>, and scope fields unless the relation is truly causal.</td>
+              </tr>
+              <tr>
+                <td>Letting old field names leak into data.</td>
+                <td>Use current 0.7.3 names, especially <code>measured_attribute</code> rather than older names.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="contribute">
+          <span class="section-kicker">Governance</span>
+          <h2>How to Contribute to CAMO</h2>
+          <p>
+            CAMO is a schema repository. The safest contributions preserve the
+            hand-authored YAML as the source of truth, keep released names stable,
+            and regenerate derived artifacts only from the schema.
+          </p>
+
+          <div class="grid two">
+            <article class="tile">
+              <h3>Before Changing the Schema</h3>
+              <ul>
+                <li>Open an issue or proposal for new classes, slots, enums, or breaking changes.</li>
+                <li>Check whether the concept belongs in CAMO, ELMO, another ontology, or project-specific annotation guidance.</li>
+                <li>Remember that class, slot, and enum names are downstream public contracts.</li>
+              </ul>
+            </article>
+            <article class="tile">
+              <h3>When Editing</h3>
+              <ul>
+                <li>Edit the LinkML YAML, not generated outputs.</li>
+                <li>Give every class and slot a clear <code>description</code>.</li>
+                <li>Give every slot an explicit <code>range</code>.</li>
+                <li>Declare prefixes and set identifier prefixes where needed.</li>
+              </ul>
+            </article>
+          </div>
+
+          <h3>Release Discipline</h3>
+          <ol>
+            <li>Use closed enums for causal categories rather than free-text values.</li>
+            <li>Do not rename or remove released classes, slots, or enums without a deprecation path.</li>
+            <li>Record breaking changes in <code>CHANGELOG.md</code> and include migration notes for downstream users.</li>
+            <li>Run the validation loop before handing off changes: <code>./validate.sh</code>.</li>
+            <li>Submit a focused pull request to <a href="https://github.com/timalamenciak/causalmosaic">github.com/timalamenciak/causalmosaic</a>.</li>
+          </ol>
+
+          <div class="callout">
+            <strong>Contribution test.</strong>
+            A good CAMO contribution makes annotation more precise without making
+            downstream data harder to validate, query, or migrate.
+          </div>
+        </section>
+
+        <section id="reading">
+          <span class="section-kicker">Learn More</span>
+          <h2>Further Reading</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Resource</th>
+                <th>Why Read It</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  Phyllis Illari and Federica Russo.
+                  <a href="https://global.oup.com/academic/product/causality-9780199662678">
+                    <i>Causality: Philosophical Theory Meets Scientific Practice</i>
+                  </a>.
+                  Oxford University Press, 2014.
+                </td>
+                <td>The core philosophical background for the causal mosaic approach.</td>
+              </tr>
+              <tr>
+                <td>
+                  CAMO schema source:
+                  <a href="../camo-0.7.3.yaml"><code>camo-0.7.3.yaml</code></a>
+                </td>
+                <td>The canonical source of truth for classes, slots, ranges, and enum values.</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="schema_reference.md">Schema reference</a> and
+                  <a href="causal_mosaic_annotation_guide.md">annotation guide</a>
+                </td>
+                <td>Local repo documentation for deeper field-by-field and annotator-oriented details.</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="https://linkml.io/linkml/">LinkML documentation</a>
+                </td>
+                <td>How CAMO is expressed, validated, and transformed into generated artifacts.</td>
+              </tr>
+              <tr>
+                <td>
+                  Alamenciak et al. 2025 ELM paper:
+                  <a href="https://doi.org/10.1007/978-3-032-06136-2_33">doi:10.1007/978-3-032-06136-2_33</a>
+                </td>
+                <td>Background on the entity/attribute/qualifier pattern used by CAMO nodes.</td>
+              </tr>
+              <tr>
+                <td>
+                  Murphy 2005:
+                  <a href="https://doi.org/10.1111/j.1526-100X.2005.00075.x">doi:10.1111/j.1526-100X.2005.00075.x</a>
+                </td>
+                <td>The restoration-ecology article used for the worked example in this guide.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="brand">
+          <span class="section-kicker">Visual System</span>
+          <h2>RACOON Colour Use</h2>
+          <p>
+            This guide uses the supplied RACOON palette with contrast-conscious
+            pairings: Forest and Charcoal carry body text and navigation, Cream
+            carries page background, Mint and Sage support examples, and Burgundy
+            marks high-signal emphasis.
+          </p>
+          <div class="palette-row" aria-label="RACOON brand colour swatches">
+            <div class="swatch dark" style="background:#243F32">Forest<br>#243F32</div>
+            <div class="swatch dark" style="background:#373535">Charcoal<br>#373535</div>
+            <div class="swatch light" style="background:#8BAD8C">Sage<br>#8BAD8C</div>
+            <div class="swatch light" style="background:#8FBF9F">Mint<br>#8FBF9F</div>
+            <div class="swatch light" style="background:#C98D84">Rose<br>#C98D84</div>
+            <div class="swatch dark" style="background:#7A2D3A">Burgundy<br>#7A2D3A</div>
+            <div class="swatch light" style="background:#E8DDD0">Cream<br>#E8DDD0</div>
+            <div class="swatch light" style="background:#D4C4A0">Tan<br>#D4C4A0</div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <p>
+          CAMO guide for schema version 0.7.3. Built as a single static HTML page
+          for the causalmosaic repository. The schema YAML remains authoritative
+          for validation, generated artifacts, and downstream code.
+        </p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
