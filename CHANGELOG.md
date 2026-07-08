@@ -2,6 +2,65 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.7.3 Taxon-scope two-path model (2026-07-07)
+
+### Machine-readable summary
+
+```yaml
+added_slots:
+  - slot: taxonomic_scope
+    class: CausalNode
+    range: any_of [uriorcurie, string]
+    multivalued: true
+updated_descriptions:
+  - class: CausalNode
+    note: two-path model for taxon-specific measurements added to class description
+  - enum: EntityTypeEnum
+    value: taxon
+    note: two-path model documented in permissible value description
+updated_metadata:
+  - version: 0.7.2 -> 0.7.3
+```
+
+### Detailed changes
+
+- Added `taxonomic_scope` (multivalued, `any_of [uriorcurie, string]`) to
+  `CausalNode`.
+  - Rationale: An audit of extraction outputs revealed that taxon-specific
+    measurements were being emitted as compound unresolved terms
+    (e.g., "abundance of Yellow-breasted Chats") rather than decomposed
+    graph structures, because the schema had no slot for scoping an
+    environmental_variable node to one or more taxa without a non-causal
+    edge. `taxonomic_scope` provides that slot. It accepts Wikidata QIDs
+    so that higher-rank identifiers (e.g., Q30019 for genus *Sphagnum*)
+    enable downstream traversal to all taxon nodes sharing that QID
+    without requiring a structural edge. Free-text values are accepted for
+    functional groups and guilds that have no Wikidata resolution
+    ("native species", "shade-tolerant species") — these should be tracked
+    in the project NAO list with a note that they are relational terms
+    requiring geographic or jurisdictional context. The slot is annotated
+    as applicable only to `environmental_variable` nodes; `taxon` nodes
+    should continue to carry their identity in `entity_term`.
+  - This slot preserves the invariant that all edges in the graph are
+    purely causal — `taxonomic_scope` is a queryable annotation field,
+    not a structural link.
+
+- Documented the two-path model for taxon-specific measurements in both
+  the `CausalNode` class description and the `EntityTypeEnum.taxon`
+  permissible value description.
+  - Path 1 (single taxon as subject): use `entity_type: taxon` with the
+    Wikidata QID in `entity_term` and the measured property in
+    `measured_attribute`. The taxon node is both organism and measurement
+    and participates directly in causal edges.
+  - Path 2 (multi-taxon aggregate or ecological guild): use
+    `entity_type: environmental_variable` with one or more Wikidata QIDs
+    or free-text guild names in `taxonomic_scope`.
+  - Rationale: Tim Alamenciak confirmed this design in review: edges must
+    remain purely causal; the shared Wikidata QID is the implicit link
+    between taxon nodes and `taxonomic_scope` entries on variable nodes,
+    enabling queries like "everything involving *Sphagnum*" across both
+    paths without non-causal edges.
+
 ## 0.7.2 LinkML compatibility fix (2026-07-03)
 
 - Changed `CausalPredicateEnum.precedes.notes` from a scalar string to a

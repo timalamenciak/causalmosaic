@@ -7,7 +7,7 @@ Code (via a `CLAUDE.md` symlink), Codex, and OpenCode. Keep it lean.
 
 The **source of truth** for the Causal Mosaic schema — a **LinkML data model**
 (YAML), grounded in Illari & Russo's causal mosaic framework, used to annotate
-restoration-ecology causal evidence. Current version: **v0.7.1**.
+restoration-ecology causal evidence. Current version: **v0.7.3**.
 
 This is a **schema, not an ontology and not app code.** The `.yaml` is authored
 by hand; everything else (Pydantic, JSON Schema, SHACL, OWL, docs) is

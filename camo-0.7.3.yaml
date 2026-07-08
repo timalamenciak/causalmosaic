@@ -24,13 +24,23 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.7.2
+## Schema version: 0.7.3
 ##   - entity_term widened to any_of [uriorcurie, string] so annotators can
 ##     record a term as free text when no cached ontology term matches yet
 ##     (mirrors the existing pattern already used by measured_attribute).
 ##     Loom logs an OntologyTermSuggestion for such values so a curator can
 ##     propose the term upstream; this is Loom-side workflow metadata, not
 ##     part of this schema.
+##   - Added taxonomic_scope (multivalued, any_of [uriorcurie, string]) to
+##     CausalNode for environmental_variable nodes that represent multi-taxon
+##     or ecological-guild measurements. Accepts Wikidata QIDs for structured
+##     traversal to related taxon nodes, or free text for guilds without a
+##     Wikidata equivalent (e.g. "native species"). Single-taxon measurements
+##     should continue to use entity_type: taxon with the QID in entity_term.
+##   - Updated EntityTypeEnum.taxon description to document the two-path
+##     model: single-taxon measurements use a taxon node; multi-taxon
+##     aggregates and ecological guilds use environmental_variable +
+##     taxonomic_scope.
 ## =============================================================================
 
 id: https://w3id.org/causal-mosaic
@@ -46,7 +56,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.7.2
+version: 0.7.3
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -807,8 +817,27 @@ enums:
         meaning: elmo_cas:ConservationAction
       taxon:
         description: >-
-          A taxa that is the subject of a causal claim. Refers to all members
-          of that taxa, with the caveats specified in causal annotation layers.
+          A taxon that is the subject of a causal claim. Refers to all members
+          of that taxon, with the caveats specified in causal annotation layers.
+
+          Two-path model for taxon-specific measurements:
+
+          (1) Single-taxon measurement — use entity_type: taxon with the
+          Wikidata QID in entity_term and the measured property in
+          measured_attribute. The node is both the organism and the
+          measurement (e.g., entity_term=Q30019, measured_attribute=cover,
+          qualifier=increased → "increased Sphagnum cover"). The taxon node
+          participates directly in causal edges.
+
+          (2) Multi-taxon aggregate or ecological guild — use
+          entity_type: environmental_variable with taxonomic_scope listing
+          the relevant Wikidata QIDs or free-text guild names. Reserve this
+          for cases where the measurement spans multiple taxa
+          ("richness of liverworts, Sphagnum, and true mosses") or refers to
+          an ecologically defined group with no single Wikidata resolution
+          ("native species", "shade-tolerant species"). Edges remain
+          purely causal; taxonomic_scope is a queryable annotation field,
+          not a structural link.
 
   # ---------------------------------------------------------------------------
   # Node categories (Biolink-aligned)
@@ -1927,6 +1956,16 @@ classes:
 
       This pattern corresponds to ELMO's subject/object value + derivative
       qualifier + state/change qualifier structure.
+
+      For taxon-specific measurements a two-path model applies. Single-taxon
+      measurements use entity_type: taxon, with the Wikidata QID in
+      entity_term and the measured property in measured_attribute — the taxon
+      node is both organism and measurement and participates directly in
+      causal edges. Multi-taxon aggregates and ecological guilds ("native
+      species", "shade-tolerant species") use entity_type: environmental_variable
+      with one or more Wikidata QIDs or free-text guild names in
+      taxonomic_scope. Causal edges are never used for taxon-to-measurement
+      links; taxonomic_scope is a queryable annotation field only.
     attributes:
       id:
         description: >-
@@ -2003,6 +2042,39 @@ classes:
           e.g., entity=Canis lupus, attribute=abundance,
           qualifier=increased → "increased abundance of Canis lupus."
         range: StateOrChangeQualifierEnum
+
+      taxonomic_scope:
+        description: >-
+          One or more taxa or ecological guilds that scope this node's
+          measurement, expressed as Wikidata QIDs (preferred) or free-text
+          controlled vocabulary terms where no QID exists.
+
+          Use only on environmental_variable nodes that represent measurements
+          spanning multiple taxa or ecologically defined groups — for example,
+          "richness of liverworts, Sphagnum, and true mosses" (list the QID
+          for each group) or "abundance of native species" (free text "native
+          species", tracked in NAO). Do not use on taxon nodes, where
+          entity_term already identifies the taxon.
+
+          Wikidata QIDs for higher-rank taxa (e.g., Q30019 for genus Sphagnum)
+          enable downstream traversal to all taxon nodes sharing that QID
+          without requiring a structural edge. This preserves the invariant
+          that all edges in the graph are purely causal.
+
+          Free-text values are accepted for functional groups and guilds with
+          no Wikidata resolution (e.g., "native species", "shade-tolerant
+          species", "invasive plants"). These should be tracked in the project
+          NAO (Not-An-Ontology) list with a note that they are relational
+          terms requiring geographic or jurisdictional context.
+        any_of:
+          - range: uriorcurie
+          - range: string
+        multivalued: true
+        annotations:
+          note: >-
+            Only populate for environmental_variable nodes with multi-taxon or
+            guild scope. Leave empty for taxon nodes and for variables with no
+            taxonomic scope (e.g., soil pH, water table level).
 
 
       ## --- Text Grounding ---
