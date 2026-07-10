@@ -24,7 +24,7 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.7.4
+## Schema version: 0.7.5
 ##   - entity_term widened to any_of [uriorcurie, string] so annotators can
 ##     record a term as free text when no cached ontology term matches yet
 ##     (mirrors the existing pattern already used by measured_attribute).
@@ -48,6 +48,9 @@
 ##     — use taxonomic_scope there instead. Distinct from taxonomic_scope:
 ##     taxonomic_scope scopes a multi-taxon measurement; applied_to names the
 ##     directional target of a process or intervention.
+##   - Added coordinate_location_basis (multivalued CoordinateLocationBasisEnum)
+##     to StudyCoordinates so coordinates can be annotated as exact study-site
+##     coordinates or coordinates of the nearest municipality.
 ## =============================================================================
 
 id: https://w3id.org/causal-mosaic
@@ -63,7 +66,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.7.4
+version: 0.7.5
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -702,6 +705,21 @@ enums:
         description: "No eligible evidence was found for the assessed relationship."
       not_assessed:
         description: "The evidence balance has not been assessed."
+
+  CoordinateLocationBasisEnum:
+    description: >-
+      What the study coordinate values represent. Used to distinguish
+      coordinates for the exact study site from approximate coordinates based
+      on the nearest municipality when exact site coordinates are unavailable.
+    permissible_values:
+      exact_site:
+        description: "Coordinates identify the exact study site or sampling location."
+        annotations:
+          display_label: "Exact site"
+      nearest_municipality:
+        description: "Coordinates identify the nearest municipality used as an approximate proxy for the study location."
+        annotations:
+          display_label: "Coordinates of nearest municipality"
 
   # ---------------------------------------------------------------------------
   # ELMO Entity Structure: State/Change Qualifier and Entity Type
@@ -1906,6 +1924,10 @@ classes:
         range: EvidenceBaseAssessmentEdge
         multivalued: true
         inlined_as_list: true
+      source_document:
+        description: "Bibliographic and study-level metadata for the source document from which this graph was extracted."
+        range: SourceDocument
+        inlined: true
 
   GraphProvenance:
     description: "Provenance and metadata for a causal graph."
@@ -1935,6 +1957,19 @@ classes:
       project:
         description: "Project name (e.g., 'EcoWeaver', 'Grassland Systematic Map')."
         range: string
+      exporter_version:
+        description: "Version string of the software tool that produced this export (e.g. 'loom-1.2.0')."
+        range: string
+      export_sha256:
+        description: "SHA-256 hex digest of the YAML export, computed before provenance was embedded, for integrity verification."
+        range: string
+      exported_at:  
+        description: "ISO 8601 timestamp when this export was produced."
+        range: datetime
+      ontology_snapshot_id:
+        description: "Identifier for the ontology term snapshot pinned to this graph at export time, enabling reproducible term lookups."
+        range: string
+
 
   # ---------------------------------------------------------------------------
   # Nodes
@@ -2325,6 +2360,14 @@ classes:
           vs. second (~30m) vs. high-precision GPS (~5m), this field
           captures that. Follows Darwin Core dwc:coordinateUncertaintyInMeters.
         range: float
+      coordinate_location_basis:
+        description: >-
+          Annotation of what the coordinate values represent. Select exact_site
+          when the coordinates identify the study site or sampling location;
+          select nearest_municipality when the coordinates are for the nearest
+          municipality rather than the exact site.
+        range: CoordinateLocationBasisEnum
+        multivalued: true
       bbox_north:
         description: "Northern boundary of study area bounding box (decimal degrees)."
         range: float
@@ -2597,7 +2640,7 @@ classes:
         range: TextSpan
         multivalued: true
         inlined_as_list: true
-        required: true
+
       source_document:
         description: "Bibliographic and study-level metadata for the source document."
         range: SourceDocument

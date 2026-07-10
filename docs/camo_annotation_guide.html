@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAMO Annotation Guide — EcoWeaver / Loom</title>
+<style>
+:root {
+  --forest:   #243F32;
+  --charcoal: #373535;
+  --sage:     #8BAD8C;
+  --mint:     #8FBF9F;
+  --rose:     #C98D84;
+  --burgundy: #7A2D3A;
+  --cream:    #E8DDD0;
+  --tan:      #D4C4A0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.7;color:var(--charcoal);background:var(--cream)}
+a{color:var(--forest);text-decoration:underline}
+a:hover{color:var(--burgundy)}
+h1,h2,h3,h4{font-weight:700;line-height:1.3}
+h2{font-size:1.7rem;color:var(--forest);border-bottom:3px solid var(--sage);padding-bottom:.4rem;margin:2.5rem 0 1rem}
+h3{font-size:1.25rem;color:var(--forest);margin:1.8rem 0 .6rem}
+h4{font-size:1rem;color:var(--burgundy);margin:1.2rem 0 .4rem}
+p{margin:.75rem 0}
+ul,ol{margin:.75rem 0 .75rem 1.5rem}
+li{margin:.3rem 0}
+code{font-family:Consolas,Monaco,monospace;font-size:.88em;background:var(--tan);padding:.1em .35em;border-radius:3px;color:var(--charcoal)}
+
+/* Layout */
+.wrapper{display:flex;min-height:100vh}
+nav.sidebar{width:280px;flex-shrink:0;background:var(--forest);color:var(--cream);position:sticky;top:0;height:100vh;overflow-y:auto;padding:1.5rem 0}
+nav .logo{padding:.5rem 1.5rem 1rem;border-bottom:1px solid rgba(232,221,208,.2);margin-bottom:.5rem}
+nav .logo h1{font-size:1.1rem;color:var(--cream)}
+nav .logo p{font-size:.75rem;color:var(--sage);margin:.2rem 0 0}
+nav ul{list-style:none;padding:0;margin:0}
+nav li a{display:block;padding:.45rem 1.5rem;color:rgba(232,221,208,.85);text-decoration:none;font-size:.85rem;border-left:3px solid transparent;transition:all .15s}
+nav li a:hover,nav li a.active{background:rgba(232,221,208,.1);color:var(--cream);border-left-color:var(--mint)}
+nav li.section-head a{font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--sage);padding-top:1rem;cursor:default}
+nav li.section-head a:hover{background:none;border-left-color:transparent}
+nav li.sub a{padding-left:2.2rem;font-size:.8rem}
+main{flex:1;max-width:860px;padding:2rem 3rem 4rem;overflow-x:hidden}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:50%;background:var(--forest);color:var(--cream);font-weight:700;font-size:.9rem;margin-right:.5rem;flex-shrink:0}
+.step-header{display:flex;align-items:center;margin-bottom:-.5rem}
+
+/* Hero */
+.hero{background:var(--forest);color:var(--cream);padding:2.5rem;border-radius:8px;margin-bottom:2rem}
+.hero h1{font-size:2rem;color:var(--cream)}
+.hero .subtitle{color:var(--mint);font-size:1.05rem;margin:.4rem 0 1rem}
+.hero .lead{color:rgba(232,221,208,.9);font-size:.95rem;margin:0}
+.workflow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1.5rem}
+.workflow-step{background:rgba(232,221,208,.1);border:1px solid rgba(139,173,140,.4);border-radius:6px;padding:.9rem;text-align:center}
+.workflow-step .num{font-size:1.5rem;font-weight:700;color:var(--mint)}
+.workflow-step .label{font-size:.8rem;color:var(--cream);margin-top:.3rem}
+
+/* Callout boxes */
+.callout{padding:1rem 1.2rem;border-radius:6px;margin:1.2rem 0;border-left:4px solid}
+.callout.example{background:#f0f7f1;border-color:var(--mint)}
+.callout.example strong.label{color:var(--forest)}
+.callout.tip{background:#f5f0e8;border-color:var(--sage)}
+.callout.tip strong.label{color:var(--forest)}
+.callout.warning{background:#f9f0ee;border-color:var(--rose)}
+.callout.warning strong.label{color:var(--burgundy)}
+.callout.important{background:var(--burgundy);color:var(--cream);border-color:#5a1f29}
+.callout.important strong.label{color:var(--mint)}
+.callout .label{display:block;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.35rem}
+
+/* Screenshot placeholder */
+.screenshot{background:var(--tan);border:2px dashed var(--sage);border-radius:6px;padding:1.5rem;margin:1.2rem 0;display:flex;align-items:center;gap:1rem;color:var(--charcoal)}
+.screenshot .icon{font-size:2rem;flex-shrink:0}
+.screenshot p{margin:0;font-size:.85rem}
+.screenshot strong{display:block;font-size:.9rem;color:var(--forest);margin-bottom:.25rem}
+
+/* YAML code block */
+.yaml-block{margin:1.2rem 0;border-radius:6px;overflow:hidden;border:1px solid var(--sage)}
+.yaml-header{background:var(--forest);color:var(--mint);font-size:.78rem;padding:.45rem 1rem;font-family:Consolas,Monaco,monospace;letter-spacing:.03em}
+.yaml-block pre{background:var(--charcoal);color:var(--cream);padding:1.2rem;overflow-x:auto;margin:0;font-size:.82rem;line-height:1.6}
+.yaml-block pre .comment{color:var(--sage)}
+.yaml-block pre .key{color:var(--mint)}
+.yaml-block pre .val{color:var(--tan)}
+.yaml-block pre .str{color:var(--rose)}
+
+/* Two-column layout for feature entries */
+.feature-grid{display:grid;gap:1rem;margin:1rem 0}
+.feature-entry{background:#faf9f7;border:1px solid var(--tan);border-radius:6px;padding:1rem 1.1rem}
+.feature-entry h4{margin:0 0 .4rem;color:var(--burgundy)}
+.feature-entry .q{font-size:.85rem;font-style:italic;color:var(--forest);margin:.2rem 0 .5rem}
+.feature-entry .values{font-size:.82rem;background:var(--tan);border-radius:4px;padding:.5rem .8rem;margin:.5rem 0}
+.feature-entry .murphy-eg{font-size:.83rem;color:var(--charcoal);border-top:1px solid var(--tan);margin-top:.6rem;padding-top:.6rem}
+.feature-entry .murphy-eg strong{color:var(--forest)}
+
+/* Philosophical account cards */
+.account-card{background:#faf9f7;border:1px solid var(--tan);border-radius:6px;padding:1.1rem;margin:.8rem 0}
+.account-card .family-tag{display:inline-block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;padding:.15rem .5rem;border-radius:3px;margin-bottom:.5rem;font-weight:600}
+.family-difference{background:var(--mint);color:var(--forest)}
+.family-production{background:var(--sage);color:var(--forest)}
+.family-complementary{background:var(--tan);color:var(--charcoal)}
+.account-card h4{margin:.2rem 0 .4rem;color:var(--burgundy)}
+.account-card .canonical{font-size:.82rem;font-style:italic;color:var(--forest);margin:.3rem 0}
+.account-card .cues{font-size:.8rem;color:var(--charcoal);background:var(--cream);border-radius:4px;padding:.5rem .7rem;margin:.5rem 0}
+.account-card .murphy{font-size:.83rem;border-top:1px solid var(--tan);padding-top:.6rem;margin-top:.6rem}
+
+/* Entity type cards */
+.entity-card{display:grid;grid-template-columns:auto 1fr;gap:.8rem;background:#faf9f7;border:1px solid var(--tan);border-radius:6px;padding:1rem;margin:.8rem 0}
+.entity-badge{width:3rem;height:3rem;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.et-taxon{background:var(--mint)}
+.et-env-var{background:var(--sage)}
+.et-env-proc{background:var(--tan)}
+.et-mgmt{background:var(--rose)}
+.entity-card h4{margin:0 0 .3rem;color:var(--forest)}
+.entity-card p{margin:.2rem 0;font-size:.88rem}
+.entity-card .bfo{font-size:.75rem;color:var(--charcoal);font-family:Consolas,Monaco,monospace;background:var(--tan);padding:.1rem .4rem;border-radius:3px}
+
+/* Node table */
+table.nodes{width:100%;border-collapse:collapse;font-size:.85rem;margin:1rem 0}
+table.nodes th{background:var(--forest);color:var(--cream);padding:.5rem .8rem;text-align:left;font-size:.8rem}
+table.nodes td{padding:.5rem .8rem;border-bottom:1px solid var(--tan)}
+table.nodes tr:nth-child(even) td{background:#f5f3ef}
+table.nodes code{background:rgba(139,173,140,.25)}
+
+/* Node decomp diagram */
+.decomp{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.8rem 0;padding:.8rem;background:var(--tan);border-radius:6px;font-size:.9rem}
+.decomp-box{background:var(--forest);color:var(--cream);padding:.3rem .8rem;border-radius:4px;font-weight:600}
+.decomp-plus{color:var(--forest);font-weight:700;font-size:1.1rem}
+.decomp-arrow{color:var(--sage);font-size:1.2rem}
+.decomp-result{background:var(--burgundy);color:var(--cream);padding:.3rem .9rem;border-radius:4px;font-weight:600}
+
+/* Predicate chips */
+.pred-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.8rem 0}
+.pred-chip{padding:.25rem .7rem;border-radius:20px;font-size:.8rem;font-weight:600}
+.pred-pos{background:var(--mint);color:var(--forest)}
+.pred-neg{background:var(--rose);color:var(--charcoal)}
+.pred-neu{background:var(--tan);color:var(--charcoal)}
+
+/* Strength scale */
+.strength-scale{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin:.8rem 0;text-align:center}
+.strength-cell{padding:.6rem .4rem;border-radius:4px;font-size:.78rem}
+.s0{background:#f5f3ef;border:1px solid var(--tan)}
+.s1{background:var(--tan);color:var(--charcoal)}
+.s2{background:var(--sage);color:var(--charcoal)}
+.s3{background:var(--forest);color:var(--cream)}
+.strength-cell .name{font-weight:700;display:block;margin-bottom:.2rem}
+
+/* Checklist */
+.checklist{list-style:none;padding:0}
+.checklist li{padding:.4rem 0;padding-left:2rem;position:relative;border-bottom:1px solid var(--tan)}
+.checklist li::before{content:"☐";position:absolute;left:0;color:var(--sage);font-size:1.1rem}
+
+/* Glossary */
+dl.glossary{margin:0}
+dl.glossary dt{font-weight:700;color:var(--forest);margin-top:1rem;font-size:.95rem}
+dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
+
+/* Reading list */
+.reading-item{border-left:3px solid var(--sage);padding:.6rem 1rem;margin:.8rem 0;background:#faf9f7;border-radius:0 4px 4px 0}
+.reading-item .citation{font-weight:600;font-size:.9rem;color:var(--forest)}
+.reading-item p{margin:.3rem 0 0;font-size:.85rem}
+
+/* Responsive */
+@media(max-width:768px){.wrapper{flex-direction:column}nav.sidebar{width:100%;height:auto;position:relative}.workflow-steps{grid-template-columns:repeat(2,1fr)}main{padding:1.5rem}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ======= SIDEBAR ======= -->
+<nav class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>CAMO Annotation Guide</h1>
+    <p>EcoWeaver / Loom · Schema v0.7.3</p>
+  </div>
+  <ul>
+    <li class="section-head"><a>Overview</a></li>
+    <li><a href="#intro">What is CAMO?</a></li>
+    <li><a href="#workflow">The 4-step workflow</a></li>
+    <li><a href="#abstraction">Level of abstraction</a></li>
+
+    <li class="section-head"><a>Step 1 · Source Document</a></li>
+    <li><a href="#source-doc">Verifying metadata</a></li>
+
+    <li class="section-head"><a>Step 2 · Nodes</a></li>
+    <li><a href="#nodes-intro">What is a node?</a></li>
+    <li class="sub"><a href="#elmo">The ELMO decomposition</a></li>
+    <li class="sub"><a href="#entity-types">4 entity types</a></li>
+    <li class="sub"><a href="#node-fields">Node fields</a></li>
+    <li class="sub"><a href="#pids">Permanent identifiers</a></li>
+    <li class="sub"><a href="#nodes-murphy">Murphy 2005 walkthrough</a></li>
+
+    <li class="section-head"><a>Step 3 · Causal Pathways</a></li>
+    <li><a href="#pathways">Mapping the graph</a></li>
+
+    <li class="section-head"><a>Step 4 · Edges</a></li>
+    <li><a href="#edges-intro">Edge basics</a></li>
+    <li class="sub"><a href="#layer1">Layer 1: Claim strength</a></li>
+    <li class="sub"><a href="#layer2">Layer 2: Philosophical accounts</a></li>
+    <li class="sub"><a href="#layer3">Layer 3: 15 causal features</a></li>
+    <li class="sub"><a href="#layer4">Layer 4: Evidential basis</a></li>
+    <li class="sub"><a href="#edge-metadata">Supporting metadata</a></li>
+    <li class="sub"><a href="#edges-murphy">Murphy 2005 walkthrough</a></li>
+
+    <li class="section-head"><a>Wrap-up</a></li>
+    <li><a href="#checklist">Quality checklist</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+    <li><a href="#reading">Further reading</a></li>
+  </ul>
+</nav>
+
+<!-- ======= MAIN CONTENT ======= -->
+<main>
+
+<!-- ======= INTRO ======= -->
+<section id="intro">
+<div class="hero">
+  <h1>CAMO Annotation Guide</h1>
+  <p class="subtitle">A step-by-step handbook for annotating causal claims in ecological literature</p>
+  <p class="lead">This guide walks you through annotating a scientific paper using the <strong>Causal Mosaic (CAMO)</strong> schema inside <strong>Loom</strong>. We use <a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1526-100X.2005.00075.x">Murphy (2005)</a> — a restoration ecology study on bloodroot and garlic mustard — as our running example throughout.</p>
+  <div class="workflow-steps">
+    <div class="workflow-step"><div class="num">1</div><div class="label">Source Document</div></div>
+    <div class="workflow-step"><div class="num">2</div><div class="label">Identify Nodes</div></div>
+    <div class="workflow-step"><div class="num">3</div><div class="label">Map Pathways</div></div>
+    <div class="workflow-step"><div class="num">4</div><div class="label">Encode Edges</div></div>
+  </div>
+</div>
+
+<h2 id="intro" style="border:none;margin-top:0">What is CAMO?</h2>
+
+<p><strong>CAMO</strong> stands for <em>Causal Mosaic</em>. It is a structured way of recording what a scientific paper claims causes what — not the data or statistics themselves, but the <em>conceptual claims</em> the authors make about cause and effect in ecological systems.</p>
+
+<p>Think of it like reading a paper and asking: "What does this author argue actually causes what?" Then encoding that argument in a rigorous, machine-readable format that can be combined with hundreds of other papers to build a big-picture view of how ecosystems work.</p>
+
+<p>CAMO is built on two foundations:</p>
+<ul>
+  <li><strong>ELMO (Ecolink Model Ontology)</strong> — provides the structure for <em>entities</em>: every node decomposes into either a variable, taxon, process or intervention. ELMO holds variables, processes and interventions.</li>
+  <li><strong>Illari &amp; Russo's Causal Mosaic (2014)</strong> — provides the philosophical framework for <em>edges</em>: four layers of annotation capture how strong a causal claim is, what kind of causation it invokes, what features characterize the relationship, and what evidence supports it.</li>
+</ul>
+
+<div class="callout tip">
+  <strong class="label">Why does this matter?</strong>
+  A single paper might claim "bloodroot suppresses garlic mustard." But <em>how</em> does it suppress? Under what conditions? Is there a mechanism? Does the relationship hold elsewhere? CAMO makes those questions answerable across hundreds of papers simultaneously.
+</div>
+</section>
+
+<!-- ======= ABSTRACTION ======= -->
+<section id="abstraction">
+<h2>The most important thing: level of abstraction</h2>
+
+<p>CAMO operates at the level of <strong>conceptual causal claims</strong> — not observations, data points, or statistical results. This is the single biggest thing to understand before you start annotating.</p>
+
+<div class="callout important">
+  <strong class="label">Core principle</strong>
+  You are encoding what the <em>authors argue</em> is generally true, not recording their data. The specific numbers, p-values, and individual observations belong in the underlying data — not in CAMO nodes and edges.
+</div>
+
+<p>Here's what that looks like in practice, using Murphy (2005):</p>
+
+<table class="nodes">
+<thead><tr><th>❌ Data level — wrong for CAMO</th><th>✅ Claim level — right for CAMO</th></tr></thead>
+<tbody>
+<tr><td>"In plots with 9 ramets/m², mean seedling count was 12.3 ± 2.1"</td><td>"Transplanting <em>S. canadensis</em> decreased <em>A. petiolata</em> population performance"</td></tr>
+<tr><td>"F(9,30) = 4.83, p &lt; 0.001"</td><td>"The effect was strongly dose-dependent (captured in edge strength metadata)"</td></tr>
+<tr><td>"Plot 3, Block B had the highest garlic mustard cover"</td><td>"At the start of the experiment, <em>A. petiolata</em> was abundant"</td></tr>
+</tbody>
+</table>
+
+<p>Murphy's paper tests ten planting densities. You do <em>not</em> create one node per density treatment. Instead, you create <strong>one intervention node</strong> for "introduction of transplanted bloodroot" and capture the dose-response relationship as metadata on the causal edge.</p>
+
+<p>A useful test: if two papers studying the same system in different places would both be making the same underlying claim, that claim is at the right level of abstraction for CAMO. If the claim only makes sense for one specific plot on one specific day, it belongs in the evidence layer, not here.</p>
+</section>
+
+<!-- ======= SOURCE DOCUMENT ======= -->
+<section id="source-doc">
+<div class="step-header"><div class="step-badge">1</div><h2 style="border:none;margin:0">Verify the Source Document</h2></div>
+<p style="margin-top:.5rem">Before touching nodes or edges, make sure the bibliographic metadata is correct. This information flows into every edge you create and is critical for evidence synthesis downstream.</p>
+
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <img src="./screenshots/source_document.jpg" alt="A screenshot of the source_document screen" style="width: 100%; height: 100%; object-fit: cover;">
+    <p>The source document fields appear at the top of the annotation workspace. Verify each field before beginning annotation.</p>
+  </div>
+</div>
+
+<h3>Required fields</h3>
+<p>Check that all of these are filled in correctly:</p>
+<ul>
+  <li><strong>doi</strong> — the Digital Object Identifier. If a DOI exists, use it. It is the stable permanent identifier for the paper.</li>
+  <li><strong>title</strong> — the full title, exactly as published</li>
+  <li><strong>authors</strong> — as a list, surname first or as published</li>
+  <li><strong>year</strong> — publication year (not data collection year)</li>
+  <li><strong>journal</strong> — full journal name</li>
+  <li><strong>study_design</strong> — pick the closest match (e.g., <code>randomized_experiment</code>, <code>observational_longitudinal</code>)</li>
+</ul>
+
+<h3>Spatial and temporal context</h3>
+<p>These fields power map-based evidence gap maps and help practitioners find studies near their site:</p>
+<ul>
+  <li><strong>study_coordinates</strong> — latitude and longitude in decimal degrees (WGS 84) if reported. Loom will guess the country and province/state from the coordinates you enter here. <b>If no coordinates are reported, use the coordinates from the nearest named location (usually a municipality).</b></li>
+  <li><strong>study_country</strong> and <strong>study_state_or_province</strong> — where the fieldwork happened (not where the authors are based)</li>
+  <li><strong>study_period_start / end</strong> — when data collection happened, in ISO format (e.g., <code>1997</code>, <code>2000</code>). Not the publication date.</li>
+  <li><strong>study_sample_size</strong> — free text, e.g., "40 plots: 4 randomized complete blocks × 10 density treatments"</li>
+</ul>
+
+<div class="callout example">
+  <strong class="label">Murphy 2005 — completed source document</strong>
+<div class="yaml-block">
+<div class="yaml-header">source_document (from edge metadata)</div>
+<pre>doi: "10.1111/j.1526-100X.2005.00075.x"
+title: "Concurrent Management of an Exotic Species and
+  Initial Restoration Efforts in Forests"
+authors:
+  - "Stephen D. Murphy"
+year: 2005
+journal: "Restoration Ecology"
+study_country: "Canada"
+study_state_or_province: "Ontario"
+study_period_start: "1997"
+study_period_end: "2000"
+study_temporal_note: "Transplants installed autumn 1997;
+  responses monitored during 1997-2000 growing seasons."
+study_design: randomized_experiment
+study_sample_size: "40 plots: 4 randomized complete blocks
+  x 10 Sanguinaria canadensis density treatments; each plot 1 m²."</pre>
+</div>
+</div>
+
+<div class="callout tip">
+  <strong class="label">Tip</strong>
+  The source document fields are usually pre-populated by Loom from the RIS import or PDF metadata. Your job is to <em>verify</em> them, not fill them in from scratch. Pay particular attention to <code>study_period_start/end</code> — these are often confused with publication year.
+</div>
+</section>
+
+<!-- ======= NODES INTRO ======= -->
+<section id="nodes-intro">
+<div class="step-header"><div class="step-badge">2</div><h2 style="border:none;margin:0">Identify Nodes</h2></div>
+<p style="margin-top:.5rem">A <strong>node</strong> represents a <em>causally relevant entity</em> in the paper — something that participates in a cause-and-effect relationship. Before you can draw any arrows, you need to identify all the "things" the paper claims are causing or being caused.</p>
+<p style="margin-top:.5rem">It can be helpful from a workflow perspective to think about all of the nodes in a paper before you start annotating. Nodes should only be included if there is an edge.</p>
+
+<h3 id="elmo">The CAMO decomposition: the anatomy of a node</h3>
+
+<p>In CAMO, <em>things don't cause things</em>. A species by itself doesn't cause anything. What matters is a change in a measurable property of that species. Every node decomposes into three main parts.</p>
+
+<div class="decomp">
+  <div class="decomp-box">Entity</div>
+  <div class="decomp-plus">+</div>
+  <div class="decomp-box">Attribute</div>
+  <div class="decomp-plus">+</div>
+  <div class="decomp-box">Change qualifier</div>
+  <div class="decomp-arrow">→</div>
+  <div class="decomp-result">Node meaning</div>
+</div>
+
+<p>For example:</p>
+<ul>
+  <li><em>Entity:</em> <strong>Alliaria petiolata</strong> (garlic mustard)</li>
+  <li><em>Attribute:</em> <strong>population performance</strong> (how well the population is growing)</li>
+  <li><em>Change qualifier:</em> <strong>decreased</strong></li>
+  <li><em>→ Full meaning:</em> "Decreased population performance of <em>Alliaria petiolata</em>"</li>
+</ul>
+
+<p>This decomposition means you can later ask questions like "show me all claims about abundance changes in <em>Alliaria petiolata</em>" or "what processes affect population performance in this system?" — questions that would be impossible with free-text descriptions.</p>
+
+<p>In Loom, these three parts correspond to three fields: <code>entity_term</code>, <code>measured_attribute</code>, and <code>state_or_change_qualifier</code>. The <code>name</code> field is a human-readable composed form of all three.</p>
+
+<h3 id="entity-types">The four entity types</h3>
+<p>Every node has an <code>entity_type</code> — the broad category of the thing at the heart of the node. There are four types in CAMO v0.7.4:</p>
+
+<div class="entity-card">
+  <div class="entity-badge et-taxon">🌿</div>
+  <div>
+    <h4>taxon</h4>
+    <p>A biological species, genus, or population that is the subject of a causal claim. The measured attribute describes what property of that taxon is causally relevant.</p>
+    <p><strong>Use for:</strong> a single species with a single measurable attribute. E.g., <em>Alliaria petiolata</em> with <code>measured_attribute: population performance</code>.</p>
+    <p><strong>Murphy examples:</strong> All four garlic mustard nodes (population performance, reproductive output, seed bank persistence, seedling emergence).</p>
+    <p><strong>Grounding:</strong> We use <a href="https://www.wikidata.org/wiki/Wikidata:Main_Page">Wikidata</a> as the canonical source for taxa. Loom will automatically suggest terms grounded in Wikidata. The reason we do this is that Wikidata serves as a kind of identity broker - the page for <a href="https://www.wikidata.org/wiki/Q160097">Alliaria petiolata</a> contains 104 identifiers in other databases and translations of the common name in dozens of languages.</p>
+  </div>
+</div>
+
+<div class="entity-card">
+  <div class="entity-badge et-env-var">📊</div>
+  <div>
+    <h4>environmental_variable</h4>
+    <p>A measurable aspect of ecosystem state at a point in time — a "snapshot" of a condition. Examples: soil pH, canopy height, light availability, native species richness, bare soil cover.</p>
+    <p><strong>Use for:</strong> abiotic conditions, multi-taxon aggregates (using <code>taxonomic_scope</code>), or ecosystem state variables.</p>
+    <p><strong>Murphy examples:</strong> Resource availability to <em>A. petiolata</em>; reestablishment of native understory species (with <code>taxonomic_scope: native forest understory species</code>).</p>
+    <p><strong>Grounding:</strong> There is not a single source for environmental variables. Some will be grounded in <a href="https://bioportal.bioontology.org/ontologies/ENVO">ENVO</a> or <a href="https://obofoundry.org/ontology/pato.html">PATO</a>. We have added many to <a href="https://timalamenciak.github.io/elmo/elmo.html">ELMO</a>.</p>
+  </div>
+</div>
+
+<div class="entity-card">
+  <div class="entity-badge et-env-proc">⚙️</div>
+  <div>
+    <h4>environmental_process</h4>
+    <p>A natural process that <em>changes</em> ecosystem state over time — a "flow" rather than a snapshot. Examples: competitive exclusion, trophic cascade, nitrogen deposition, succession, seed dispersal.</p>
+    <p><strong>Use for:</strong> natural ecological processes that drive change. If humans are deliberately doing it, use <code>management_intervention</code> instead.</p>
+    <p><strong>Murphy examples:</strong> Spring phenological overlap between bloodroot and garlic mustard could be modeled as an environmental process, though the Murphy annotation rolls this into mediation metadata on edges.</p>
+    <p><strong>Grounding:</strong> Most of these will be in <a href="https://obofoundry.org/ontology/envo.html">ENVO</a>.</p>
+  </div>
+</div>
+
+<div class="entity-card">
+  <div class="entity-badge et-mgmt">🔧</div>
+  <div>
+    <h4>management_intervention</h4>
+    <p>A deliberate human action intended to change an ecological outcome. A subtype of <code>environmental_process</code> — it is a process, but one with a human agent.</p>
+    <p><strong>Use for:</strong> prescribed burning, seeding, invasive removal, planting, hydrological restoration, etc.</p>
+    <p><strong>Murphy example:</strong> Transplanting <em>Sanguinaria canadensis</em> at varying densities.</p>
+    <p><strong>Grounding:</strong> This should be exclusively grounded in <a href="https://timalamenciak.github.io/elmo/elmo.html">ELMO</a>. Loom will auto-suggest these terms.</p>
+  </div>
+</div>
+
+<div class="callout tip">
+  <strong class="label">Taxon vs. environmental_variable for multi-species measurements</strong>
+  If the paper reports a measurement on a <em>single species</em>, use <code>entity_type: taxon</code>. If it reports on a group of species (e.g., "native species richness", "invasive plant cover"), use <code>entity_type: environmental_variable</code> and list the taxa in <code>taxonomic_scope</code>.
+</div>
+
+<h3 id="node-fields">Node fields walkthrough</h3>
+<p>Here are all the fields you'll fill in for each node:</p>
+
+<table class="nodes">
+<thead><tr><th>Field</th><th>What it is</th><th>Required?</th></tr></thead>
+<tbody>
+<tr><td><code>id</code></td><td>Permanent unique identifier. Auto-generated by Loom.</td><td>Auto</td></tr>
+<tr><td><code>name</code></td><td>Human-readable composed label: "Decreased population performance of Alliaria petiolata"</td><td>Yes</td></tr>
+<tr><td><code>entity_type</code></td><td>One of the 4 entity types above</td><td>Yes</td></tr>
+<tr><td><code>entity_term</code></td><td>Ontology CURIE for the entity — ideally a Wikidata QID for taxa, ENVO term for environments, GO term for processes. Can be free text as a fallback.</td><td>Yes</td></tr>
+<tr><td><code>measured_attribute</code></td><td>What property of the entity is being measured. Ideally a PATO term (e.g., PATO:0000070 = abundance).</td><td>Strongly recommended</td></tr>
+<tr><td><code>state_or_change_qualifier</code></td><td>What happened to the attribute: <code>increased</code>, <code>decreased</code>, <code>present</code>, <code>absent</code>, <code>unchanged</code>, <code>introduced</code>, <code>removed</code>, etc.</td><td>Yes</td></tr>
+<tr><td><code>taxonomic_scope</code></td><td>For <code>environmental_variable</code> nodes only: which taxa are included in this measurement</td><td>When applicable</td></tr>
+<tr><td><code>applied_to</code></td><td>For <code>management_intervention</code> nodes: what organism or system the intervention targets</td><td>When applicable</td></tr>
+<tr><td><code>source_spans</code></td><td>Verbatim text quotes from the paper that ground this node</td><td>Yes</td></tr>
+</tbody>
+</table>
+
+<h3 id="pids">Permanent identifiers — a critical step</h3>
+
+<p>The <code>entity_term</code> field should almost always contain an <strong>ontology CURIE</strong> rather than plain text. A CURIE looks like <code>WD:Q157057</code> or <code>ENVO:01000253</code>. This is one of the most important practices in CAMO annotation.</p>
+
+<div class="callout important">
+  <strong class="label">Why permanent identifiers matter</strong>
+  Without ontology CURIEs, "Sanguinaria canadensis" in your annotation and "bloodroot" in someone else's are invisible to each other. A machine cannot tell they refer to the same plant. With CURIEs, both become <code>WD:Q157057</code> and every edge involving bloodroot across hundreds of papers can be connected automatically.
+</div>
+
+<p>Here's which ontology to use for different entity types:</p>
+
+<table class="nodes">
+<thead><tr><th>Entity type</th><th>Preferred ontology</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Taxa (species, genus)</td><td>Wikidata (WD:Q…)</td><td><code>WD:Q157057</code> = <em>Sanguinaria canadensis</em></td></tr>
+<tr><td>Environments</td><td>ENVO</td><td><code>ENVO:01000253</code> = grassland</td></tr>
+<tr><td>Qualities/attributes</td><td>PATO</td><td><code>PATO:0000070</code> = abundance</td></tr>
+<tr><td>Biological processes</td><td>GO (Gene Ontology)</td><td><code>GO:0008150</code> = biological process</td></tr>
+<tr><td>Conservation actions</td><td>IUCN CAS / ELMO</td><td><code>elmo_cas:ConservationAction</code></td></tr>
+</tbody>
+</table>
+
+<p>To find ontology terms, Loom has a built-in autocomplete that searches the local ontology index. You can also use the <a href="https://www.ebi.ac.uk/ols4" target="_blank">EMBL-EBI Ontology Lookup Service (OLS)</a> or search Wikidata directly for taxon QIDs. If you use the autocomplete function, the form will fill with the text of the term, but rest assured that the CURIE is actually being saved.</p>
+
+<div class="callout tip">
+  <strong class="label">When no ontology term exists</strong>
+  It's fine to use free text as a fallback (e.g., <code>entity_term: "plant translocation process"</code>). Loom will flag this for curation. Write the most specific free text you can, and add a note that no ontology term was found. 
+</div>
+
+<h3 id="nodes-murphy">Murphy 2005 walkthrough: identifying all nodes</h3>
+
+<p>Murphy (2005) is a 4-year field experiment in Ontario in which <em>Sanguinaria canadensis</em> (bloodroot, a native spring ephemeral) was transplanted at ten different densities to test whether it could suppress <em>Alliaria petiolata</em> (garlic mustard, an invasive herb). Murphy's experiment uses 40 plots in a randomized block design.</p>
+
+<p>Before opening Loom, read the paper once through and ask: <em>"What does this paper claim is causing what?"</em> Jot down the key claims. Then identify the entities involved. For Murphy (2005), those are:</p>
+
+<p>The resulting node list for Murphy (2005) — seven nodes total:</p>
+
+<table class="nodes">
+<thead><tr><th>#</th><th>Name</th><th>entity_type</th><th>entity_term</th><th>measured_attribute</th><th>qualifier</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Introduction of transplanted S. canadensis</td><td>management_intervention</td><td>plant translocation</td><td>—</td><td>introduced</td></tr>
+<tr><td>2</td><td>Decreased population performance of A. petiolata</td><td>taxon</td><td>WD:Q30055</td><td>population performance</td><td>decreased</td></tr>
+<tr><td>3</td><td>Decreased reproductive output of A. petiolata</td><td>taxon</td><td>WD:Q30055</td><td>reproductive output</td><td>decreased</td></tr>
+<tr><td>4</td><td>Decreased resource availability to A. petiolata</td><td>environmental_variable</td><td>resource availability</td><td>—</td><td>decreased</td></tr>
+<tr><td>5</td><td>Persistent A. petiolata seed bank</td><td>taxon</td><td>WD:Q30055</td><td>seed bank persistence</td><td>present</td></tr>
+<tr><td>6</td><td>Unchanged seasonal seedling emergence</td><td>taxon</td><td>WD:Q30055</td><td>seasonal seedling emergence</td><td>unchanged</td></tr>
+<tr><td>7</td><td>Reestablishment of native understory species</td><td>environmental_variable</td><td>re-establishment</td><td>—</td><td>increased (negated at edge)</td></tr>
+</tbody>
+</table>
+
+<div class="callout example">
+  <strong class="label">Example: Node 2 in full</strong>
+<div class="yaml-block">
+<div class="yaml-header">node:murphy2005_alliaria_population_performance</div>
+<pre>id: node:murphy2005_alliaria_population_performance
+name: "Decreased population performance of Alliaria petiolata"
+entity_type: taxon
+entity_term: "Alliaria petiolata"  # ideally: WD:Q30055
+measured_attribute: "population performance"
+state_or_change_qualifier: decreased
+source_spans:
+  - text: "initial S. canadensis densities of as little as 5 ramets/m²
+      suppressed A. petiolata"
+  - text: "densities of 9 and 11 ramets/m² resulted in the lowest numbers
+      of late-spring seedlings, numbers and sizes of year 1 and 2 rosettes"</pre>
+</div>
+</div>
+
+<div class="callout warning">
+  <strong class="label">Common mistake: too much granularity</strong>
+  Murphy tests 10 density levels. Do <em>not</em> create separate nodes for "9 ramets/m² density treatment" and "11 ramets/m² density treatment." That is data-level, not claim-level. The density information belongs in the <em>edge</em> as strength metadata and context-dependence information.
+</div>
+
+<div class="callout warning">
+  <strong class="label">Common mistake: A. petiolata appears twice on the same node</strong>
+  Notice that we have four separate nodes for <em>A. petiolata</em> — each with a different <code>measured_attribute</code>. This is correct. The entity is the same (<em>Alliaria petiolata</em>) but each node captures a different thing being measured about it. Population performance and reproductive output are causally distinct endpoints that connect to different parts of the causal graph.
+</div>
+</section>
+
+<!-- ======= PATHWAYS ======= -->
+<section id="pathways">
+<div class="step-header"><div class="step-badge">3</div><h2 style="border:none;margin:0">Map the Causal Pathways</h2></div>
+<p style="margin-top:.5rem">Before encoding formal edges in Loom, sketch the causal graph on paper (or a whiteboard). Ask: which nodes cause which other nodes? Draw arrows.</p>
+
+<div class="callout important">
+  <strong class="label">The orphan node rule</strong>
+  Every node must participate in at least one edge. A node with no edges is meaningless in CAMO — it says "this thing existed" but makes no causal claim. If you've created a node that doesn't connect to anything, either (a) you're missing an edge, or (b) the node shouldn't exist.
+</div>
+
+<p>For Murphy (2005), the five causal pathways are:</p>
+<ol>
+  <li><strong>Transplanting → Population performance</strong> (negative: bloodroot suppresses garlic mustard populations)</li>
+  <li><strong>Transplanting → Reproductive output</strong> (negative: bloodroot reduces garlic mustard seed set)</li>
+  <li><strong>Transplanting → Resource availability</strong> (negative: bloodroot competes for light — the proposed mechanism)</li>
+  <li><strong>Seed bank → Seedling emergence</strong> (positive: the persistent seed bank buffers autumn seedling emergence)</li>
+  <li><strong>Transplanting → Native reestablishment</strong> (null: no increase in native species detected in 4 years)</li>
+</ol>
+
+<p>Notice that nodes 2 and 3 are both effects of node 1, but they represent <em>different</em> aspects of garlic mustard performance. This matters because the mechanism connecting them is slightly different, and the management implication (reproductive suppression → eventual local population decline) is a distinct causal claim that deserves its own edge.</p>
+</section>
+
+<!-- ======= EDGES INTRO ======= -->
+<section id="edges-intro">
+<div class="step-header"><div class="step-badge">4</div><h2 style="border:none;margin:0">Encode Edges</h2></div>
+<p style="margin-top:.5rem">An <strong>edge</strong> is a single causal claim — one arrow in the graph. It connects a cause node (<code>subject</code>) to an effect node (<code>object</code>) via a predicate (the type of causal relationship). Edges are where most of the annotation work happens.</p>
+
+<p>Every edge has four annotation layers, plus supporting metadata. We'll go through each in turn.</p>
+
+<h3>Basic structure: subject → predicate → object</h3>
+<p>Every edge begins with three required fields:</p>
+<ul>
+  <li><code>subject</code> — the node ID of the cause</li>
+  <li><code>predicate</code> — what kind of causal relationship this is (from a controlled vocabulary)</li>
+  <li><code>object</code> — the node ID of the effect</li>
+  <li><code>negated</code> — set to <code>true</code> if the claim is that the relationship does <em>not</em> hold</li>
+</ul>
+
+<h3>Predicates</h3>
+<p>Choose the predicate that best matches the direction and type of causal influence described:</p>
+<div class="pred-chips">
+  <span class="pred-chip pred-pos">causes</span>
+  <span class="pred-chip pred-pos">contributes_to</span>
+  <span class="pred-chip pred-pos">enables</span>
+  <span class="pred-chip pred-pos">positively_regulates</span>
+  <span class="pred-chip pred-neg">prevents</span>
+  <span class="pred-chip pred-neg">disrupts</span>
+  <span class="pred-chip pred-neg">negatively_regulates</span>
+  <span class="pred-chip pred-neu">regulates</span>
+  <span class="pred-chip pred-neu">associated_with</span>
+  <span class="pred-chip pred-neu">mediates</span>
+  <span class="pred-chip pred-neu">moderates</span>
+  <span class="pred-chip pred-neu">precedes</span>
+</div>
+
+<div class="callout tip">
+  <strong class="label">Which predicate to use?</strong>
+  <ul>
+    <li>Causal positive (A makes B happen or increases B): <code>causes</code> (strong, sole) or <code>contributes_to</code> (one of many) or <code>enables</code> (facilitates but not sufficient) or <code>positively_regulates</code> (modulates upward)</li>
+    <li>Causal negative (A suppresses or reduces B): <code>prevents</code> (blocks it) or <code>disrupts</code> (degrades it) or <code>negatively_regulates</code> (modulates downward)</li>
+    <li>Uncertain direction: <code>regulates</code></li>
+    <li>Association only (no causal commitment): <code>associated_with</code> or <code>correlated_with</code></li>
+  </ul>
+  In Murphy (2005), transplanting <em>negatively regulates</em> garlic mustard performance — it doesn't prevent it outright (garlic mustard is still present) but downregulates it.
+</div>
+
+<h3>The <code>negated</code> field</h3>
+<p>This is used when the paper explicitly says a relationship does <em>not</em> exist. For Murphy (2005), the paper states that transplanting bloodroot did <em>not</em> lead to an increase in native species by 2000. The edge predicate is still <code>enables</code> (because we're asking about a positive facilitation pathway), but <code>negated: true</code> captures that this pathway was absent.</p>
+
+<div class="callout warning">
+  <strong class="label">Negated ≠ negative predicate</strong>
+  A <em>negative predicate</em> (like <code>negatively_regulates</code>) means the relationship goes in the negative direction. A <em>negated edge</em> means the relationship claimed to hold does not hold at all. These are different. Murphy's bloodroot → native recovery edge has <code>predicate: enables</code> and <code>negated: true</code> because the author is saying "we hoped bloodroot would enable native recovery, but it did not."
+</div>
+
+<!-- LAYER 1 -->
+<h3 id="layer1">Layer 1: Claim strength</h3>
+<p>How confident and direct is the causal language in the text? There are four levels:</p>
+
+<div class="strength-scale">
+  <div class="strength-cell s0"><span class="name">no_relationship</span>Explicitly states no effect<br><em>"did not affect"</em></div>
+  <div class="strength-cell s1"><span class="name">associational</span>Correlation, no causal verb<br><em>"associated with"</em></div>
+  <div class="strength-cell s2"><span class="name">uncertain_causal</span>Hedged causal language<br><em>"may contribute to"</em></div>
+  <div class="strength-cell s3"><span class="name">direct_causal</span>Unhedged causal verb<br><em>"leads to", "causes"</em></div>
+</div>
+
+<div class="callout example">
+  <strong class="label">Murphy 2005 — claim strength examples</strong>
+  <ul>
+    <li>"transplanting S. canadensis <em>was effective at mitigating</em> the spread of A. petiolata" → <code>direct_causal</code></li>
+    <li>"It <em>appears that</em> intermediate and higher densities deprived A. petiolata of sufficient resources" → <code>uncertain_causal</code> (the word "appears" hedges the causal claim)</li>
+    <li>"By 2000, I had <em>not detected</em> any increase in other native species" → <code>no_relationship</code></li>
+  </ul>
+</div>
+
+<p>You'll also provide the <code>original_sentence</code> — the full sentence from the text that best expresses this causal claim. This is preserved verbatim for quality control and RAG retrieval.</p>
+
+<!-- LAYER 2 -->
+<h3 id="layer2">Layer 2: Philosophical accounts of causation</h3>
+<p>This is the most philosophically interesting part of CAMO. Every causal claim implicitly invokes a particular theory of what causation <em>is</em>. CAMO asks you to make this explicit.</p>
+
+<p>Causal philosophers distinguish two fundamental families of account: <strong>difference-making</strong> (does C make a difference to whether E happens?) and <strong>production</strong> (how does C bring E about?). There are also <strong>complementary</strong> accounts that add structural nuance.</p>
+
+<div class="callout tip">
+  <strong class="label">You can (and usually should) select multiple accounts</strong>
+  A single causal claim can and often does invoke multiple philosophical accounts simultaneously. A well-designed randomized experiment, like Murphy's, supports interventionist, counterfactual, and probabilistic accounts all at once. Select all that apply — this richness is the point of CAMO.
+</div>
+
+<h4>Difference-making accounts</h4>
+
+<div class="account-card">
+  <span class="family-tag family-difference">Difference-making</span>
+  <h4>interventionist</h4>
+  <p class="canonical">Canonical question: "Does intervening on C change E?"</p>
+  <p>Based on philosopher James Woodward's (2003) theory. If you can perform a controlled intervention on the cause — changing it while holding other things constant — and E reliably changes as a result, this is interventionist causation. This is the account that randomized experiments are designed to test.</p>
+  <div class="cues"><strong>Linguistic cues:</strong> "experimental manipulation of"; "treatment resulted in"; "randomized trial showed"; "controlled experiment demonstrated"</div>
+  <div class="murphy">
+    <strong>Murphy 2005:</strong> The transplanting experiment IS an intervention. Murphy literally manipulated planting density and measured the effect. The interventionist account is strongly supported for all five edges.
+  </div>
+</div>
+
+<div class="account-card">
+  <span class="family-tag family-difference">Difference-making</span>
+  <h4>counterfactual</h4>
+  <p class="canonical">Canonical question: "Would E have occurred without C?"</p>
+  <p>Based on David Lewis's (1973) theory. C causes E if, had C not occurred, E would not have occurred. In practice, this is operationalized by control groups and potential outcomes frameworks. The control plots with 0 ramets/m² serve as the counterfactual for Murphy's experiment.</p>
+  <div class="cues"><strong>Linguistic cues:</strong> "without X"; "in the absence of"; "had [not]"; "would not have"; "removal language implying dependence"</div>
+  <div class="murphy">
+    <strong>Murphy 2005:</strong> The control plots (0 ramets/m²) show what happened without intervention. Garlic mustard remained abundant in controls, suppressed in treatment plots. This supports a counterfactual reading.
+  </div>
+</div>
+
+<div class="account-card">
+  <span class="family-tag family-difference">Difference-making</span>
+  <h4>probabilistic</h4>
+  <p class="canonical">Canonical question: "Does C raise the probability of E, or do variations in C systematically track variations in E?"</p>
+  <p>C causes E if C raises the probability of E (or lowers it, for negative causation). Also covers cases where systematic variation in C tracks variation in E — operationalized by regression, path analysis, or dose-response relationships.</p>
+  <div class="cues"><strong>Linguistic cues:</strong> "increases the risk of"; "associated with [+statistics]"; "regression coefficient"; "dose-response"; "R²"; "beta coefficient"</div>
+  <div class="murphy">
+    <strong>Murphy 2005:</strong> Murphy reports MANOVA results showing that higher bloodroot density systematically reduces garlic mustard performance. The dose-response pattern (more bloodroot = more suppression) is a classic probabilistic signature.
+  </div>
+</div>
+
+<h4>Production accounts</h4>
+
+<div class="account-card">
+  <span class="family-tag family-production">Production</span>
+  <h4>mechanistic</h4>
+  <p class="canonical">Canonical question: "What entities and activities produce E from C?"</p>
+  <p>Based on Machamer, Darden, and Craver (2000). Causation involves identifiable entities and activities organized to produce the phenomenon — a mechanism. In ecology, mechanisms might be competition for resources, trophic interactions, or chemical signaling. When an author proposes a <em>how</em>, they are invoking a mechanistic account.</p>
+  <div class="cues"><strong>Linguistic cues:</strong> "the mechanism by which"; "pathway from X to Y"; "exerts its effect via"; "step-by-step process"</div>
+  <div class="murphy">
+    <strong>Murphy 2005:</strong> Murphy proposes that bloodroot competes with garlic mustard for light during spring phenological overlap. This proposed mechanism (resource competition → reduced garlic mustard growth) makes the resource availability node central. However, Murphy notes he did not directly test the mechanism — so this account is supported for the mechanism edge but with <code>claim_strength: uncertain_causal</code>.
+  </div>
+</div>
+
+<div class="account-card">
+  <span class="family-tag family-production">Production</span>
+  <h4>transmission</h4>
+  <p class="canonical">Canonical question: "What conserved quantity, material flow, signal, or information is transmitted from C to E?"</p>
+  <p>Based on Salmon's mark-transmission and Dowe's conserved-quantity theory. Causal production as a physical, material, or informational transfer. More common in nutrient cycling, water flow, contaminant tracing, or gene expression studies. Less common in community ecology.</p>
+  <div class="cues"><strong>Linguistic cues:</strong> "energy transfer"; "material flow"; "nutrient transport"; "water flow"; "sediment transport"; "biomarker pathway"</div>
+  <div class="murphy">
+    <strong>Murphy 2005:</strong> The light competition mechanism could be framed as a transmission of light energy (light absorbed by bloodroot is not available to garlic mustard). However, Murphy does not frame it this way, so <code>transmission</code> would typically not be selected for this paper's edges.
+  </div>
+</div>
+
+<h4>Complementary accounts</h4>
+
+<div class="account-card">
+  <span class="family-tag family-complementary">Complementary</span>
+  <h4>regularity</h4>
+  <p class="canonical">Canonical question: "Does C-type always or usually precede E-type?"</p>
+  <p>Based on Hume and Mill. Causation as constant conjunction — whenever you see C, you see E following. Strong, consistent observational patterns across many instances support a regularity account. Long-term monitoring and survey studies often provide regularity evidence.</p>
+  <div class="cues"><strong>Linguistic cues:</strong> "wherever X appears, Y follows"; "consistently observed"; "invariably accompanies"; "universal pattern"</div>
+</div>
+
+<div class="account-card">
+  <span class="family-tag family-complementary">Complementary</span>
+  <h4>agency</h4>
+  <p class="canonical">Canonical question: "Can an agent bring about E by doing C?"</p>
+  <p>Based on von Wright (1971). C causes E if bringing about C would be an effective means for a free agent to bring about E. This account is especially important in management and restoration ecology — it's the account that makes causal claims <em>actionable</em>. When a paper recommends a management prescription, it is implicitly invoking the agency account.</p>
+  <div class="cues"><strong>Linguistic cues:</strong> "managers can achieve Y by doing X"; "restoration prescription"; "we can restore"; "recommended intervention"; "adaptive management"</div>
+  <div class="murphy">
+    <strong>Murphy 2005:</strong> The entire paper is about whether managers <em>can</em> suppress garlic mustard by planting bloodroot. This is the agency account. The practical recommendation ("transplanting S. canadensis was effective at mitigating the spread") is exactly the kind of claim the agency account targets.
+  </div>
+</div>
+
+<div class="account-card">
+  <span class="family-tag family-complementary">Complementary</span>
+  <h4>inus_component</h4>
+  <p class="canonical">Canonical question: "Is C a necessary component of a sufficient cause constellation?"</p>
+  <p>Based on Mackie (1965). C is an "Insufficient but Necessary part of an Unnecessary but Sufficient condition." In plain English: C alone isn't enough to produce E, and E can sometimes happen without C, but C is still a necessary part of <em>some</em> set of conditions that together would be sufficient. This captures multifactorial causation in complex ecological systems.</p>
+  <div class="cues"><strong>Linguistic cues:</strong> "contributing factor"; "one of several causes"; "in combination with"; "multifactorial"; "necessary but not sufficient"</div>
+</div>
+
+<div class="callout tip">
+  <strong class="label">Supplementary reading on philosophical accounts</strong>
+  <ul>
+    <li>Illari &amp; Russo (2014) <em>Causality: Philosophical Theory Meets Scientific Practice</em> (Oxford) — the primary source for CAMO's philosophical framework</li>
+    <li>Woodward (2003) <em>Making Things Happen</em> (Oxford) — the foundational text on interventionist causation</li>
+    <li>Machamer, Darden &amp; Craver (2000) "Thinking about Mechanisms" <em>Philosophy of Science</em> — the canonical mechanistic account</li>
+  </ul>
+</div>
+
+<!-- LAYER 3 -->
+<h3 id="layer3">Layer 3: The 15 causal features</h3>
+<p>This is the most detailed annotation layer. CAMO's 15 causal features are structured questions about the <em>character</em> of the causal relationship. Each feature has a fixed set of values: <code>explicitly_asserted</code>, <code>implicitly_assumed</code>, <code>explicitly_denied</code>, or <code>not_addressed</code>.</p>
+
+<p>Your job is to look at what the <em>text actually says</em> about each feature — not what you think is true, but what the paper claims. If the paper doesn't address a feature, mark it <code>not_addressed</code>.</p>
+
+<div class="callout tip">
+  <strong class="label">Reading the status values</strong>
+  <ul>
+    <li><code>explicitly_asserted</code> — the text directly states this feature holds</li>
+    <li><code>implicitly_assumed</code> — the text strongly implies it without saying so directly</li>
+    <li><code>explicitly_denied</code> — the text says this feature does NOT hold</li>
+    <li><code>not_addressed</code> — the text says nothing about this feature</li>
+  </ul>
+</div>
+
+<p>Features are grouped here by theme to help you understand how they relate to each other.</p>
+
+<h4>Logical properties of the relationship</h4>
+
+<div class="feature-grid">
+<div class="feature-entry">
+  <h4>1. necessity</h4>
+  <p class="q">Is C <em>necessary</em> for E? Could E have happened without C at all?</p>
+  <div class="values"><strong>Values:</strong> explicitly_asserted | implicitly_assumed | explicitly_denied | not_addressed</div>
+  <p>Necessity is a strong claim — it means "E cannot happen without C." In ecology, this is rarely true; there are almost always alternative pathways. Be conservative: if the text doesn't say C is necessary, mark <code>not_addressed</code>.</p>
+  <div class="murphy-eg"><strong>Murphy 2005 (edge 1):</strong> <code>not_addressed</code> — Murphy does not claim bloodroot transplanting is the only way to suppress garlic mustard.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>2. sufficiency</h4>
+  <p class="q">Is C <em>sufficient</em> for E? Does C alone guarantee E, with no other factors needed?</p>
+  <div class="values"><strong>Values:</strong> explicitly_asserted | implicitly_assumed | explicitly_denied | not_addressed</div>
+  <p>Sufficiency means "C alone is enough to produce E." Murphy explicitly denies this: even where bloodroot was transplanted, garlic mustard was suppressed but not eliminated — the seed bank persisted and immigration from nearby areas could counter the effect.</p>
+  <div class="murphy-eg"><strong>Murphy 2005 (edge 1):</strong> <code>explicitly_denied</code> — "a long-term implication is that populations of A. petiolata will decrease locally <em>as long as immigration of new seeds does not counter this</em>." The conditional language signals that bloodroot transplanting alone is not sufficient.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>3. proportionality</h4>
+  <p class="q">Is the cause specified at the right level of specificity — neither over-generalized nor overly detailed?</p>
+  <div class="values"><strong>Values:</strong> explicitly_asserted | implicitly_assumed | explicitly_denied | not_addressed</div>
+  <p>Proportionality asks whether the author is being appropriately specific about what is causing what. If a study tests bloodroot specifically and the claim is made about bloodroot (not "all spring ephemerals"), that's proportional. This feature is often <code>explicitly_asserted</code> in experimental work where treatments are precisely defined.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> <code>explicitly_asserted</code> — Murphy is specific about the cause (transplanted <em>S. canadensis</em> at defined densities) and the effect (measured garlic mustard variables).</div>
+</div>
+
+<div class="feature-entry">
+  <h4>4. determinism</h4>
+  <p class="q">Is the causal process framed as deterministic, probabilistic, or is the probability just epistemic uncertainty?</p>
+  <div class="values"><strong>Values:</strong> deterministic_process | indeterministic_process | epistemic_probability_only | ambiguous | not_addressed</div>
+  <p>This is a subtle distinction. Sometimes probability reflects genuine randomness in the causal process (indeterministic). Sometimes it reflects our uncertainty about an otherwise deterministic process. Murphy's statistical results don't tell us which — mark <code>ambiguous</code> unless the paper explicitly discusses this.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> <code>ambiguous</code> — Murphy uses statistics but doesn't discuss whether the suppression process is fundamentally deterministic or probabilistic.</div>
+</div>
+</div>
+
+<h4>Direction and time</h4>
+
+<div class="feature-grid">
+<div class="feature-entry">
+  <h4>5. direction</h4>
+  <p class="q">Which direction does the causal arrow point? And what evidence supports that direction?</p>
+  <p>This feature has sub-fields: <code>status</code> (asserted / uncertain / bidirectional / not_addressed) and <code>evidence_for_direction</code> (experimental / temporal_precedence / theoretical / natural_experiment / structural_model).</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> <code>status: asserted</code>, <code>evidence_for_direction: experimental</code>. The experimental design (transplanting causes measurement) makes the direction unambiguous.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>6. temporal_ordering</h4>
+  <p class="q">Does the cause come before the effect in time? Does the paper establish this?</p>
+  <div class="values"><strong>Values:</strong> explicitly_asserted | implicitly_assumed | explicitly_denied | not_addressed</div>
+  <p>Temporal ordering is a minimum requirement for causation — causes precede effects. In experimental studies like Murphy's, the transplanting happened in autumn 1997 and effects were measured in subsequent growing seasons — so temporal ordering is explicit.</p>
+  <div class="murphy-eg"><strong>Murphy 2005 (edge 1):</strong> <code>explicitly_asserted</code> — transplants were installed first, garlic mustard responses were measured afterward across four growing seasons.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>7. proximate_distal</h4>
+  <p class="q">Is the cause a direct, immediate trigger (proximate), or a more distant upstream cause (distal)?</p>
+  <div class="values"><strong>Values:</strong> proximate | distal | both_specified | not_addressed</div>
+  <p>Proximate causes are immediately adjacent to the effect in the causal chain. Distal causes operate through intermediate steps. In Murphy's causal chain: transplanting is the proximate cause of resource reduction, and resource reduction is the proximate cause of garlic mustard suppression — so transplanting is a distal cause of suppression.</p>
+  <div class="murphy-eg"><strong>Murphy 2005 (edge 1 — transplanting → population performance):</strong> <code>proximate</code> at the level of this edge, even though there's an inferred mechanism. The distinction between edges lets us represent this properly.</div>
+</div>
+</div>
+
+<h4>Mechanism and modifiers</h4>
+
+<div class="feature-grid">
+<div class="feature-entry">
+  <h4>8. mediation</h4>
+  <p class="q">Is there an intermediate variable (a mediator) between the cause and the effect? What is the pathway?</p>
+  <p>Mediation captures the causal chain. If C → M → E (where M is a mediator), you should (a) create a node for M, (b) create edges C→M and M→E, and (c) note M as a mediator in the main C→E edge. Mediation has sub-fields: <code>status</code>, <code>mediator_node_ids</code>, and <code>pathway_description</code>.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> The proposed mechanism is: bloodroot transplanting → reduced resource availability (light) → garlic mustard suppression. Node 4 (resource availability) is the mediator. The mediation status is <code>implicitly_assumed</code> because Murphy proposes it but did not directly test the mechanism.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>9. moderation</h4>
+  <p class="q">Does a third variable (a moderator) change the <em>strength or direction</em> of the relationship between C and E?</p>
+  <p>A moderator doesn't sit on the causal pathway (that's a mediator) — it modifies how strong the effect is. Sub-fields: <code>status</code>, <code>interaction_type</code> (synergistic / antagonistic / qualitative / quantitative), and <code>moderator_node_ids</code>.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> Planting density moderates the suppression effect. Low densities (1–3 ramets/m²) have little effect; intermediate densities (9–11 ramets/m²) are most effective; very high densities offer no additional benefit. This is a <code>quantitative</code> interaction (magnitude changes, not direction). The moderator is captured as context dependence and strength metadata rather than a separate moderator node in this annotation.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>10. specificity</h4>
+  <p class="q">Is the causal relationship specific to this particular cause-effect pair, or does C have many effects and/or E have many causes?</p>
+  <div class="values"><strong>Values:</strong> explicitly_asserted | implicitly_assumed | explicitly_denied | not_addressed</div>
+  <p>High specificity means "A causes B and not much else; B is caused by A and not much else." In complex ecological systems, true specificity is rare — most ecological variables have multiple causes. If the paper addresses this, note it; otherwise, mark <code>not_addressed</code>.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> <code>explicitly_asserted</code> for the mechanism edge — Murphy argues the suppression is via competition specifically (not allelopathy or other mechanisms, though he acknowledges these haven't been ruled out).</div>
+</div>
+
+<div class="feature-entry">
+  <h4>11. stability</h4>
+  <p class="q">Is the causal relationship stable across different contexts, conditions, or time periods?</p>
+  <div class="values"><strong>Values:</strong> explicitly_asserted | implicitly_assumed | explicitly_denied | not_addressed</div>
+  <p>Stability is about robustness: would the same relationship hold in a different forest patch, a different year, a different climate? A paper that tests only one site in one year cannot assert stability — it would be <code>not_addressed</code> unless the authors explicitly comment on generalizability.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> <code>not_addressed</code> for most edges — Murphy only studied one site. He speculates about generalizability but doesn't test it.</div>
+</div>
+</div>
+
+<h4>Character of the cause</h4>
+
+<div class="feature-grid">
+<div class="feature-entry">
+  <h4>12. token_or_type</h4>
+  <p class="q">Is this a claim about this specific instance (token), or a general pattern (type)?</p>
+  <div class="values"><strong>Values:</strong> token | type | ambiguous | not_addressed</div>
+  <p>A <strong>token claim</strong> says "in this specific study, at this specific time, bloodroot transplanting suppressed garlic mustard." A <strong>type claim</strong> says "in general, bloodroot transplanting suppresses garlic mustard populations." CAMO primarily captures type claims — the generalizations that can be combined across papers. Most claims in scientific papers are type claims unless authors explicitly restrict them to a specific instance.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> Most edges are <code>type</code> — Murphy generalizes his results to the management of garlic mustard in deciduous woodlots. The null finding (no native species recovery by 2000) is <code>token</code> — it's specific to this site at this time.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>13. contributing_sole</h4>
+  <p class="q">Is C presented as the sole cause of E, or as one of several contributing factors?</p>
+  <div class="values"><strong>Values:</strong> sole_cause | contributing_cause | not_addressed</div>
+  <p>In ecology, sole causation is almost never asserted — ecosystems are complex and most outcomes have multiple causes. When a paper says "X reduces Y" without claiming X is the <em>only</em> thing that reduces Y, mark <code>contributing_cause</code>.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> <code>contributing_cause</code> for all edges — Murphy does not claim bloodroot is the only factor affecting garlic mustard dynamics.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>14. reversibility</h4>
+  <p class="q">If the cause is removed, does the effect reverse? Is the relationship hysteretic?</p>
+  <div class="values"><strong>Values:</strong> reversible | irreversible | partially_reversible | hysteresis | not_addressed</div>
+  <p>Reversibility is central to restoration ecology: if we stop the management intervention, does the ecosystem revert? Hysteresis means recovery follows a different trajectory than degradation — a common pattern in alternative stable state systems.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong> <code>partially_reversible</code> — Murphy doesn't test what happens if bloodroot is removed, but the persistence of the garlic mustard seed bank implies that garlic mustard populations could recover if treatment stopped. The partial reversibility is implicit.</div>
+</div>
+
+<div class="feature-entry">
+  <h4>15. strength</h4>
+  <p class="q">How large or strong is the causal effect?</p>
+  <p>Strength has structured sub-fields: <code>status</code> (FeatureAssertionEnum), <code>quantitative_value</code> (free text for effect sizes), <code>qualitative_descriptor</code> (strong / moderate / weak / negligible), and <code>dose_response</code> (boolean).</p>
+  <p>The <code>quantitative_value</code> field is <em>not</em> for raw data — it's for a brief characterization of what the paper reports, like "effective threshold reported from about 5 ramets/m²; strongest results at 9–11 ramets/m²."</p>
+  <div class="murphy-eg"><strong>Murphy 2005 (edge 1):</strong> <code>status: explicitly_asserted</code>, <code>qualitative_descriptor: strong</code>, <code>dose_response: true</code>, <code>quantitative_value: "Effective threshold from ~5 ramets/m²; strongest at 9–11 ramets/m²."</code></div>
+</div>
+</div>
+
+<h4>Context dependence</h4>
+
+<p><code>context_dependence</code> is an additional structured field (beyond the 15 features) that captures the scope conditions — where, when, and under what circumstances does this relationship hold?</p>
+
+<div class="feature-grid">
+<div class="feature-entry">
+  <h4>context_dependence</h4>
+  <p class="q">Under what conditions does this relationship hold? Where and when was it tested?</p>
+  <p>Sub-fields: <code>status</code>, <code>scope_conditions</code> (list of conditions), <code>geographic_scope</code>, <code>temporal_scope</code>, <code>ecosystem_scope</code>.</p>
+  <p>This is one of the most important fields for practitioners. A relationship found in a degraded Ontario woodlot in the 1990s may not hold in a large continuous forest or in a different climate zone.</p>
+  <div class="murphy-eg"><strong>Murphy 2005:</strong>
+    <ul>
+      <li><code>scope_conditions:</code> "degraded deciduous woodlot edge"; "high local A. petiolata density"; "intermediate S. canadensis density most effective"</li>
+      <li><code>geographic_scope:</code> "Region of Waterloo, Ontario, Canada"</li>
+      <li><code>temporal_scope:</code> "1997–2000 field experiment"</li>
+      <li><code>ecosystem_scope:</code> "degraded deciduous forest/woodlot edge"</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- LAYER 4 -->
+<h3 id="layer4">Layer 4: Evidential basis</h3>
+<p>The final annotation layer records what kind of evidence supports the causal claim. This follows the Russo-Williamson thesis: good causal evidence should include both <em>difference-making</em> evidence (showing C makes a difference to E) and <em>production</em> evidence (showing how C produces E mechanistically).</p>
+
+<p>Two required sub-fields:</p>
+
+<p><strong>evidence_types</strong> — what kind of study produced this evidence? Pick all that apply:</p>
+<ul>
+  <li><code>randomized_experiment</code> — randomized controlled trial or field experiment</li>
+  <li><code>natural_experiment</code> — exogenous shock or natural experiment</li>
+  <li><code>quasi_experiment</code> — BACI, difference-in-differences, etc.</li>
+  <li><code>observational_longitudinal</code> — cohort or panel study</li>
+  <li><code>observational_cross_sectional</code> — cross-sectional survey</li>
+  <li><code>mechanistic_study</code> — laboratory or field study of mechanism</li>
+  <li><code>meta_analysis</code>, <code>systematic_review</code>, <code>modeling_simulation</code></li>
+  <li><code>theoretical</code> — deduction from theory only</li>
+  <li><code>expert_judgment</code>, <code>case_study</code>, <code>practitioner_experience</code></li>
+</ul>
+
+<p><strong>evidence_objects</strong> — what does the evidence address?</p>
+<ul>
+  <li><code>correlation</code> — shows C and E co-vary (difference-making)</li>
+  <li><code>mechanism</code> — shows how C produces E (production)</li>
+  <li><code>both</code> — addresses both correlation and mechanism</li>
+</ul>
+
+<div class="callout example">
+  <strong class="label">Murphy 2005 — evidential basis for edge 1 (transplanting → population performance)</strong>
+<div class="yaml-block">
+<div class="yaml-header">evidential_basis</div>
+<pre>evidential_basis:
+  evidence_types:
+    - randomized_experiment
+  evidence_objects:
+    - both   # Murphy reports statistical effects AND proposes a mechanism</pre>
+</div>
+  For the mechanistic edge (transplanting → resource availability), the evidence type is <code>[randomized_experiment, theoretical]</code> and the evidence object is <code>both</code> — the experiment provides the correlation, theory (light competition) provides the mechanism.
+</div>
+
+<!-- SUPPORTING METADATA -->
+<h3 id="edge-metadata">Supporting metadata</h3>
+
+<h4>temporal_extent</h4>
+<p>How long did it take for the causal effect to be observed? This is <em>not</em> the study duration — it's the timescale of the causal relationship itself.</p>
+<ul>
+  <li><code>duration_months</code> — numeric</li>
+  <li><code>duration_text</code> — free text as stated in the paper (e.g., "Four growing seasons")</li>
+  <li><code>lag_months</code> — how long after the cause before the effect appeared</li>
+  <li><code>observation_grain</code> — at what interval was it measured (seasonal, annual, etc.)</li>
+  <li><code>observation_seasons</code> — which seasons (important for spring ephemerals like bloodroot!)</li>
+</ul>
+
+<h4>fcm_weight</h4>
+<p>A numeric weight between -1.0 and +1.0 for Fuzzy Cognitive Map rendering. Negative weights are for inhibitory relationships. This is usually filled in automatically from the predicate and strength annotation — you may leave it to the system or override it. For Murphy's main suppression edge, <code>fcm_weight: -0.75</code> captures a strong negative regulatory relationship.</p>
+
+<h4>source_spans</h4>
+<p>The verbatim text quotes from the paper that ground this edge. These are critical for provenance — future users can check exactly where you got the claim. In Loom, you create these by highlighting text in the PDF viewer. Always provide at least one source span per edge.</p>
+
+<h4>annotation_confidence</h4>
+<p>Your overall confidence in the annotation, from 0.0 (wild guess) to 1.0 (certain). Be honest. If you're unsure about the philosophical accounts or a causal feature, reflect that in a lower confidence score and leave a note in <code>annotation_notes</code>.</p>
+
+<!-- EDGES MURPHY -->
+<h3 id="edges-murphy">Murphy 2005 walkthrough: all five edges</h3>
+
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <strong>Screenshot: Edge creation form in Loom</strong>
+    <p>The edge annotation panel shows all four layers stacked vertically. The philosophical accounts are checkboxes (select all that apply). The 15 causal features are collapsible panels. Source spans are created by highlighting text in the PDF panel on the left.</p>
+  </div>
+</div>
+
+<div class="callout example">
+  <strong class="label">Edge 1: Transplanting → Population performance (the main result)</strong>
+<div class="yaml-block">
+<div class="yaml-header">edge:murphy2005_sanguinaria_suppresses_alliaria_performance</div>
+<pre>subject: node:murphy2005_sanguinaria_transplanting
+predicate: negatively_regulates
+object: node:murphy2005_alliaria_population_performance
+negated: false
+claim_strength: direct_causal
+original_sentence: "the experiments indicated that transplanting
+  S. canadensis was effective at mitigating the spread of A. petiolata."
+philosophical_accounts: [interventionist, probabilistic, agency]
+necessity: not_addressed
+sufficiency: explicitly_denied
+direction:
+  status: asserted
+  evidence_for_direction: experimental
+temporal_ordering: explicitly_asserted
+mediation:
+  status: implicitly_assumed
+  mediator_node_ids: [node:murphy2005_resource_availability_to_alliaria]
+  pathway_description: "Competition during spring phenological overlap,
+    probably through reduced light availability."
+moderation:
+  status: explicitly_asserted
+  interaction_type: quantitative
+strength:
+  status: explicitly_asserted
+  quantitative_value: "Effective from ~5 ramets/m²; strongest at 9-11 ramets/m²."
+  qualitative_descriptor: strong
+  dose_response: true
+token_or_type: type
+contributing_sole: contributing_cause
+reversibility: partially_reversible
+proportionality: explicitly_asserted
+context_dependence:
+  status: explicitly_asserted
+  scope_conditions:
+    - "degraded deciduous woodlot edge"
+    - "intermediate S. canadensis density most effective"
+  geographic_scope: "Region of Waterloo, Ontario, Canada"
+  temporal_scope: "1997-2000 field experiment"
+  ecosystem_scope: "degraded deciduous forest/woodlot edge"
+evidential_basis:
+  evidence_types: [randomized_experiment]
+  evidence_objects: [both]
+fcm_weight: -0.75
+annotation_confidence: 0.92</pre>
+</div>
+</div>
+
+<div class="callout example">
+  <strong class="label">Edge 4: Seed bank → Seedling emergence (a constraint edge)</strong>
+<div class="yaml-block">
+<div class="yaml-header">edge:murphy2005_seed_bank_buffers_seedling_reduction</div>
+<pre>subject: node:murphy2005_alliaria_seed_bank_persistence
+predicate: enables
+object: node:murphy2005_alliaria_seedling_emergence
+negated: false
+claim_strength: uncertain_causal
+original_sentence: "Early-spring emergence of seedlings in A. petiolata
+  remained relatively constant, probably indicating that an existing,
+  extensive seed bank persisted throughout."
+philosophical_accounts: [mechanistic, regularity]
+# Key insight: this edge LIMITS the practical impact of the intervention.
+# The seed bank (node 5) buffers against the suppression effects on
+# flowering adults — a critical constraint for long-term management.</pre>
+</div>
+  This edge is important precisely because it represents a <em>constraint</em> on the management intervention. Even with strong suppression of adult performance and reproduction, garlic mustard seedlings continue to emerge from the seed bank. The graph would be incomplete without it.
+</div>
+
+<div class="callout example">
+  <strong class="label">Edge 5: Transplanting → Native reestablishment (the null result)</strong>
+<div class="yaml-block">
+<div class="yaml-header">edge:murphy2005_sanguinaria_not_yet_native_reestablishment</div>
+<pre>subject: node:murphy2005_sanguinaria_transplanting
+predicate: enables
+object: node:murphy2005_native_understory_reestablishment
+negated: true   # the claim is that this relationship does NOT hold (yet)
+claim_strength: no_relationship
+original_sentence: "By 2000, I had not detected any increase in
+  other native species or other exotics in any treatments."
+token_or_type: token   # specific to this site, this time window
+fcm_weight: 0.0
+annotation_confidence: 0.86</pre>
+</div>
+  Null results are just as important as positive results. This edge explicitly records that bloodroot transplanting did NOT (yet) facilitate native understory recovery. Without this edge, node 7 would have no connections — violating the orphan node rule and losing a critical management insight.
+</div>
+</section>
+
+<!-- ======= QUALITY ======= -->
+<section id="checklist">
+<h2>Quality checklist</h2>
+<p>Before submitting your annotation, run through this checklist:</p>
+
+<ul class="checklist">
+  <li>Source document metadata is complete and verified against the actual paper</li>
+  <li>Every node has a clear, composed name expressing entity + attribute + qualifier</li>
+  <li>Every node has at least one <code>source_span</code> with verbatim text</li>
+  <li>Entity terms use ontology CURIEs where available; free text is flagged for curation</li>
+  <li>No node has zero edges (orphan node rule)</li>
+  <li>Causal claims are at the conceptual level — no raw statistics or data values in node names</li>
+  <li>Every edge has at least one <code>source_span</code></li>
+  <li>Every edge has an <code>original_sentence</code></li>
+  <li>Philosophical accounts are selected (multiple accounts are expected and encouraged)</li>
+  <li>All 15 causal features are filled in (at minimum, mark <code>not_addressed</code> rather than leaving blank)</li>
+  <li>Evidential basis (evidence_type and evidence_object) is filled in for every edge</li>
+  <li>Null results are annotated as negated edges, not simply omitted</li>
+  <li>Mediator nodes appear as both standalone nodes AND in the <code>mediation.mediator_node_ids</code> field of parent edges</li>
+  <li><code>context_dependence</code> captures ecosystem, geographic, and temporal scope</li>
+  <li><code>annotation_confidence</code> honestly reflects your certainty</li>
+</ul>
+</section>
+
+<!-- ======= GLOSSARY ======= -->
+<section id="glossary">
+<h2>Glossary</h2>
+<dl class="glossary">
+  <dt>CAMO (Causal Mosaic)</dt>
+  <dd>The annotation schema. Combines ELMO entity structure with Illari &amp; Russo's causal mosaic framework to produce a four-layer annotation for every causal claim.</dd>
+
+  <dt>ELMO (Ecolink Model Ontology)</dt>
+  <dd>The entity-level ontology framework. Provides the entity + attribute + qualifier decomposition for nodes. Published in Alamenciak et al. (2025).</dd>
+
+  <dt>Node</dt>
+  <dd>A causally relevant entity in the graph. Decomposes into entity (what thing), measured attribute (what property), and state/change qualifier (what happened to it).</dd>
+
+  <dt>Edge</dt>
+  <dd>A directed causal claim connecting two nodes. Carries all four annotation layers.</dd>
+
+  <dt>entity_type</dt>
+  <dd>The broad category of the entity at the core of a node: taxon, environmental_variable, environmental_process, or management_intervention.</dd>
+
+  <dt>entity_term</dt>
+  <dd>The ontology CURIE (or free-text fallback) identifying the specific entity. For taxa, use Wikidata QIDs (WD:Q…).</dd>
+
+  <dt>state_or_change_qualifier</dt>
+  <dd>What happened to the measured attribute: increased, decreased, present, absent, unchanged, introduced, removed, etc.</dd>
+
+  <dt>claim_strength</dt>
+  <dd>How strong is the causal language used in the text? Four levels: no_relationship, associational, uncertain_causal, direct_causal.</dd>
+
+  <dt>philosophical account</dt>
+  <dd>The implicit theory of causation invoked by a causal claim. CAMO recognizes seven: counterfactual, probabilistic, interventionist, transmission, mechanistic, regularity, inus_component, agency.</dd>
+
+  <dt>mediation</dt>
+  <dd>A causal feature describing an intermediate variable (mediator) on the pathway between cause and effect. When a mediator exists, it should be represented both as a node and in the mediation metadata of the parent edge.</dd>
+
+  <dt>moderation</dt>
+  <dd>A causal feature describing a third variable that changes the strength or direction of the cause-effect relationship (an effect modifier or interaction).</dd>
+
+  <dt>FCM weight</dt>
+  <dd>Fuzzy Cognitive Map weight: a numeric value from -1.0 to +1.0 representing the sign and magnitude of the causal relationship. Used to render the annotation as a causal model.</dd>
+
+  <dt>Russo-Williamson thesis</dt>
+  <dd>The philosophical position that good causal evidence requires both difference-making evidence (showing C makes a difference to E) and production evidence (showing the mechanism). CAMO's evidence_object field captures whether each edge has correlation evidence, mechanism evidence, or both.</dd>
+
+  <dt>CURIE</dt>
+  <dd>Compact URI — a shortened form of an ontology term identifier, e.g., WD:Q157057 for Sanguinaria canadensis in Wikidata, or PATO:0000070 for the quality "abundance."</dd>
+
+  <dt>token claim</dt>
+  <dd>A causal claim about a specific instance: "in this particular study, this specific thing caused that." Compare with type claim.</dd>
+
+  <dt>type claim</dt>
+  <dd>A general causal claim: "in general, this kind of thing causes that kind of thing." CAMO primarily captures type claims.</dd>
+
+  <dt>negated edge</dt>
+  <dd>An edge where negated: true signals that the causal relationship claimed to exist does NOT hold. Used for null results and explicitly denied relationships.</dd>
+
+  <dt>source_span</dt>
+  <dd>A verbatim text quotation from the source paper that grounds a node or edge. Created in Loom by highlighting text in the PDF viewer.</dd>
+</dl>
+</section>
+
+<!-- ======= READING ======= -->
+<section id="reading">
+<h2>Further reading</h2>
+<p>These readings will deepen your understanding of the ideas behind CAMO. You don't need to read them all before annotating — start with the first two, then return to others as questions arise.</p>
+
+<h3>Foundational philosophy of causation</h3>
+
+<div class="reading-item">
+  <div class="citation">Illari, P. &amp; Russo, F. (2014). <em>Causality: Philosophical Theory Meets Scientific Practice.</em> Oxford University Press.</div>
+  <p>The primary source for CAMO's philosophical framework. Chapters 1–3 cover the difference-making/production distinction and the mosaic framework. Accessible to non-philosophers.</p>
+</div>
+
+<div class="reading-item">
+  <div class="citation">Woodward, J. (2003). <em>Making Things Happen: A Theory of Causal Explanation.</em> Oxford University Press.</div>
+  <p>The foundational text on interventionist causation — the account most directly operationalized by randomized experiments. Chapter 1 is essential reading.</p>
+</div>
+
+<div class="reading-item">
+  <div class="citation">Machamer, P., Darden, L., &amp; Craver, C. (2000). Thinking about mechanisms. <em>Philosophy of Science, 67</em>(1), 1–25.</div>
+  <p>The canonical paper on mechanistic causation. Central to understanding the mechanistic philosophical account in CAMO.</p>
+</div>
+
+<h3>Causal inference and evidence in ecology</h3>
+
+<div class="reading-item">
+  <div class="citation">Pearl, J. &amp; Mackenzie, D. (2018). <em>The Book of Why: The New Science of Cause and Effect.</em> Basic Books.</div>
+  <p>Accessible introduction to causal inference using directed acyclic graphs (DAGs). Excellent background for understanding how CAMO's causal graph encodes causal assumptions.</p>
+</div>
+
+<div class="reading-item">
+  <div class="citation">Russo, F. (2009). <em>Causality and Causal Modelling in the Social Sciences.</em> Springer.</div>
+  <p>Covers the variation account of causation (probabilistic/statistical) and how it relates to causal inference. Good complement to Woodward for statistical evidence.</p>
+</div>
+
+<h3>The running example</h3>
+
+<div class="reading-item">
+  <div class="citation">Murphy, S. D. (2005). Concurrent management of an exotic species and initial restoration efforts in forests. <em>Restoration Ecology, 13</em>(3), 462–471. <a href="https://doi.org/10.1111/j.1526-100X.2005.00075.x">doi:10.1111/j.1526-100X.2005.00075.x</a></div>
+  <p>The paper we've used throughout this guide. Read it first, before annotating, to get a feel for what a well-structured annotatable paper looks like — and notice where Murphy is explicit about causation vs. where he hedges.</p>
+</div>
+
+<h3>Schema and technical references</h3>
+
+<div class="reading-item">
+  <div class="citation">Alamenciak, T. et al. (2025). ELMO: An Ecolink Model Ontology for Ecological Causal Claims. <em>EcoWeaver project.</em> <a href="https://doi.org/10.1007/978-3-032-06136-2_33">doi:10.1007/978-3-032-06136-2_33</a></div>
+  <p>The paper describing ELMO's entity structure, on which CAMO's node decomposition is based.</p>
+</div>
+
+<div class="reading-item">
+  <div class="citation">Bradford Hill, A. (1965). The environment and disease: Association or causation? <em>Proceedings of the Royal Society of Medicine, 58</em>(5), 295–300.</div>
+  <p>Bradford Hill's nine "viewpoints" for assessing causation from observational evidence. CAMO maps these viewpoints onto philosophical accounts and causal features — you'll see the correspondence when you read this short paper.</p>
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+// Sidebar active-link tracking
+const sections = document.querySelectorAll('section[id], h2[id], h3[id]');
+const navLinks = document.querySelectorAll('nav a[href^="#"]');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

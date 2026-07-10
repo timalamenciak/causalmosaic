@@ -254,6 +254,12 @@ new_schema_annotations:
 
 ### Changed
 
+- Added `CoordinateLocationBasisEnum` and multivalued
+  `StudyCoordinates.coordinate_location_basis` so coordinate records can note
+  whether they identify the `exact_site` or use the `nearest_municipality` as
+  an approximate proxy.
+  - Rationale: coordinate annotations need to distinguish exact study-site
+    coordinates from coordinates of the nearest municipality.
 - Removed `process_context` from `CausalEdge`.
   - Rationale: ecological and management processes should be represented as
     nodes when they participate in the causal relationship, using the existing
