@@ -19,6 +19,8 @@
 body{font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.7;color:var(--charcoal);background:var(--cream)}
 a{color:var(--forest);text-decoration:underline}
 a:hover{color:var(--burgundy)}
+.hero a{color:var(--mint)}
+.hero a:hover{color:var(--cream)}
 h1,h2,h3,h4{font-weight:700;line-height:1.3}
 h2{font-size:1.7rem;color:var(--forest);border-bottom:3px solid var(--sage);padding-bottom:.4rem;margin:2.5rem 0 1rem}
 h3{font-size:1.25rem;color:var(--forest);margin:1.8rem 0 .6rem}
@@ -41,7 +43,7 @@ nav li.section-head a{font-weight:700;font-size:.8rem;letter-spacing:.06em;text-
 nav li.section-head a:hover{background:none;border-left-color:transparent}
 nav li.sub a{padding-left:2.2rem;font-size:.8rem}
 main{flex:1;max-width:860px;padding:2rem 3rem 4rem;overflow-x:hidden}
-.step-badge{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:50%;background:var(--forest);color:var(--cream);font-weight:700;font-size:.9rem;margin-right:.5rem;flex-shrink:0}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;padding:.2rem .7rem;border-radius:20px;background:var(--forest);color:var(--cream);font-weight:700;font-size:.85rem;margin-right:.5rem;flex-shrink:0;white-space:nowrap}
 .step-header{display:flex;align-items:center;margin-bottom:-.5rem}
 
 /* Hero */
@@ -51,8 +53,8 @@ main{flex:1;max-width:860px;padding:2rem 3rem 4rem;overflow-x:hidden}
 .hero .lead{color:rgba(232,221,208,.9);font-size:.95rem;margin:0}
 .workflow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1.5rem}
 .workflow-step{background:rgba(232,221,208,.1);border:1px solid rgba(139,173,140,.4);border-radius:6px;padding:.9rem;text-align:center}
-.workflow-step .num{font-size:1.5rem;font-weight:700;color:var(--mint)}
-.workflow-step .label{font-size:.8rem;color:var(--cream);margin-top:.3rem}
+.workflow-step .num{display:inline-block;background:var(--mint);color:var(--forest);font-size:.85rem;font-weight:700;padding:.2rem .7rem;border-radius:20px;white-space:nowrap}
+.workflow-step .label{font-size:.8rem;color:var(--cream);margin-top:.6rem}
 
 /* Callout boxes */
 .callout{padding:1rem 1.2rem;border-radius:6px;margin:1.2rem 0;border-left:4px solid}
@@ -216,10 +218,10 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
   <p class="subtitle">A step-by-step handbook for annotating causal claims in ecological literature</p>
   <p class="lead">This guide walks you through annotating a scientific paper using the <strong>Causal Mosaic (CAMO)</strong> schema inside <strong>Loom</strong>. We use <a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1526-100X.2005.00075.x">Murphy (2005)</a> — a restoration ecology study on bloodroot and garlic mustard — as our running example throughout.</p>
   <div class="workflow-steps">
-    <div class="workflow-step"><div class="num">1</div><div class="label">Source Document</div></div>
-    <div class="workflow-step"><div class="num">2</div><div class="label">Identify Nodes</div></div>
-    <div class="workflow-step"><div class="num">3</div><div class="label">Map Pathways</div></div>
-    <div class="workflow-step"><div class="num">4</div><div class="label">Encode Edges</div></div>
+    <div class="workflow-step"><div class="num">Step 1</div><div class="label">Source Document</div></div>
+    <div class="workflow-step"><div class="num">Step 2</div><div class="label">Identify Nodes</div></div>
+    <div class="workflow-step"><div class="num">Step 3</div><div class="label">Map Pathways</div></div>
+    <div class="workflow-step"><div class="num">Step 4</div><div class="label">Encode Edges</div></div>
   </div>
 </div>
 
@@ -270,7 +272,7 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
 
 <!-- ======= SOURCE DOCUMENT ======= -->
 <section id="source-doc">
-<div class="step-header"><div class="step-badge">1</div><h2 style="border:none;margin:0">Verify the Source Document</h2></div>
+<div class="step-header"><div class="step-badge">Step 1</div><h2 style="border:none;margin:0">Verify the Source Document</h2></div>
 <p style="margin-top:.5rem">Before touching nodes or edges, make sure the bibliographic metadata is correct. This information flows into every edge you create and is critical for evidence synthesis downstream.</p>
 
 <div class="screenshot">
@@ -292,6 +294,14 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
   <li><strong>study_design</strong> — pick the closest match (e.g., <code>randomized_experiment</code>, <code>observational_longitudinal</code>)</li>
 </ul>
 
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <img src="./screenshots/source_document_studydesign.jpg" alt="Study design dropdown and sample size field" style="width:100%;height:auto;">
+    <p>The study design dropdown and sample size field. Choose the closest match for study design and describe replication level as free text in sample size.</p>
+  </div>
+</div>
+
 <h3>Spatial and temporal context</h3>
 <p>These fields power map-based evidence gap maps and help practitioners find studies near their site:</p>
 <ul>
@@ -300,6 +310,22 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
   <li><strong>study_period_start / end</strong> — when data collection happened, in ISO format (e.g., <code>1997</code>, <code>2000</code>). Not the publication date.</li>
   <li><strong>study_sample_size</strong> — free text, e.g., "40 plots: 4 randomized complete blocks × 10 density treatments"</li>
 </ul>
+
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <img src="./screenshots/source_document_studycoords.jpg" alt="Study coordinates, country, province, and coordinate location basis fields" style="width:100%;height:auto;">
+    <p>Study coordinates and location fields. Enter coordinates in decimal degrees (WGS 84) and indicate whether they represent the exact site or the nearest municipality.</p>
+  </div>
+</div>
+
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <img src="./screenshots/source_document_studytime.jpg" alt="Study period start, end, duration, and temporal note fields" style="width:100%;height:auto;">
+    <p>Temporal context fields. Study period refers to when data collection happened — not the publication date. Use the temporal note for free-text context that doesn't fit the structured fields.</p>
+  </div>
+</div>
 
 <div class="callout example">
   <strong class="label">Murphy 2005 — completed source document</strong>
@@ -332,7 +358,7 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 
 <!-- ======= NODES INTRO ======= -->
 <section id="nodes-intro">
-<div class="step-header"><div class="step-badge">2</div><h2 style="border:none;margin:0">Identify Nodes</h2></div>
+<div class="step-header"><div class="step-badge">Step 2</div><h2 style="border:none;margin:0">Identify Nodes</h2></div>
 <p style="margin-top:.5rem">A <strong>node</strong> represents a <em>causally relevant entity</em> in the paper — something that participates in a cause-and-effect relationship. Before you can draw any arrows, you need to identify all the "things" the paper claims are causing or being caused.</p>
 <p style="margin-top:.5rem">It can be helpful from a workflow perspective to think about all of the nodes in a paper before you start annotating. Nodes should only be included if there is an edge.</p>
 
@@ -432,6 +458,22 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 </tbody>
 </table>
 
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <img src="./screenshots/node_tophalf.jpg" alt="Node form top half showing name, entity type, entity term, measured attribute, and state or change qualifier fields" style="width:100%;height:auto;">
+    <p>The top half of the node form. Fill in the name as a composed human-readable label, then set entity type, entity term, measured attribute, and state/change qualifier.</p>
+  </div>
+</div>
+
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <img src="./screenshots/node_bottomhalf.jpg" alt="Node form bottom half showing taxonomic scope and applied to fields" style="width:100%;height:auto;">
+    <p>The bottom half of the node form. Taxonomic scope is used only on <code>environmental_variable</code> nodes spanning multiple taxa. Applied to is used on <code>management_intervention</code> and <code>environmental_process</code> nodes to specify the target entity.</p>
+  </div>
+</div>
+
 <h3 id="pids">Permanent identifiers — a critical step</h3>
 
 <p>The <code>entity_term</code> field should almost always contain an <strong>ontology CURIE</strong> rather than plain text. A CURIE looks like <code>WD:Q157057</code> or <code>ENVO:01000253</code>. This is one of the most important practices in CAMO annotation.</p>
@@ -458,12 +500,28 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 
 <div class="callout tip">
   <strong class="label">When no ontology term exists</strong>
-  It's fine to use free text as a fallback (e.g., <code>entity_term: "plant translocation process"</code>). Loom will flag this for curation. Write the most specific free text you can, and add a note that no ontology term was found. 
+  It's fine to use free text as a fallback (e.g., <code>entity_term: "plant translocation process"</code>). Loom will flag this for curation. Write the most specific free text you can, and add a note that no ontology term was found.
+</div>
+
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <img src="./screenshots/node_suggestaterm.jpg" alt="Suggest a term dialog for proposing a new ontology entry when no existing term matches" style="width:100%;height:auto;">
+    <p>When your entity term isn't found in the cached ontology, Loom prompts you to propose it. Select the target ontology, optionally add a broader parent term and a definition, then click <strong>Log suggestion</strong> to submit it for curation.</p>
+  </div>
 </div>
 
 <h3 id="nodes-murphy">Murphy 2005 walkthrough: identifying all nodes</h3>
 
 <p>Murphy (2005) is a 4-year field experiment in Ontario in which <em>Sanguinaria canadensis</em> (bloodroot, a native spring ephemeral) was transplanted at ten different densities to test whether it could suppress <em>Alliaria petiolata</em> (garlic mustard, an invasive herb). Murphy's experiment uses 40 plots in a randomized block design.</p>
+
+<div class="screenshot">
+  <div class="icon">📸</div>
+  <div>
+    <img src="./screenshots/node_addtoexcerptbin.jpg" alt="Loom interface showing text selected in the paper being added to the excerpt bin, alongside the Add Node form" style="width:100%;height:auto;">
+    <p>Highlight a passage in the paper text to add it to the excerpt bin. Then click <strong>+ Add node</strong> to open the node form on the right — the selected text will become a <code>source_span</code> grounding the node you create.</p>
+  </div>
+</div>
 
 <p>Before opening Loom, read the paper once through and ask: <em>"What does this paper claim is causing what?"</em> Jot down the key claims. Then identify the entities involved. For Murphy (2005), those are:</p>
 
@@ -513,7 +571,7 @@ source_spans:
 
 <!-- ======= PATHWAYS ======= -->
 <section id="pathways">
-<div class="step-header"><div class="step-badge">3</div><h2 style="border:none;margin:0">Map the Causal Pathways</h2></div>
+<div class="step-header"><div class="step-badge">Step 3</div><h2 style="border:none;margin:0">Map the Causal Pathways</h2></div>
 <p style="margin-top:.5rem">Before encoding formal edges in Loom, sketch the causal graph on paper (or a whiteboard). Ask: which nodes cause which other nodes? Draw arrows.</p>
 
 <div class="callout important">
@@ -535,7 +593,7 @@ source_spans:
 
 <!-- ======= EDGES INTRO ======= -->
 <section id="edges-intro">
-<div class="step-header"><div class="step-badge">4</div><h2 style="border:none;margin:0">Encode Edges</h2></div>
+<div class="step-header"><div class="step-badge">Step 4</div><h2 style="border:none;margin:0">Encode Edges</h2></div>
 <p style="margin-top:.5rem">An <strong>edge</strong> is a single causal claim — one arrow in the graph. It connects a cause node (<code>subject</code>) to an effect node (<code>object</code>) via a predicate (the type of causal relationship). Edges are where most of the annotation work happens.</p>
 
 <p>Every edge has four annotation layers, plus supporting metadata. We'll go through each in turn.</p>
@@ -954,8 +1012,8 @@ source_spans:
 <div class="screenshot">
   <div class="icon">📸</div>
   <div>
-    <strong>Screenshot: Edge creation form in Loom</strong>
-    <p>The edge annotation panel shows all four layers stacked vertically. The philosophical accounts are checkboxes (select all that apply). The 15 causal features are collapsible panels. Source spans are created by highlighting text in the PDF panel on the left.</p>
+    <img src="./screenshots/edge_creation.jpg" alt="Edge creation form in Loom showing Layer 1 claim and predicate fields, ELMO context, and the node list above" style="width:100%;height:auto;">
+    <p>The edge annotation panel with Layer 1 (Claim &amp; Predicate) expanded. Select predicate and claim strength, optionally check Negated, and paste the original sentence. The node list at the top shows all available nodes to connect. Layers 2–4 appear as collapsible panels below.</p>
   </div>
 </div>
 
@@ -964,7 +1022,7 @@ source_spans:
 <div class="yaml-block">
 <div class="yaml-header">edge:murphy2005_sanguinaria_suppresses_alliaria_performance</div>
 <pre>subject: node:murphy2005_sanguinaria_transplanting
-predicate: negatively_regulates
+predicate: contributes_to
 object: node:murphy2005_alliaria_population_performance
 negated: false
 claim_strength: direct_causal

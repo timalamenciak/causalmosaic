@@ -24,7 +24,9 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.7.5
+## Schema version: 0.7.6
+##   - Removed entries for 'positively_regulates' and 'negatively_regulates'
+##     as this is redundant given the node directions.
 ##   - entity_term widened to any_of [uriorcurie, string] so annotators can
 ##     record a term as free text when no cached ontology term matches yet
 ##     (mirrors the existing pattern already used by measured_attribute).
@@ -66,7 +68,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.7.5
+version: 0.7.6
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -490,26 +492,12 @@ enums:
           fcm_default_weight: "-0.5"
           rosetta_template: "{subject} disrupts {object}"
       regulates:
-        description: "C modulates E (direction may be positive or negative)."
+        description: "C modulates E (direction may be positive or negative - depends on the node state changes)."
         meaning: camo:regulates
         annotations:
           sign: variable
           fcm_default_weight: "0.0"
           rosetta_template: "{subject} regulates {object}"
-      positively_regulates:
-        description: "C upregulates or increases E."
-        meaning: camo:positively_regulates
-        annotations:
-          sign: positive
-          fcm_default_weight: "0.5"
-          rosetta_template: "{subject} positively regulates {object}"
-      negatively_regulates:
-        description: "C downregulates or decreases E."
-        meaning: camo:negatively_regulates
-        annotations:
-          sign: negative
-          fcm_default_weight: "-0.5"
-          rosetta_template: "{subject} negatively regulates {object}"
       mediates:
         description: "M is on the causal pathway between C and E."
         meaning: camo:mediates

@@ -13,7 +13,7 @@ A LinkML schema for representing ecological causal claims as an ontology-grounde
 
 | File / folder | Purpose |
 |---|---|
-| `causal_mosaic_v0.7.2.yaml` | Current versioned LinkML schema |
+| `causalmosaic.yaml` | Current versioned LinkML schema |
 | `CHANGELOG.md` | Schema change history with rationale |
 | `docs/sample_data.yaml` | Full worked example (grassland restoration) |
 | `docs/sample_data_grounded.yaml` | Compact ontology-grounded version of the same example |
@@ -87,7 +87,7 @@ regenerated when the underlying evidence base changes.
 
 ## What comes out?
 
-- Versioned, validated YAML records conforming to `causal_mosaic_v0.7.1.yaml`
+- Versioned, validated YAML records conforming to `causalmosaic.yaml`
 - Causal graphs suitable for Fuzzy Cognitive Maps, Evidence Gap Maps, and RAG pipelines
 - Structured evidence for practitioner summaries and systematic reviews
 
