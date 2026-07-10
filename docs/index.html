@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAMO — EcoWeaver / Loom</title>
+<style>
+:root {
+  --forest:   #243F32;
+  --sage:     #8BAD8C;
+  --mint:     #8FBF9F;
+  --cream:    #E8DDD0;
+  --tan:      #D4C4A0;
+  --charcoal: #373535;
+  --burgundy: #7A2D3A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--charcoal);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.card{background:var(--forest);color:var(--cream);border-radius:10px;padding:2.5rem 3rem;max-width:520px;width:100%}
+h1{font-size:1.6rem;color:var(--cream);margin-bottom:.3rem}
+.subtitle{color:var(--mint);font-size:.9rem;margin-bottom:2rem}
+a.doc-link{display:flex;align-items:center;gap:1rem;background:rgba(232,221,208,.1);border:1px solid rgba(139,173,140,.4);border-radius:6px;padding:1rem 1.2rem;text-decoration:none;color:var(--cream);margin-bottom:.8rem;transition:background .15s,border-color .15s}
+a.doc-link:hover{background:rgba(232,221,208,.18);border-color:var(--mint)}
+.doc-link .icon{font-size:1.5rem;flex-shrink:0}
+.doc-link .text .title{font-weight:700;font-size:.95rem}
+.doc-link .text .desc{font-size:.8rem;color:var(--sage);margin-top:.2rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>CAMO Documentation</h1>
+  <p class="subtitle">EcoWeaver / Loom · Causal Mosaic Schema</p>
+
+  <a class="doc-link" href="camo_annotation_guide.html">
+    <div class="icon">📝</div>
+    <div class="text">
+      <div class="title">Annotation Guide</div>
+      <div class="desc">Step-by-step handbook for annotating causal claims in ecological literature</div>
+    </div>
+  </a>
+
+  <a class="doc-link" href="camo_schema_guide.html">
+    <div class="icon">📐</div>
+    <div class="text">
+      <div class="title">Schema Guide</div>
+      <div class="desc">Full reference for the CAMO data model, fields, and controlled vocabularies</div>
+    </div>
+  </a>
+</div>
+</body>
+</html>

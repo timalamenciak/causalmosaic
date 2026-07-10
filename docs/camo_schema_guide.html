@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Causal Mosaic Schema Guide - CAMO 0.7.3</title>
+  <title>Causal Mosaic Schema Guide - CAMO 0.7.6</title>
   <style>
     :root {
       --forest: #243F32;
@@ -799,7 +799,7 @@
         <img src="../mosaic_icon.png" alt="Mosaic icon">
         <div>
           <strong>Causal Mosaic Schema</strong>
-          <span>Guide 0.7.3</span>
+          <span>Guide 0.7.6</span>
         </div>
       </div>
       <p class="nav-title">Contents</p>
@@ -827,13 +827,13 @@
           <p class="eyebrow">Readable schema guide</p>
           <h1>Causal Mosaic Schema</h1>
           <p>
-            A practical guide to CAMO 0.7.3: how ecological causal claims become
+            A practical guide to CAMO 0.7.6: how ecological causal claims become
             validated LinkML records that can power evidence maps, causal diagrams,
             fuzzy cognitive maps, retrieval systems, and practitioner summaries.
           </p>
           <div class="hero-meta" aria-label="Guide metadata">
-            <span class="pill">Version 0.7.3</span>
-            <span class="pill">Source: camo-0.7.3.yaml</span>
+            <span class="pill">Version 0.7.6</span>
+            <span class="pill">Source: causalmosaic.yaml</span>
             <span class="pill">Example: Murphy 2005</span>
           </div>
         </div>
@@ -895,10 +895,9 @@
 
           <div class="callout">
             <strong>Version note.</strong>
-            This page is written for the public CAMO 0.7.3 schema and uses the supplied
-            Murphy annotation as a worked example. The local working schema may include
-            draft target-scoping fields; always check the active YAML before releasing
-            downstream code or data.
+            This page is written for the public CAMO 0.7.6 schema and uses the supplied
+            Murphy annotation as a worked example. Always check the active YAML before
+            releasing downstream code or data.
           </div>
         </section>
 
@@ -953,7 +952,7 @@
             <div class="edge-box">
               causal edge
               <span class="line" aria-hidden="true"></span>
-              <code>negatively_regulates</code>
+              <code>regulates</code>
             </div>
             <div class="node-box effect">
               <span class="label">Effect node</span>
@@ -1012,12 +1011,57 @@
             </tbody>
           </table>
 
+          <h3>Source Document and Study Coordinates</h3>
+          <p>
+            <code>SourceDocument</code> carries bibliographic and study-level metadata
+            for the paper being annotated. It lives as an optional inlined field on
+            <code>CausalGraph</code>. Its <code>study_coordinates</code> slot accepts a
+            list of <code>StudyCoordinates</code> entries — one per reported centroid or
+            bounded study area.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Slot (<code>StudyCoordinates</code>)</th>
+                <th>Range</th>
+                <th>Plain-Language Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>latitude</code> / <code>longitude</code></td>
+                <td><code>float</code></td>
+                <td>WGS 84 decimal-degree centroid. Positive = North / East.</td>
+              </tr>
+              <tr>
+                <td><code>elevation_m</code></td>
+                <td><code>float</code></td>
+                <td>Elevation above sea level in metres, if reported.</td>
+              </tr>
+              <tr>
+                <td><code>coordinate_uncertainty_m</code></td>
+                <td><code>float</code></td>
+                <td>Uncertainty radius around the centroid, following Darwin Core.</td>
+              </tr>
+              <tr>
+                <td><code>coordinate_location_basis</code></td>
+                <td><code>CoordinateLocationBasisEnum</code>, multivalued</td>
+                <td>What the coordinate values represent. Use <code>exact_site</code> when the coordinates identify the actual study site; use <code>nearest_municipality</code> when only the nearest town's coordinates are available as a proxy.</td>
+              </tr>
+              <tr>
+                <td><code>bbox_north</code> / <code>bbox_south</code> / <code>bbox_east</code> / <code>bbox_west</code></td>
+                <td><code>float</code></td>
+                <td>Optional bounding box for larger study areas.</td>
+              </tr>
+            </tbody>
+          </table>
+
           <h3>Top-Level YAML Shape</h3>
           <pre><code>graph_id: camo_example_graph
-schema_version: 0.7.3
+schema_version: 0.7.6
 provenance:
   ontology_framework: ELMO + CAMO
-  causal_mosaic_version: 0.7.3
+  causal_mosaic_version: 0.7.6
   project: EcoWeaver
 nodes:
   - id: node:example_cause
@@ -1081,7 +1125,7 @@ edges:
               <tr>
                 <td><code>entity_term</code></td>
                 <td><code>uriorcurie</code> or <code>string</code></td>
-                <td>The thing being described: a taxon, process, chemical, habitat, or variable.</td>
+                <td>The thing being described: a taxon, process, chemical, habitat, or variable. Accepts a free-text string when no matching ontology term is cached yet; prefer a CURIE when available.</td>
               </tr>
               <tr>
                 <td><code>measured_attribute</code></td>
@@ -1096,7 +1140,12 @@ edges:
               <tr>
                 <td><code>taxonomic_scope</code></td>
                 <td><code>uriorcurie</code> or <code>string</code>, multivalued</td>
-                <td>Scopes an environmental variable to a taxon set or guild, such as native understory species.</td>
+                <td>Scopes an <code>environmental_variable</code> node to a set of taxa or an ecological guild. Accepts Wikidata QIDs or free text for guilds with no QID (e.g. "native species"). Do not use on <code>taxon</code> nodes.</td>
+              </tr>
+              <tr>
+                <td><code>applied_to</code></td>
+                <td><code>AppliedToEntity</code>, multivalued</td>
+                <td>The entity that a process or management intervention is directed at (e.g. "herbivory on Sphagnum", "invasive species removal of <i>Alliaria petiolata</i>"). Use only on <code>environmental_process</code> and <code>management_intervention</code> nodes; use <code>taxonomic_scope</code> for <code>environmental_variable</code> nodes instead.</td>
               </tr>
               <tr>
                 <td><code>source_spans</code></td>
@@ -1137,16 +1186,22 @@ edges:
             <article class="mini-card">
               <h4><code>taxon</code></h4>
               <p>
-                A single taxon whose attribute is being measured. Use the taxon as
-                <code>entity_term</code> and the property as <code>measured_attribute</code>.
+                A single taxon whose attribute is being measured. Use the taxon Wikidata
+                QID as <code>entity_term</code> and the measured property as
+                <code>measured_attribute</code>. The node participates directly in causal
+                edges. For multi-taxon aggregates or ecological guilds, use
+                <code>environmental_variable</code> with <code>taxonomic_scope</code>
+                instead.
               </p>
             </article>
           </div>
 
           <h3>Taxon-Scope Two-Path Model</h3>
           <p>
-            CAMO 0.7.3 adds <code>taxonomic_scope</code> so multi-taxon measurements
-            can be represented without adding non-causal graph edges.
+            CAMO represents taxon-specific measurements in two ways to keep all graph
+            edges purely causal. Single-taxon measurements use a <code>taxon</code>
+            node; multi-taxon aggregates and ecological guilds use
+            <code>environmental_variable</code> with <code>taxonomic_scope</code>.
           </p>
           <table>
             <thead>
@@ -1168,9 +1223,9 @@ edges:
                 <td><code>entity_term: re-establishment</code> with <code>taxonomic_scope: [native forest understory species]</code></td>
               </tr>
               <tr>
-                <td>Intervention or process directed at an entity</td>
-                <td>Use the active schema's target-scoping pattern when available</td>
-                <td>Transplanting as an intervention directed at <i>Sanguinaria canadensis</i></td>
+                <td>Process or intervention directed at an entity</td>
+                <td><code>entity_type: environmental_process</code> or <code>management_intervention</code> plus <code>applied_to</code></td>
+                <td>Transplanting as a <code>management_intervention</code> with <code>applied_to: {entity_term: Q132090}</code> (<i>Sanguinaria canadensis</i>)</td>
               </tr>
             </tbody>
           </table>
@@ -1285,17 +1340,7 @@ edges:
               <tr>
                 <td><code>regulates</code></td>
                 <td>variable</td>
-                <td>C modulates E but the sign is context-dependent or not fixed.</td>
-              </tr>
-              <tr>
-                <td><code>positively_regulates</code></td>
-                <td>positive</td>
-                <td>C upregulates, increases, or strengthens E.</td>
-              </tr>
-              <tr>
-                <td><code>negatively_regulates</code></td>
-                <td>negative</td>
-                <td>C downregulates, decreases, or suppresses E.</td>
+                <td>C modulates E; sign (positive or negative) is inferred from the node's <code>state_or_change_qualifier</code>. Use instead of the former <code>positively_regulates</code> / <code>negatively_regulates</code> predicates.</td>
               </tr>
               <tr>
                 <td><code>associated_with</code> / <code>correlated_with</code></td>
@@ -1515,8 +1560,10 @@ edges:
             <article class="mini-card">
               <h3>Main CAMO Claim</h3>
               <p>
-                Transplanted bloodroot negatively regulates garlic mustard population
+                Transplanted bloodroot regulates (decreases) garlic mustard population
                 performance and reproductive output in the studied forest-edge context.
+                The negative sign is inferred from the effect node's
+                <code>state_or_change_qualifier: decreased</code>.
               </p>
             </article>
             <article class="mini-card">
@@ -1569,7 +1616,7 @@ edges:
           <h3>Example Edge, Condensed</h3>
           <pre><code>- id: edge:murphy2005_sanguinaria_suppresses_alliaria_performance
   subject: node:murphy2005_sanguinaria_transplanting
-  predicate: negatively_regulates
+  predicate: regulates
   object: node:murphy2005_alliaria_population_performance
   claim_strength: direct_causal
   ecosystem_context: deciduous_temperate_forests
@@ -1626,8 +1673,10 @@ edges:
             <li>
               <strong>Choose the edge predicate.</strong>
               Pick the controlled predicate that best represents the direction and sign
-              of the claim: <code>causes</code>, <code>negatively_regulates</code>,
-              <code>enables</code>, <code>prevents</code>, and so on.
+              of the claim: <code>causes</code>, <code>regulates</code>,
+              <code>enables</code>, <code>prevents</code>, and so on. For
+              <code>regulates</code>, the sign is inferred from the subject and object
+              node qualifiers rather than the predicate name.
             </li>
             <li>
               <strong>Set claim strength from the text.</strong>
@@ -1700,7 +1749,7 @@ edges:
               </tr>
               <tr>
                 <td>Letting old field names leak into data.</td>
-                <td>Use current 0.7.3 names, especially <code>measured_attribute</code> rather than older names.</td>
+                <td>Use current 0.7.6 names; use <code>regulates</code> rather than the removed <code>positively_regulates</code> / <code>negatively_regulates</code>, and <code>measured_attribute</code> rather than older names.</td>
               </tr>
             </tbody>
           </table>
@@ -1775,7 +1824,7 @@ edges:
               <tr>
                 <td>
                   CAMO schema source:
-                  <a href="../camo-0.7.3.yaml"><code>camo-0.7.3.yaml</code></a>
+                  <a href="../causalmosaic.yaml"><code>causalmosaic.yaml</code></a>
                 </td>
                 <td>The canonical source of truth for classes, slots, ranges, and enum values.</td>
               </tr>
@@ -1834,7 +1883,7 @@ edges:
 
       <footer class="footer">
         <p>
-          CAMO guide for schema version 0.7.3. Built as a single static HTML page
+          CAMO guide for schema version 0.7.6. Built as a single static HTML page
           for the causalmosaic repository. The schema YAML remains authoritative
           for validation, generated artifacts, and downstream code.
         </p>
