@@ -24,35 +24,24 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.7.6
-##   - Removed entries for 'positively_regulates' and 'negatively_regulates'
-##     as this is redundant given the node directions.
-##   - entity_term widened to any_of [uriorcurie, string] so annotators can
-##     record a term as free text when no cached ontology term matches yet
-##     (mirrors the existing pattern already used by measured_attribute).
-##     Loom logs an OntologyTermSuggestion for such values so a curator can
-##     propose the term upstream; this is Loom-side workflow metadata, not
-##     part of this schema.
-##   - Added taxonomic_scope (multivalued, any_of [uriorcurie, string]) to
-##     CausalNode for environmental_variable nodes that represent multi-taxon
-##     or ecological-guild measurements. Accepts Wikidata QIDs for structured
-##     traversal to related taxon nodes, or free text for guilds without a
-##     Wikidata equivalent (e.g. "native species"). Single-taxon measurements
-##     should continue to use entity_type: taxon with the QID in entity_term.
-##   - Updated EntityTypeEnum.taxon description to document the two-path
-##     model: single-taxon measurements use a taxon node; multi-taxon
-##     aggregates and ecological guilds use environmental_variable +
-##     taxonomic_scope.
-##   - Added applied_to (multivalued AppliedToEntity) to CausalNode for
-##     environmental_process and management_intervention nodes that are directed
-##     at a specific entity (e.g. "herbivory on Sphagnum", "invasive species
-##     removal of Alliaria petiolata"). Not used on environmental_variable nodes
-##     — use taxonomic_scope there instead. Distinct from taxonomic_scope:
-##     taxonomic_scope scopes a multi-taxon measurement; applied_to names the
-##     directional target of a process or intervention.
+## Schema version: 0.7.7
+##   - Removed taxonomic_scope from CausalNode and extended applied_to to cover
+##     all node types. applied_to now serves a dual role: on
+##     environmental_variable nodes it lists the taxa or ecological guilds whose
+##     measurements are aggregated (replacing taxonomic_scope); on
+##     environmental_process and management_intervention nodes it names the
+##     directional target entity (unchanged). Both uses share the same
+##     AppliedToEntity structure (entity_type + entity_term). Updated
+##     CausalNode class description, EntityTypeEnum.taxon description, and
+##     AppliedToEntity class description accordingly.
 ##   - Added coordinate_location_basis (multivalued CoordinateLocationBasisEnum)
 ##     to StudyCoordinates so coordinates can be annotated as exact study-site
 ##     coordinates or coordinates of the nearest municipality.
+## =============================================================================
+## Note: version 0.7.6 changes (entity_term widened; positively_regulates and
+##   negatively_regulates removed; taxonomic_scope and applied_to added as
+##   separate fields; coordinate_location_basis added) are superseded by this
+##   version.
 ## =============================================================================
 
 id: https://w3id.org/causal-mosaic
@@ -68,7 +57,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.7.6
+version: 0.7.7
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -843,13 +832,13 @@ enums:
           participates directly in causal edges.
 
           (2) Multi-taxon aggregate or ecological guild — use
-          entity_type: environmental_variable with taxonomic_scope listing
+          entity_type: environmental_variable with applied_to listing
           the relevant Wikidata QIDs or free-text guild names. Reserve this
           for cases where the measurement spans multiple taxa
           ("richness of liverworts, Sphagnum, and true mosses") or refers to
           an ecologically defined group with no single Wikidata resolution
           ("native species", "shade-tolerant species"). Edges remain
-          purely causal; taxonomic_scope is a queryable annotation field,
+          purely causal; applied_to is a queryable annotation field,
           not a structural link.
 
   # ---------------------------------------------------------------------------
@@ -1993,9 +1982,9 @@ classes:
       node is both organism and measurement and participates directly in
       causal edges. Multi-taxon aggregates and ecological guilds ("native
       species", "shade-tolerant species") use entity_type: environmental_variable
-      with one or more Wikidata QIDs or free-text guild names in
-      taxonomic_scope. Causal edges are never used for taxon-to-measurement
-      links; taxonomic_scope is a queryable annotation field only.
+      with one or more Wikidata QIDs or free-text guild names in applied_to.
+      Causal edges are never used for taxon-to-measurement links; applied_to
+      is a queryable annotation field only.
     attributes:
       id:
         description: >-
@@ -2073,59 +2062,45 @@ classes:
           qualifier=increased → "increased abundance of Canis lupus."
         range: StateOrChangeQualifierEnum
 
-      taxonomic_scope:
-        description: >-
-          One or more taxa or ecological guilds that scope this node's
-          measurement, expressed as Wikidata QIDs (preferred) or free-text
-          controlled vocabulary terms where no QID exists.
-
-          Use only on environmental_variable nodes that represent measurements
-          spanning multiple taxa or ecologically defined groups — for example,
-          "richness of liverworts, Sphagnum, and true mosses" (list the QID
-          for each group) or "abundance of native species" (free text "native
-          species", tracked in NAO). Do not use on taxon nodes, where
-          entity_term already identifies the taxon.
-
-          Wikidata QIDs for higher-rank taxa (e.g., Q30019 for genus Sphagnum)
-          enable downstream traversal to all taxon nodes sharing that QID
-          without requiring a structural edge. This preserves the invariant
-          that all edges in the graph are purely causal.
-
-          Free-text values are accepted for functional groups and guilds with
-          no Wikidata resolution (e.g., "native species", "shade-tolerant
-          species", "invasive plants"). These should be tracked in the project
-          NAO (Not-An-Ontology) list with a note that they are relational
-          terms requiring geographic or jurisdictional context.
-        any_of:
-          - range: uriorcurie
-          - range: string
-        multivalued: true
-        annotations:
-          note: >-
-            Only populate for environmental_variable nodes with multi-taxon or
-            guild scope. Leave empty for taxon nodes and for variables with no
-            taxonomic scope (e.g., soil pH, water table level).
-
       applied_to:
         description: >-
-          The specific entity that this process or management intervention is
-          directed at or acts upon. Use when the node's meaning is only
-          complete with reference to a target entity — for example, "herbivory
-          on Sphagnum" or "invasive species removal of Alliaria petiolata".
-          Accepts any entity type (taxon, community, habitat, etc.) using the
-          same entity_type / entity_term decomposition as CausalNode itself.
+          The entity or entities that this node is directed at, acts upon, or
+          whose scope the measurement spans. Covers two roles depending on
+          node type:
 
-          Use only on environmental_process and management_intervention nodes.
-          For environmental_variable nodes that are scoped to one or more taxa,
-          use taxonomic_scope instead.
+          (1) Scope role (environmental_variable): one or more taxa or
+          ecological guilds whose measurements are aggregated or grouped —
+          for example, "richness of liverworts, Sphagnum, and true mosses"
+          (list the Wikidata QID for each group) or "abundance of native
+          species" (free text "native species", tracked in NAO). Wikidata
+          QIDs for higher-rank taxa enable downstream traversal to all
+          taxon nodes sharing that QID without requiring a structural edge.
+          Free-text values are accepted for functional groups and guilds
+          with no Wikidata resolution (e.g., "native species",
+          "shade-tolerant species", "invasive plants") and should be
+          tracked in the project NAO list. Do not use on single-taxon
+          nodes — use entity_type: taxon with the QID in entity_term
+          instead.
+
+          (2) Target role (environmental_process and
+          management_intervention): the specific entity that the process
+          or intervention is directed at or acts upon. Use when the node's
+          meaning is only complete with reference to a target — for example,
+          "herbivory on Sphagnum" or "invasive species removal of Alliaria
+          petiolata".
+
+          Accepts any entity type (taxon, community, habitat, etc.) using
+          the same entity_type / entity_term decomposition as CausalNode.
         range: AppliedToEntity
         multivalued: true
         inlined_as_list: true
         annotations:
           note: >-
-            Only populate for environmental_process and management_intervention
-            nodes. Leave empty for environmental_variable nodes (use
-            taxonomic_scope there) and for processes with no directional target.
+            For environmental_variable nodes: list the taxa or guilds whose
+            measurements are aggregated. For process and intervention nodes:
+            name the directional target entity. Leave empty for processes
+            with no directional target and for variables with no taxonomic
+            scope (e.g., soil pH, water table level).
 
       ## --- Text Grounding ---
 
@@ -2163,8 +2138,11 @@ classes:
 
   AppliedToEntity:
     description: >-
-      A structured reference to the entity that a CausalNode (environmental
-      variable, process, or intervention) is directed at or acts upon.
+      A structured entity reference used by the CausalNode.applied_to slot.
+      On environmental_variable nodes it identifies a taxon or ecological
+      guild whose measurements are aggregated (scope role). On
+      environmental_process and management_intervention nodes it identifies
+      the directional target of the process or intervention (target role).
       Uses the same entity_type / entity_term decomposition as CausalNode.
     attributes:
       entity_type:

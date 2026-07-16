@@ -2,6 +2,68 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.7.7 Merge taxonomic_scope into applied_to (2026-07-16)
+
+### Machine-readable summary
+
+```yaml
+removed_slots:
+  - slot: taxonomic_scope
+    class: CausalNode
+updated_slots:
+  - slot: applied_to
+    class: CausalNode
+    change: >-
+      Extended from environmental_process / management_intervention nodes only
+      to all node types. Description updated to document dual scope/target roles.
+updated_descriptions:
+  - class: CausalNode
+    note: two-path model updated to reference applied_to instead of taxonomic_scope
+  - enum: EntityTypeEnum
+    value: taxon
+    note: path 2 updated to reference applied_to instead of taxonomic_scope
+  - class: AppliedToEntity
+    note: description updated to document scope vs. target roles
+updated_metadata:
+  - version: 0.7.6 -> 0.7.7
+```
+
+### Detailed changes
+
+- Removed `taxonomic_scope` from `CausalNode`.
+  - Rationale: `taxonomic_scope` and `applied_to` captured structurally
+    similar information — both record what entity or entities a node relates
+    to — but through different fields routed by node type. There is no case
+    where `taxonomic_scope` is appropriate but `applied_to` is not, since
+    the distinction between "scoping a measurement" and "targeting a process"
+    is already fully carried by the node's own `entity_type`. Maintaining two
+    separate fields imposed a routing rule ("use taxonomic_scope on variables,
+    applied_to on processes") that added annotator overhead without adding
+    information. Additionally, `taxonomic_scope` was a flat `any_of [uriorcurie,
+    string]` while `AppliedToEntity` (the range of `applied_to`) provides the
+    richer `entity_type + entity_term` structure and can reference any entity
+    type, not just taxa.
+
+- Extended `applied_to` to all `CausalNode` types (previously restricted to
+  `environmental_process` and `management_intervention` nodes).
+  - `applied_to` now serves two roles, documented in the slot description:
+    - **Scope role** (environmental_variable nodes): lists the taxa or
+      ecological guilds whose measurements are aggregated. Accepts Wikidata
+      QIDs (preferred) or free-text guild names for groups with no Wikidata
+      resolution (tracked in the project NAO list). Does not apply to
+      single-taxon nodes, which continue to use `entity_type: taxon` with the
+      QID in `entity_term`.
+    - **Target role** (environmental_process and management_intervention
+      nodes): names the directional target entity. Behaviour is unchanged
+      from 0.7.6.
+
+- Updated the `CausalNode` class description and `EntityTypeEnum.taxon`
+  permissible value description to reference `applied_to` in the two-path
+  model (path 2) instead of `taxonomic_scope`.
+
+- Updated the `AppliedToEntity` class description to document the scope vs.
+  target dual roles.
+
 ## 0.7.4 Changed filename
 
 Renamed camo-0.7.3.yaml to causalmosaic.yaml so that CI doesn't keep breaking.
