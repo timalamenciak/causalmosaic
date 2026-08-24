@@ -81,7 +81,7 @@ prefixes:
   BFO: http://purl.obolibrary.org/obo/BFO_
   dwc: http://rs.tdwg.org/dwc/terms/
   dwciri: http://rs.tdwg.org/dwc/iri/
-  wikidata: http://www.wikidata.org/entity/
+  wd: http://www.wikidata.org/entity/
   eco: http://rs.tdwg.org/eco/terms/
   camo_agent: https://w3id.org/camo/agent/
 
@@ -1943,7 +1943,7 @@ classes:
           no cached ontology term matches yet. This is the "what thing" —
           the taxon, chemical, abiotic factor, or process class, and is the
           authoritative ontology grounding for the node's entity. Corresponds
-          to ELMO's subject_value / object_value slot. Examples: wikidata:Q18498
+          to ELMO's subject_value / object_value slot. Examples: wd:Q18498
           (Canis lupus), CHEBI:24279 (glucosinolate), ENVO:01000253
           (grassland). Secondary ontology crosswalks, if needed, should be
           maintained outside article annotations in SSSOM files.
@@ -2182,14 +2182,16 @@ classes:
           names or ISO 3166-1 alpha-2 codes where practical. If multiple
           countries are reported, separate them with semicolons.
         range: string
-        exact_mappings: dwc:country
+        exact_mappings:
+          - dwc:country
       study_state_or_province:
         description: >-
           State, province, territory, or comparable administrative region
           where the study was conducted. If multiple regions are reported,
           separate them with semicolons.
         range: string
-        exact_mappings: dwc:stateProvince
+        exact_mappings:
+          - dwc:stateProvince
 
       ## --- Temporal context ---
 
@@ -2204,14 +2206,16 @@ classes:
         annotations:
           format: "ISO 8601 (YYYY, YYYY-MM, or YYYY-MM-DD)"
           examples: "2015, 2015-06, 2015-06-15"
-        close_mappings: dwc:eventDate
+        close_mappings:
+          - dwc:eventDate
       study_period_end:
         description: >-
           End date of data collection. Same format as study_period_start.
         range: string
         annotations:
           format: "ISO 8601 (YYYY, YYYY-MM, or YYYY-MM-DD)"
-        close_mappings: dwc:eventDate
+        close_mappings:
+          - dwc:eventDate
       study_duration_months:
         description: >-
           Duration of the study in months. Computed from start/end if
@@ -2286,7 +2290,8 @@ classes:
         range: float
         minimum_value: -90.0
         maximum_value: 90.0
-        exact_mappings: dwc:decimalLatitude
+        exact_mappings:
+          - dwc:decimalLatitude
       longitude:
         description: >-
           Longitude of the study coordinate centroid in decimal degrees (WGS 84).
@@ -2295,13 +2300,15 @@ classes:
         range: float
         minimum_value: -180.0
         maximum_value: 180.0
-        exact_mappings: dwc:decimalLongitude
+        exact_mappings:
+          - dwc:decimalLongitude
       elevation_m:
         description: >-
           Elevation of the coordinate location in metres above sea level, if
           reported. Useful for montane and altitudinal gradient studies.
         range: float
-        close_mappings: dwc:verbatimElevation
+        close_mappings:
+          - dwc:verbatimElevation
       coordinate_uncertainty_m:
         description: >-
           Uncertainty radius in metres around the centroid coordinates.
@@ -2309,7 +2316,8 @@ classes:
           vs. second (~30m) vs. high-precision GPS (~5m), this field
           captures that. Follows Darwin Core dwc:coordinateUncertaintyInMeters.
         range: float
-        exact_mappings: dwc:coordinateUncertaintyInMeters
+        exact_mappings:
+          - dwc:coordinateUncertaintyInMeters
       coordinate_location_basis:
         description: >-
           Annotation of what the coordinate values represent. Select exact_site
@@ -2342,7 +2350,8 @@ classes:
         description: "The geodetic datum used by the coordinates (WGS84 preferred)"
         range: string
         ifabsent: "WGS84"
-        exact_mappings: dwc:geodeticDatum
+        exact_mappings:
+          - dwc:geodeticDatum
 
   TemporalExtent:
     description: >-
@@ -2725,16 +2734,25 @@ classes:
         description: "Summary of contexts or scope conditions that affect the aggregate relationship."
         range: string
       aggregate_fcm_weight:
+        description: >-
+          Aggregate FCM edge weight for the summarized relationship, normalized
+          to the [-1, 1] fuzzy-cognitive-map convention.
         range: float
         minimum_value: -1.0
         maximum_value: 1.0
       aggregate_fcm_weight_source:
+        description: >-
+          Method or provenance note explaining how aggregate_fcm_weight was
+          derived from the included evidence.
         range: string
         annotations:
           examples: >-
             weighted_mean_of_member_edges, meta_analysis_effect_size,
             expert_elicitation, certainty_downweighted
       account_coverage:
+        description: >-
+          Philosophical accounts of causation represented by the evidence
+          contributing to this aggregate relationship.
         range: PhilosophicalAccountEnum
         multivalued: true
       ## ---- Evidence quantity and study composition ----

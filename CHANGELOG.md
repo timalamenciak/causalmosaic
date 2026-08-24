@@ -24,7 +24,7 @@ This release includes several schema changes that require migration of existing 
   * `SourceDocument.study_state_or_province` → `dwc:stateProvince`
   * study-period start and end → `dwc:eventDate` as close mappings
 * Added `StudyCoordinates.geodetic_datum`, defaulting to WGS84 and mapped to `dwc:geodeticDatum`.
-* Added a declared `wikidata:` namespace for Wikidata entity identifiers.
+* Added the canonical `wd:` namespace for Wikidata entity identifiers.
 
 #### Structured sampling effort
 

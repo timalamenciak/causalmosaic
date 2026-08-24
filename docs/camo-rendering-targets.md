@@ -100,7 +100,7 @@ and the label for `entity_term`:
 ```
 qualifier=increased  →  rosetta_prefix "increased"
 measured_attribute   →  "cover"
-entity_term          →  wikidata:Q...  →  "Sphagnum"
+entity_term          →  wd:Q...  →  "Sphagnum"
                      →  "increased Sphagnum cover"
 ```
 
@@ -134,7 +134,7 @@ misrepresents the annotation.
 ```
 subject   entity_term=ELMO:<ditch blocking>, qualifier=occurred
 predicate contributes_to
-object    entity_term=wikidata:<Sphagnum>, measured_attribute=cover,
+object    entity_term=wd:<Sphagnum>, measured_attribute=cover,
           qualifier=increased
 aggregate_certainty_grade  moderate
 mediation.pathway_description  "raised water table"
