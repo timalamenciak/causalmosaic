@@ -24,7 +24,8 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.7.7
+## Schema version: 0.7.8
+##    - More closely aligned schema with Darwin Core. Added Humboldt Extension mappings.
 ##   - Removed taxonomic_scope from CausalNode and extended applied_to to cover
 ##     all node types. applied_to now serves a dual role: on
 ##     environmental_variable nodes it lists the taxa or ecological guilds whose
@@ -57,7 +58,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.7.7
+version: 0.7.8
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -67,15 +68,10 @@ prefixes:
   linkml: https://w3id.org/linkml/
   causal_mosaic: https://w3id.org/causal-mosaic/
   node: https://w3id.org/causal-mosaic/node/
-  edge: https://w3id.org/causal-mosaic/edge/
   camo: https://w3id.org/camo/
   elmo: https://w3id.org/elmo/elmo_
   elmo_cas: https://w3id.org/elmo/cas/
   biolink: https://w3id.org/biolink/vocab/
-  schema: http://schema.org/
-  skos: http://www.w3.org/2004/02/skos/core#
-  dcterms: http://purl.org/dc/terms/
-  prov: http://www.w3.org/ns/prov#
   orcid: https://orcid.org/
   doi: https://doi.org/
   ENVO: http://purl.obolibrary.org/obo/ENVO_
@@ -83,10 +79,13 @@ prefixes:
   GO: http://purl.obolibrary.org/obo/GO_
   PATO: http://purl.obolibrary.org/obo/PATO_
   ECO: http://purl.obolibrary.org/obo/ECO_
-  RO: http://purl.obolibrary.org/obo/RO_
-  SEPIO: http://purl.obolibrary.org/obo/SEPIO_
-  OBI: http://purl.obolibrary.org/obo/OBI_
   BFO: http://purl.obolibrary.org/obo/BFO_
+  dwc: http://rs.tdwg.org/dwc/terms/
+  dwciri: http://rs.tdwg.org/dwc/iri/
+  wikidata: http://www.wikidata.org/entity/
+  eco: http://rs.tdwg.org/eco/terms/
+  camo_agent: https://w3id.org/camo/agent/
+
 
 default_prefix: causal_mosaic
 default_range: string
@@ -222,19 +221,6 @@ enums:
             contributing factor; one of several causes; component cause;
             in combination with; multifactorial; necessary but not sufficient
           evidence_affinity: multifactorial_analysis, interaction_studies
-      # capacity:
-      #   description: >-
-      #     Real powers or dispositions inherent in things. Cartwright (1989),
-      #     Mumford and Anjum (2011). Emphasizes context-dependence of whether
-      #     capacities are exercised.
-      #   meaning: camo:Capacity
-      #   annotations:
-      #     family: complementary
-      #     canonical_question: "Does C have the power/capacity to produce E?"
-      #     linguistic_cues: >-
-      #       capacity to; disposition to; potential to; tendency to;
-      #       ability to recolonize; competitive ability; dispersal capacity
-      #     evidence_affinity: theoretical, trait_measurement, functional_ecology
       agency:
         description: >-
           C causes E if bringing about C would be an effective means for a free
@@ -599,7 +585,7 @@ enums:
       temporality:
         description: "Cause precedes effect (the only 'inarguable' viewpoint)."
         annotations:
-          maps_to_account: all
+          maps_to_account: counterfactual | probabilistic | interventionist | transmission | mechanistic | regularity | inus_component | agency
           maps_to_feature: temporal_ordering
       biological_gradient:
         description: "Dose-response relationship."
@@ -709,6 +695,23 @@ enums:
   # state/change qualifier = increased
   # → "increased abundance of Canis lupus"
 
+  QualifierFamilyEnum:
+    description: >-
+      Groups StateOrChangeQualifierEnum values into mutually exclusive
+      families. A set of qualifiers forms a valid state space only if all
+      members share a family.
+    permissible_values:
+      directional_change:
+        description: >-
+          Change in a continuous attribute. Yields a delta variable, not a
+          level. Values: increased, decreased, unchanged.
+      presence:
+        description: "Binary state of an entity or attribute. Values: present, absent."
+      membership_change:
+        description: "Transition in binary presence. Values: introduced, removed."
+      process_phase:
+        description: "Stage of a process or event."
+
   StateOrChangeQualifierEnum:
     description: >-
       Qualifier indicating the state or change in the variable's attribute.
@@ -720,70 +723,77 @@ enums:
       increased:
         description: "The attribute value increases."
         annotations:
+          qualifier_family: directional_change
           rosetta_prefix: "increased"
           fcm_sign: positive
       decreased:
         description: "The attribute value decreases."
         annotations:
+          qualifier_family: directional_change
           rosetta_prefix: "decreased"
           fcm_sign: negative
       present:
         description: "The entity or attribute is present (binary state)."
         annotations:
+          qualifier_family: presence
           rosetta_prefix: "presence of"
           fcm_sign: positive
       absent:
         description: "The entity or attribute is absent (binary state)."
         annotations:
+          qualifier_family: presence
           rosetta_prefix: "absence of"
           fcm_sign: negative
       introduced:
         description: "The entity has been introduced to the system (invasion, reintroduction)."
         annotations:
+          qualifier_family: membership_change
           rosetta_prefix: "introduction of"
           fcm_sign: positive
       removed:
         description: "The entity has been removed from the system (extirpation, management removal)."
         annotations:
+          qualifier_family: membership_change
           rosetta_prefix: "removal of"
           fcm_sign: negative
       unchanged:
         description: "The attribute did not change (control, null result, baseline)."
         annotations:
-          rosetta_prefix: ""
+          qualifier_family: directional_change
+          rosetta_prefix: "no change in"
           fcm_sign: neutral
-      unspecified:
-        description: "State or change qualifier is not specified in the text."
-        annotations:
-          rosetta_prefix: ""
-          fcm_sign: neutral
-            # For processes/events (BFO-style)
       occurred:
         description: "The process/event took place."
         annotations: 
+          qualifier_family: process_phase
           rosetta_prefix: "" 
           fcm_sign: neutral 
       initiated:
+        qualifier_family: process_phase
         description: "The process/event was started."
         annotations: 
           rosetta_prefix: "initiation of" 
           fcm_sign: positive 
       terminated:
+        qualifier_family: process_phase
         description: "The process/event ended."
         annotations: 
           rosetta_prefix: "cessation of"
           fcm_sign: negative 
       ongoing:
+        qualifier_family: process_phase
         description: "The process/event is ongoing."
         annotations: 
           rosetta_prefix: "continuation of" 
           fcm_sign: neutral
       interrupted:
+        qualifier_family: process_phase
         description: "The process/event began but was halted prematurely."
         annotations: 
           rosetta_prefix: "interrupted" 
           fcm_sign: negative 
       aborted:
+        qualifier_family: process_phase
         description: "The process/event was stopped before completion (e.g., management intervention)."
         annotations: 
           rosetta_prefix: "aborted" 
@@ -840,60 +850,6 @@ enums:
           ("native species", "shade-tolerant species"). Edges remain
           purely causal; applied_to is a queryable annotation field,
           not a structural link.
-
-  # ---------------------------------------------------------------------------
-  # Node categories (Biolink-aligned)
-  # ---------------------------------------------------------------------------
-
-  NodeCategoryEnum:
-    description: >-
-      Biolink-compatible categories for causal nodes, extended with
-      ecology-specific types.
-    permissible_values:
-      biological_process:
-        meaning: biolink:BiologicalProcess
-      environmental_process:
-        meaning: biolink:EnvironmentalProcess
-      chemical_exposure:
-        meaning: biolink:ChemicalExposure
-      environmental_exposure:
-        meaning: biolink:EnvironmentalExposure
-      organism_taxon:
-        meaning: biolink:OrganismTaxon
-      population:
-        meaning: causal_mosaic:Population
-      community:
-        meaning: causal_mosaic:EcologicalCommunity
-      ecosystem:
-        meaning: causal_mosaic:Ecosystem
-      phenotypic_feature:
-        meaning: biolink:PhenotypicFeature
-      molecular_activity:
-        meaning: biolink:MolecularActivity
-      management_intervention:
-        meaning: causal_mosaic:ManagementIntervention
-        annotations:
-          egm_role: intervention
-          description: >-
-            A deliberate human action intended to change an ecological outcome.
-            Maps to the 'intervention' axis of evidence gap maps.
-      ecological_outcome:
-        meaning: causal_mosaic:EcologicalOutcome
-        annotations:
-          egm_role: outcome
-          description: >-
-            A measurable ecological state or change. Maps to the 'outcome'
-            axis of evidence gap maps.
-      abiotic_factor:
-        meaning: causal_mosaic:AbioticFactor
-      disturbance_event:
-        meaning: causal_mosaic:DisturbanceEvent
-      land_use:
-        meaning: causal_mosaic:LandUse
-      policy:
-        meaning: causal_mosaic:Policy
-      named_thing:
-        meaning: biolink:NamedThing
 
   # ---------------------------------------------------------------------------
   # Ecosystem functional groups
@@ -1812,45 +1768,7 @@ enums:
       supplementary:
         description: "Supplementary materials."
 
-  # ---------------------------------------------------------------------------
-  # Rendering targets
-  # ---------------------------------------------------------------------------
-
-  RenderingTargetEnum:
-    description: >-
-      The downstream rendering formats this graph can be projected into.
-      Each target consumes specific subsets of the annotation layers.
-    permissible_values:
-      rosetta_statement:
-        description: >-
-          Template-based natural language statement. Consumes: nodes, predicate,
-          claim_strength, causal_features (mediation, strength,
-          context_dependence), aggregate_certainty_grade where available, and
-          rosetta_template annotations on predicates.
-      fuzzy_cognitive_map:
-        description: >-
-          Weighted directed graph for causal modeling. Consumes: nodes, predicate
-          sign, fcm_weight, direction, and aggregated edge weights.
-      evidence_gap_map:
-        description: >-
-          Intervention × outcome matrix with evidence counts. Consumes: nodes
-          with egm_role annotations, evidence_types, aggregate_certainty_grade,
-          and source_document metadata.
-      causal_diagram:
-        description: >-
-          Visual DAG rendering. Consumes: nodes, edges, direction, mediation
-          pathways, and predicate sign.
-      rag_retrieval:
-        description: >-
-          Source text retrieval for question answering. Consumes: source_spans,
-          source_document, embedding_vector, and semantic metadata on nodes/edges.
-      practitioner_summary:
-        description: >-
-          Plain-language summary for land managers. Consumes: nodes, predicate,
-          aggregate_certainty_grade where available, reversibility,
-          context_dependence, and agency account annotations.
-
-
+ 
 ## =============================================================================
 ## CLASSES
 ## =============================================================================
@@ -1867,6 +1785,13 @@ classes:
       literature. The top-level container for nodes and edges.
     tree_root: true
     attributes:
+      source_documents:
+        description: >-
+          All documents contributing to this graph. Edges reference entries
+          here by document_id rather than carrying inline copies.
+        range: SourceDocument
+        multivalued: true
+        inlined_as_list: true
       graph_id:
         description: "Unique identifier for this graph or sub-graph."
         range: string
@@ -1876,7 +1801,7 @@ classes:
         description: "Schema version for compatibility tracking."
         range: string
         required: true
-        ifabsent: string(0.4.0)
+        ifabsent: string(0.7.8)
       provenance:
         description: "Provenance metadata for the graph."
         range: GraphProvenance
@@ -2019,7 +1944,7 @@ classes:
           no cached ontology term matches yet. This is the "what thing" —
           the taxon, chemical, abiotic factor, or process class, and is the
           authoritative ontology grounding for the node's entity. Corresponds
-          to ELMO's subject_value / object_value slot. Examples: WD:18498
+          to ELMO's subject_value / object_value slot. Examples: wikidata:18498
           (Canis lupus), CHEBI:24279 (glucosinolate), ENVO:01000253
           (grassland). Secondary ontology crosswalks, if needed, should be
           maintained outside article annotations in SSSOM files.
@@ -2129,9 +2054,18 @@ classes:
           note: "Serialized float32 array; decode with numpy/arrow"
       annotator:
         description: "Annotator identifier (human ORCID or model ID)."
-        range: string
+        range: uriorcurie
+        pattern: '^(orcid:\d{4}-\d{4}-\d{4}-\d{3}[\dX]|camo_agent:[A-Za-z0-9._-]+)$'
         annotations:
           loom_role: hidden
+          examples: orcid:0000-0002-1825-0097, camo_agent:claude-opus-4-20250514
+      variable_key:
+        description: >-
+          A calculated key for the causal node to assist 
+          in BBN variable grouping.
+        annotations:
+          loom_role: calculated
+          note: "Composed of entity_term plus measured_attribute plus applied_to"
   # ---------------------------------------------------------------------------
   # Text grounding
   # ---------------------------------------------------------------------------
@@ -2184,6 +2118,12 @@ classes:
         range: string
         annotations:
           loom_role: hidden
+      section:
+        description: >-
+          The section of the source document this span was drawn from.
+          Claims from discussion and conclusion sections are typically more
+          speculative than those from results.
+        range: DocumentSectionEnum
 
   # ---------------------------------------------------------------------------
   # Source document (for RAG and EGM)
@@ -2198,6 +2138,13 @@ classes:
       tracking of when evidence was collected and whether causal relationships
       vary over time.
     attributes:
+      document_id:
+        description: >-
+          Local identifier for this document within the graph. Use the DOI
+          where one exists.
+        identifier: true
+        range: string
+        required: true
       doi:
         description: "Digital Object Identifier for the source document."
         range: string
@@ -2236,12 +2183,14 @@ classes:
           names or ISO 3166-1 alpha-2 codes where practical. If multiple
           countries are reported, separate them with semicolons.
         range: string
+        exact_mappings: dwc:country
       study_state_or_province:
         description: >-
           State, province, territory, or comparable administrative region
           where the study was conducted. If multiple regions are reported,
           separate them with semicolons.
         range: string
+        exact_mappings: dwc:stateProvince
 
       ## --- Temporal context ---
 
@@ -2256,12 +2205,14 @@ classes:
         annotations:
           format: "ISO 8601 (YYYY, YYYY-MM, or YYYY-MM-DD)"
           examples: "2015, 2015-06, 2015-06-15"
+        close_mappings: dwc:eventDate
       study_period_end:
         description: >-
           End date of data collection. Same format as study_period_start.
         range: string
         annotations:
           format: "ISO 8601 (YYYY, YYYY-MM, or YYYY-MM-DD)"
+        close_mappings: dwc:eventDate
       study_duration_months:
         description: >-
           Duration of the study in months. Computed from start/end if
@@ -2284,11 +2235,41 @@ classes:
       study_design:
         description: "Study design classification for EGM quality assessment."
         range: EvidenceTypeEnum
-      study_sample_size:
+      sample_size_value:
         description: >-
-          Sample size or replication level reported in the study.
-          Free text: "n = 12 plots per treatment", "47 studies", "182 survey respondents."
+          The numeric value of the sample size or sampling effort reported by
+          the study. Must have a corresponding sample_size_unit.
+        range: float
+        close_mappings:
+          - dwc:sampleSizeValue
+          - eco:samplingEffortValue
+
+      sample_size_unit:
+        description: >-
+          The unit associated with sample_size_value. Recommended best practice
+          is a controlled vocabulary.
         range: string
+        close_mappings:
+          - dwc:sampleSizeUnit
+          - eco:samplingEffortUnit
+        annotations:
+          examples: plots, sites, trapDays, personHours, years, individuals
+
+      sampling_effort_protocol:
+        description: >-
+          A description of, or reference to, the methods used to determine the
+          reported sampling effort. Distinct from the survey method itself.
+        range: string
+        close_mappings:
+          - eco:samplingEffortProtocol
+
+      is_sampling_effort_reported:
+        description: >-
+          Whether the study reported its sampling effort at all. False is
+          informative: it downgrades certainty rather than leaving a silent gap.
+        range: boolean
+        close_mappings:
+          - eco:isSamplingEffortReported
 
   StudyCoordinates:
     description: >-
@@ -2306,6 +2287,7 @@ classes:
         range: float
         minimum_value: -90.0
         maximum_value: 90.0
+        exact_mappings: dwc:decimalLatitude
       longitude:
         description: >-
           Longitude of the study coordinate centroid in decimal degrees (WGS 84).
@@ -2314,11 +2296,13 @@ classes:
         range: float
         minimum_value: -180.0
         maximum_value: 180.0
+        exact_mappings: dwc:decimalLongitude
       elevation_m:
         description: >-
           Elevation of the coordinate location in metres above sea level, if
           reported. Useful for montane and altitudinal gradient studies.
         range: float
+        close_mappings: dwc:verbatimElevation
       coordinate_uncertainty_m:
         description: >-
           Uncertainty radius in metres around the centroid coordinates.
@@ -2326,6 +2310,7 @@ classes:
           vs. second (~30m) vs. high-precision GPS (~5m), this field
           captures that. Follows Darwin Core dwc:coordinateUncertaintyInMeters.
         range: float
+        exact_mappings: dwc:coordinateUncertaintyInMeters
       coordinate_location_basis:
         description: >-
           Annotation of what the coordinate values represent. Select exact_site
@@ -2354,6 +2339,11 @@ classes:
         range: float
         annotations:
           loom_role: collapse
+      geodetic_datum:
+        description: "The geodetic datum used by the coordinates (WGS84 preferred)"
+        range: string
+        ifabsent: "WGS84"
+        exact_mappings: dwc:geodeticDatum
 
   TemporalExtent:
     description: >-
@@ -2415,7 +2405,7 @@ classes:
       Carries all four annotation layers as properties:
         Layer 1: Claim strength and linguistic expression
         Layer 2: Philosophical account classification
-        Layer 3: Fifteen causal features
+        Layer 3: Sixteen causal features
         Layer 4: Evidential basis
       Plus rendering metadata for each downstream target.
     attributes:
@@ -2426,6 +2416,11 @@ classes:
         identifier: true
         annotations:
           loom_role: auto-generated
+      source_document:
+        description: >-
+          Reference to an entry in CausalGraph.source_documents, by document_id.
+        range: SourceDocument
+        inlined: false
       subject:
         description: "Node ID of the cause entity."
         range: CausalNode
@@ -2476,7 +2471,7 @@ classes:
         multivalued: true
         required: true
 
-      ## ---- Layer 3: Causal Features (15 features) ----
+      ## ---- Layer 3: Causal Features (16 features) ----
 
       necessity:
         description: "Whether the cause is characterized as necessary for the effect."
@@ -2556,6 +2551,7 @@ classes:
       context_dependence:
         description: "Annotation of scope conditions or context dependence for the causal relationship."
         range: ContextAnnotation
+        slot_uri: camo:context_dependence
         inlined: true
 
       ## ---- Layer 4: Evidential Basis ----
@@ -2613,7 +2609,9 @@ classes:
         inlined: true
       annotator:
         description: "Annotator identifier (human ORCID or model ID)."
-        range: string
+        any_of:
+          - range: uriorcurie
+          - range: string
       annotation_confidence:
         description: "Annotator confidence in the overall annotation, 0.0-1.0."
         range: float
@@ -2680,16 +2678,6 @@ classes:
 
       ## ---- Aggregate evidence characterization ----
 
-      evidence_types:
-        description: "Evidence types represented across the included edges."
-        range: EvidenceTypeEnum
-        multivalued: true
-      evidence_objects:
-        description: >-
-          Evidence objects represented across the included edges: correlation,
-          mechanism, or both.
-        range: EvidenceObjectEnum
-        multivalued: true
       has_difference_making_evidence:
         description: >-
           Aggregate assessment of whether the evidence base contains
@@ -2742,7 +2730,19 @@ classes:
       context_dependence_summary:
         description: "Summary of contexts or scope conditions that affect the aggregate relationship."
         range: string
-
+      aggregate_fcm_weight:
+        range: float
+        minimum_value: -1.0
+        maximum_value: 1.0
+      aggregate_fcm_weight_source:
+        range: string
+        annotations:
+          examples: >-
+            weighted_mean_of_member_edges, meta_analysis_effect_size,
+            expert_elicitation, certainty_downweighted
+      account_coverage:
+        range: PhilosophicalAccountEnum
+        multivalued: true
       ## ---- Evidence quantity and study composition ----
 
       number_of_studies:
@@ -2924,8 +2924,8 @@ classes:
         description: "Temporal scope of the claim."
         range: string
       ecosystem_scope:
-        description: "Ecosystem type scope, ideally mapped to IUCN GET."
-        range: string
+        description: "Ecosystem type scope, mapped to IUCN GET."
+        range: EcosystemFunctionalGroupEnum
 
   # ---------------------------------------------------------------------------
   # Evidential Basis (Layer 4)

@@ -4,10 +4,14 @@ on:
   pull_request:
     paths:
       - "causalmosaic.yaml"
+      - "renderers.yaml"
+      - "ci.py"
       - ".github/workflows/linkml-schema.yml"
   push:
     paths:
       - "causalmosaic.yaml"
+      - "renderers.yaml"
+      - "ci.py"
       - ".github/workflows/linkml-schema.yml"
   workflow_dispatch:
 
@@ -37,3 +41,10 @@ jobs:
       - name: Lint the schema
         if: ${{ !cancelled() }}
         run: linkml lint causalmosaic.yaml
+
+      # CAMO's own invariants. linkml validate cannot check these: the mappings
+      # that drive rendering live in annotations, which LinkML treats as opaque
+      # strings. See docs/recommendations.md for the rationale behind each check.
+      - name: Check CAMO consistency
+        if: ${{ !cancelled() }}
+        run: python ci.py causalmosaic.yaml
