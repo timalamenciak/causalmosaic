@@ -7,7 +7,7 @@
 ##         rich causal annotation. ELM provides the entity layer (environmental
 ##         variables, processes, taxa decomposed into entity + attribute +
 ##         state/change qualifier). The Causal Mosaic provides the causal semantics layer
-##         (philosophical accounts, 15 causal features, evidential basis).
+##         (philosophical accounts, 16 causal features, evidential basis).
 ##
 ## Designed to support multiple renderings from a single canonical graph:
 ##   - Rosetta Statements (template-based NL rendering)
@@ -25,24 +25,23 @@
 ## pattern.
 ##
 ## Schema version: 0.7.8
-##    - More closely aligned schema with Darwin Core. Added Humboldt Extension mappings.
-##   - Removed taxonomic_scope from CausalNode and extended applied_to to cover
-##     all node types. applied_to now serves a dual role: on
-##     environmental_variable nodes it lists the taxa or ecological guilds whose
-##     measurements are aggregated (replacing taxonomic_scope); on
-##     environmental_process and management_intervention nodes it names the
-##     directional target entity (unchanged). Both uses share the same
-##     AppliedToEntity structure (entity_type + entity_term). Updated
-##     CausalNode class description, EntityTypeEnum.taxon description, and
-##     AppliedToEntity class description accordingly.
-##   - Added coordinate_location_basis (multivalued CoordinateLocationBasisEnum)
-##     to StudyCoordinates so coordinates can be annotated as exact study-site
-##     coordinates or coordinates of the nearest municipality.
 ## =============================================================================
-## Note: version 0.7.6 changes (entity_term widened; positively_regulates and
-##   negatively_regulates removed; taxonomic_scope and applied_to added as
-##   separate fields; coordinate_location_basis added) are superseded by this
-##   version.
+## CHANGELOG
+## =============================================================================
+## 0.7.8 (from 0.7.7)
+## - Added Darwin Core / Humboldt Extension mappings and geodetic datum support.
+## - Normalized source documents with document_id and graph-level source_documents.
+## - Replaced free-text study_sample_size with structured sampling-effort fields.
+## - Added aggregate_fcm_weight, aggregate_fcm_weight_source, and account_coverage.
+## - Added QualifierFamilyEnum and explicit qualifier state-space families for BBNs.
+## - Added CausalNode.variable_key and TextSpan.section.
+## - Removed unused NodeCategoryEnum, RenderingTargetEnum, and qualifier "unspecified".
+## - Consolidated aggregate evidential-basis fields and improved null-result semantics.
+## - Updated Bradford Hill account mappings, schema version defaults, prefixes, and
+##   other TDWG/interoperability metadata.
+##
+## NOTE: 0.7.8 includes schema-breaking changes requiring migration of some
+## existing 0.7.7 records.
 ## =============================================================================
 
 id: https://w3id.org/causal-mosaic
@@ -769,33 +768,33 @@ enums:
           rosetta_prefix: "" 
           fcm_sign: neutral 
       initiated:
-        qualifier_family: process_phase
         description: "The process/event was started."
         annotations: 
+          qualifier_family: process_phase
           rosetta_prefix: "initiation of" 
           fcm_sign: positive 
       terminated:
-        qualifier_family: process_phase
         description: "The process/event ended."
         annotations: 
+          qualifier_family: process_phase
           rosetta_prefix: "cessation of"
           fcm_sign: negative 
       ongoing:
-        qualifier_family: process_phase
         description: "The process/event is ongoing."
         annotations: 
+          qualifier_family: process_phase
           rosetta_prefix: "continuation of" 
           fcm_sign: neutral
       interrupted:
-        qualifier_family: process_phase
         description: "The process/event began but was halted prematurely."
         annotations: 
+          qualifier_family: process_phase
           rosetta_prefix: "interrupted" 
           fcm_sign: negative 
       aborted:
-        qualifier_family: process_phase
         description: "The process/event was stopped before completion (e.g., management intervention)."
         annotations: 
+          qualifier_family: process_phase
           rosetta_prefix: "aborted" 
           fcm_sign: negative 
 
@@ -1944,7 +1943,7 @@ classes:
           no cached ontology term matches yet. This is the "what thing" —
           the taxon, chemical, abiotic factor, or process class, and is the
           authoritative ontology grounding for the node's entity. Corresponds
-          to ELMO's subject_value / object_value slot. Examples: wikidata:18498
+          to ELMO's subject_value / object_value slot. Examples: wikidata:Q18498
           (Canis lupus), CHEBI:24279 (glucosinolate), ENVO:01000253
           (grassland). Secondary ontology crosswalks, if needed, should be
           maintained outside article annotations in SSSOM files.
@@ -2602,11 +2601,6 @@ classes:
         range: TextSpan
         multivalued: true
         inlined_as_list: true
-
-      source_document:
-        description: "Bibliographic and study-level metadata for the source document."
-        range: SourceDocument
-        inlined: true
       annotator:
         description: "Annotator identifier (human ORCID or model ID)."
         any_of:

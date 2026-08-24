@@ -2,6 +2,233 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.7.7 > 0.7.8  — TDWG interoperability, evidence aggregation, and BBN support
+
+CAMO 0.7.8 strengthens interoperability with TDWG standards, improves the representation of multi-document evidence bases, and adds schema features needed for fuzzy cognitive maps, Bayesian belief networks, and evidence gap maps.
+
+This release includes several schema changes that require migration of existing CAMO records.
+
+### Added
+
+#### Darwin Core and Humboldt Extension alignment
+
+* Added the `dwc:` and `dwciri:` Darwin Core namespaces.
+* Added the `eco:` namespace for the Humboldt Extension.
+* Added Darwin Core mappings for study geography:
+
+  * `StudyCoordinates.latitude` → `dwc:decimalLatitude`
+  * `StudyCoordinates.longitude` → `dwc:decimalLongitude`
+  * `StudyCoordinates.coordinate_uncertainty_m` → `dwc:coordinateUncertaintyInMeters`
+  * `StudyCoordinates.elevation_m` → `dwc:verbatimElevation` as a close mapping
+  * `SourceDocument.study_country` → `dwc:country`
+  * `SourceDocument.study_state_or_province` → `dwc:stateProvince`
+  * study-period start and end → `dwc:eventDate` as close mappings
+* Added `StudyCoordinates.geodetic_datum`, defaulting to WGS84 and mapped to `dwc:geodeticDatum`.
+* Added a declared `wikidata:` namespace for Wikidata entity identifiers.
+
+#### Structured sampling effort
+
+Replaced the free-text `SourceDocument.study_sample_size` field with a structured representation:
+
+* `sample_size_value`
+* `sample_size_unit`
+* `sampling_effort_protocol`
+* `is_sampling_effort_reported`
+
+The new fields carry close mappings to Darwin Core and the Humboldt Extension where appropriate. This distinguishes numeric effort, its unit, its reporting protocol, and explicit non-reporting.
+
+#### Source-document normalization
+
+* Added required `SourceDocument.document_id` as the identifier for source records.
+* Added multivalued `CausalGraph.source_documents` for graphs assembled from multiple publications.
+* Added a document-reference representation for `CausalEdge.source_document`, allowing edges to refer to centrally defined source metadata rather than duplicating bibliographic records.
+
+This establishes the basis for multi-paper evidence graphs and evidence-base-level synthesis without repeatedly embedding the same publication metadata.
+
+#### Evidence-base aggregation
+
+Added the following fields to `EvidenceBaseAssessmentEdge`:
+
+* `aggregate_fcm_weight` — aggregate fuzzy-cognitive-map edge weight constrained to `[-1, 1]`.
+* `aggregate_fcm_weight_source` — records how the aggregate weight was derived, such as meta-analysis, weighted member edges, expert elicitation, or certainty down-weighting.
+* `account_coverage` — records the philosophical accounts represented across the supporting evidence base.
+
+These fields allow aggregate evidence edges, rather than individual article-level claims, to serve directly as inputs to downstream causal models.
+
+#### Qualifier families
+
+Added `QualifierFamilyEnum` with four mutually exclusive state-space families:
+
+* `directional_change`
+* `presence`
+* `membership_change`
+* `process_phase`
+
+`StateOrChangeQualifierEnum` values are assigned to these families so that downstream systems can determine which qualifier sets constitute coherent variable state spaces.
+
+This is particularly important for Bayesian-network construction, where, for example, `{increased, decreased, unchanged}` represents a different variable type from `{present, absent}`.
+
+#### BBN variable grouping
+
+Added calculated `CausalNode.variable_key`, composed from:
+
+* `entity_term`
+* `measured_attribute`
+* `applied_to`
+
+The field provides a stable grouping key for projecting CAMO nodes into Bayesian-network variables.
+
+#### Source-text context
+
+Added `TextSpan.section`, using the existing `DocumentSectionEnum`, so evidence can retain whether a claim was extracted from the methods, results, discussion, conclusion, or another document section.
+
+#### Agent identifiers
+
+* Added the `camo_agent:` namespace for model and pipeline identifiers.
+* `CausalNode.annotator` now supports resolvable ORCID and CAMO-agent identifiers and validates their identifier form.
+* `CausalEdge.annotator` was widened to accept either a URI/CURIE or string identifier.
+
+### Changed
+
+#### Bradford Hill crosswalk
+
+Replaced the special `maps_to_account: all` sentinel on the Bradford Hill `temporality` viewpoint with an explicit list of all current philosophical accounts:
+
+`counterfactual | probabilistic | interventionist | transmission | mechanistic | regularity | inus_component | agency`
+
+Consumers of `maps_to_account` should therefore treat the annotation as a pipe-delimited list, including when only one account is present.
+
+#### Explicit null-result semantics
+
+`StateOrChangeQualifierEnum.unchanged` now renders explicitly as:
+
+`no change in`
+
+This distinguishes a measured null result from an absent annotation.
+
+#### Ecosystem scope
+
+`ContextAnnotation.ecosystem_scope` is now constrained to `EcosystemFunctionalGroupEnum` rather than unrestricted text, aligning it with the IUCN Global Ecosystem Typology vocabulary already used elsewhere in CAMO.
+
+#### Causal-feature metadata
+
+* Corrected the Layer 3 feature count from 15 to 16.
+* Added `slot_uri: camo:context_dependence` to `CausalEdge.context_dependence`.
+
+#### Schema versioning
+
+Updated the `CausalGraph.schema_version` default from the stale `0.4.0` value to `0.7.8`.
+
+### Removed
+
+#### `StateOrChangeQualifierEnum.unspecified`
+
+Removed the `unspecified` qualifier.
+
+An absent `state_or_change_qualifier` now represents information that was not specified, while `unchanged` explicitly represents a measured null or baseline result.
+
+#### `NodeCategoryEnum`
+
+Removed the unused `NodeCategoryEnum`.
+
+Intervention, outcome, mediator, and similar roles are contextual positions within causal relationships rather than intrinsic categories of nodes. Downstream evidence-gap-map axes should instead be derived from graph structure and existing CAMO fields.
+
+#### `RenderingTargetEnum`
+
+Removed `RenderingTargetEnum` from the core CAMO schema.
+
+Rendering targets such as fuzzy cognitive maps, evidence gap maps, Bayesian networks, causal diagrams, and RAG indices are properties of downstream consumers rather than instance data represented by CAMO.
+
+#### Duplicate evidence-base fields
+
+Removed the direct:
+
+* `EvidenceBaseAssessmentEdge.evidence_types`
+* `EvidenceBaseAssessmentEdge.evidence_objects`
+
+Aggregate records now use the existing inlined `evidential_basis` structure, giving article-level and evidence-base-level edges a consistent representation of evidential basis.
+
+#### Unused prefixes and deprecated material
+
+Removed unused namespace declarations for:
+
+* `edge`
+* `schema`
+* `skos`
+* `dcterms`
+* `prov`
+* `RO`
+* `SEPIO`
+* `OBI`
+
+Also removed the commented-out `capacity` philosophical-account block.
+
+## Migration notes
+
+### `SourceDocument` now requires an identifier
+
+Existing source-document records must gain a `document_id`.
+
+Where possible, use the DOI as the document identifier. Otherwise, assign a stable local identifier.
+
+### Replace `study_sample_size`
+
+Existing:
+
+```yaml
+study_sample_size: "12 plots per treatment"
+```
+
+should be migrated, where unambiguous, to:
+
+```yaml
+sample_size_value: 12
+sample_size_unit: plots
+is_sampling_effort_reported: true
+```
+
+Do not infer units that are not stated by the source. Ambiguous descriptions should be retained through `sampling_effort_protocol` rather than converted into invented numeric values.
+
+### Remove `unspecified` qualifiers
+
+Existing:
+
+```yaml
+state_or_change_qualifier: unspecified
+```
+
+should become an absent/null `state_or_change_qualifier`.
+
+`unchanged` should only be used when no change was actually measured or reported.
+
+### Update aggregate evidence records
+
+Move direct aggregate `evidence_types` and `evidence_objects` values into the record's `evidential_basis`.
+
+Consumers producing FCMs may now read `aggregate_fcm_weight` directly from `EvidenceBaseAssessmentEdge`.
+
+### Update Bradford Hill consumers
+
+Code consuming `BradfordHillViewpointEnum.maps_to_account` should split values on `|` and trim whitespace.
+
+The `temporality` mapping is no longer represented by the special value `all`.
+
+### Update rendering consumers
+
+Code referring directly to `NodeCategoryEnum` or `RenderingTargetEnum` must be updated. These enums are no longer part of the CAMO schema.
+
+## Summary
+
+CAMO 0.7.8 moves the schema toward a clearer separation between:
+
+1. **article-level causal claims,**
+2. **source-document and study metadata,**
+3. **derived evidence-base assessments,** and
+4. **downstream model/rendering concerns.**
+
+The release also improves TDWG interoperability and introduces the structured state-space and aggregation metadata needed to project CAMO evidence into fuzzy cognitive maps, Bayesian belief networks, and evidence gap maps.
+
+
 ## 0.7.7 Merge taxonomic_scope into applied_to (2026-07-16)
 
 ### Machine-readable summary
