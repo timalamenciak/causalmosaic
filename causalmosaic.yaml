@@ -92,7 +92,7 @@ prefixes:
   dwc: http://rs.tdwg.org/dwc/terms/
   dwciri: http://rs.tdwg.org/dwc/iri/
   wd: http://www.wikidata.org/entity/
-  eco: http://rs.tdwg.org/eco/terms/
+  tdwgeco: http://rs.tdwg.org/eco/terms/
   camo_agent: https://w3id.org/camo/agent/
 
 
@@ -2318,7 +2318,7 @@ classes:
         range: float
         close_mappings:
           - dwc:sampleSizeValue
-          - eco:samplingEffortValue
+          - tdwgeco:samplingEffortValue
 
       sample_size_unit:
         description: >-
@@ -2327,7 +2327,7 @@ classes:
         range: string
         close_mappings:
           - dwc:sampleSizeUnit
-          - eco:samplingEffortUnit
+          - tdwgeco:samplingEffortUnit
         annotations:
           examples: plots, sites, trapDays, personHours, years, individuals
 
@@ -2337,7 +2337,7 @@ classes:
           reported sampling effort. Distinct from the survey method itself.
         range: string
         close_mappings:
-          - eco:samplingEffortProtocol
+          - tdwgeco:samplingEffortProtocol
 
       is_sampling_effort_reported:
         description: >-
@@ -2345,7 +2345,7 @@ classes:
           informative: it downgrades certainty rather than leaving a silent gap.
         range: boolean
         close_mappings:
-          - eco:isSamplingEffortReported
+          - tdwgeco:isSamplingEffortReported
 
   StudyCoordinates:
     description: >-
