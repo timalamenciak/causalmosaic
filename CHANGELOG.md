@@ -2,6 +2,54 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.7.8 > 0.7.9  — Comparators and experimental controls
+
+CAMO 0.7.9 adds a representation for what a causal claim was assessed *relative to*. It is an additive release: existing 0.7.8 records remain valid without migration.
+
+### The problem
+
+Nodes in CAMO represent states and changes in state. An experimental control is neither — no state changed in the control arm — but it is not neutral either. The same reported effect means different things measured against untreated plots, against undisturbed remnant, or against the same plots before treatment, and until now nothing in the schema recorded which was meant.
+
+Modelling a control as a node does not work. A single shared control node becomes a hub asserting equivalence between untreated grassland, untreated peatland and untreated reef; a per-study control node is a singleton that can never merge with another study's, which defeats the type-level synthesis the schema exists for. The comparison basis is a property of the causal inference, so it is annotated on the edge, alongside `mediation`, `moderation` and `context_dependence`.
+
+### Added
+
+#### `ComparatorTypeEnum`
+
+A closed vocabulary for the comparison basis:
+
+* `untreated_control` — concurrent units receiving no manipulation of the tested factor.
+* `reference_undisturbed` — an intact system used as a recovery benchmark or restoration target.
+* `pre_treatment_baseline` — the same units measured before the intervention.
+* `alternative_treatment` — a different active arm.
+* `passive_management_arm` — a real do-nothing or cease-disturbance decision a practitioner could take.
+* `spatial_or_temporal_control` — an unimpacted site or period in an observational design.
+* `not_reported` — no comparator is stated or recoverable. Informative: it downgrades certainty rather than leaving a silent gap.
+* `not_applicable` — the claim is mechanistic or definitional and invokes no contrast.
+
+#### `ComparatorAnnotation`
+
+An inlined annotation class with `status`, `comparator_type`, `comparator_description` (the arm as the source names it) and `comparator_node_id`.
+
+`passive_management_arm` is the value that carries the boundary. Where a "control" arm is a decision a land manager could actually make — natural regeneration, withdrawal of grazing — it is a management intervention in its own right, gets an ordinary node, and is referenced by `comparator_node_id`. Where the arm exists only to be measured against, it gets no node.
+
+#### `CausalEdge.comparator`
+
+Optional Layer 1 slot of range `ComparatorAnnotation`. Unlike the Layer 3 feature slots it carries no `camo:` slot URI, since the comparator is not one of the sixteen causal features.
+
+### Changed
+
+* Narrowed the description of the `unchanged` state-or-change qualifier. It previously read "(control, null result, baseline)", collapsing three distinct concepts into one docstring. It now covers null results only; controls and baselines are `ComparatorTypeEnum` values.
+
+### Annotation guidance
+
+Two rules follow from this release and belong in the annotation guide rather than the schema:
+
+* **Node a control arm only when it is a decision.** Three tests, in order: could a practitioner choose it? Does the source report its outcomes as findings in their own right, or only as a yardstick? Would the resulting node ever merge with a node from another paper? A "no" at any point means comparator, not node.
+* **A factor held constant across all arms is not a cause of any difference.** Where an intervention was applied to every arm including the control, the study cannot attribute any between-arm outcome to it, and it should not be annotated as a cause in that document's graph.
+
+---
+
 ## 0.7.7 > 0.7.8  — TDWG interoperability, evidence aggregation, and BBN support
 
 CAMO 0.7.8 strengthens interoperability with TDWG standards, improves the representation of multi-document evidence bases, and adds schema features needed for fuzzy cognitive maps, Bayesian belief networks, and evidence gap maps.

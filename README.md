@@ -7,7 +7,7 @@
 [![Latest release](https://img.shields.io/github/v/tag/timalamenciak/causalmosaic?label=release)](https://github.com/timalamenciak/causalmosaic/tags)
 [![LinkML schema](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml/badge.svg)](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml)
 
-**Current schema version: 0.7.8**
+**Current schema version: 0.7.9**
 
 The **Causal Mosaic Schema (CAMO)** is a [LinkML](https://linkml.io/) schema for representing causal claims from ecological evidence as a structured, ontology-grounded labeled property graph.
 
@@ -160,8 +160,17 @@ Relevant fields include:
 * `claim_strength`
 * `original_sentence`
 * `negated`
+* `comparator`
 
 This distinguishes direct causal assertions from weaker or more qualified causal language.
+
+##### Comparators and experimental controls
+
+`comparator` records what the effect was assessed *relative to*: untreated plots, undisturbed remnant, the same plots before treatment, or another active treatment. The same reported effect means different things under each, so the comparison basis is part of what the claim says.
+
+Experimental controls are annotated here rather than as nodes. Nodes represent states and changes in state; a control represents what a measurement was contrasted with. Modelling one as a node forces either a hub shared across unrelated studies or a per-study singleton that can never merge, and neither survives type-level synthesis.
+
+The exception is a control arm that is itself a decision a practitioner could take — natural regeneration, withdrawal of grazing. That is a management intervention in its own right: give it an ordinary node, set `comparator_type` to `passive_management_arm`, and point `comparator_node_id` at it.
 
 #### Layer 2 — Philosophical accounts of causation
 

@@ -24,10 +24,20 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.7.8
+## Schema version: 0.7.9
 ## =============================================================================
 ## CHANGELOG
 ## =============================================================================
+## 0.7.9 (from 0.7.8)
+## - Added ComparatorTypeEnum and ComparatorAnnotation, plus CausalEdge.comparator
+##   (Layer 1), recording what an effect was assessed relative to. Experimental
+##   controls are annotated here rather than as nodes.
+## - Narrowed the "unchanged" qualifier to null results; controls and baselines
+##   are now ComparatorTypeEnum values rather than node qualifiers.
+##
+## NOTE: 0.7.9 is additive. Existing 0.7.8 records remain valid; comparator is
+## optional and comparator_type defaults to not_reported.
+##
 ## 0.7.8 (from 0.7.7)
 ## - Added Darwin Core / Humboldt Extension mappings and geodetic datum support.
 ## - Normalized source documents with document_id and graph-level source_documents.
@@ -57,7 +67,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.7.8
+version: 0.7.9
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -414,6 +424,65 @@ enums:
           exemplars: "causes; leads to; results in; produces; drives; determines"
 
   # ---------------------------------------------------------------------------
+  # Comparator (Layer 1)
+  # ---------------------------------------------------------------------------
+
+  ComparatorTypeEnum:
+    description: >-
+      The basis against which the effect described by an edge was assessed —
+      what the claim is relative to. Experimental controls are recorded here
+      rather than as nodes. A control is not a state or change in state, so it
+      fails the CausalNode test, but it is not neutral either: the same
+      reported effect means different things measured against untreated plots,
+      against undisturbed remnant, or against the same plots before treatment.
+    permissible_values:
+      untreated_control:
+        description: >-
+          Concurrent units receiving no manipulation of the factor under test.
+        annotations:
+          exemplars: "no treatment (control); unsprayed plots; unfenced plots"
+      reference_undisturbed:
+        description: >-
+          An undisturbed or intact system used as a recovery benchmark or
+          restoration target rather than as an experimental arm.
+        annotations:
+          exemplars: "adjacent undisturbed prairie; remnant reference stand"
+      pre_treatment_baseline:
+        description: >-
+          The same units measured before the intervention; a before-after
+          contrast rather than a between-arm one.
+        annotations:
+          exemplars: "compared with pre-treatment cover; relative to year 0"
+      alternative_treatment:
+        description: >-
+          A different active treatment arm, not an untreated one.
+        annotations:
+          exemplars: "compared with the simple seed mix; versus mowing"
+      passive_management_arm:
+        description: >-
+          An arm representing a real do-nothing or cease-disturbance decision
+          that a practitioner could choose. Where this value is used the arm
+          should also be annotated as its own node, referenced by
+          comparator_node_id, because it is a management intervention in its
+          own right rather than a bare comparison.
+        annotations:
+          exemplars: "natural recovery; unseeded natural regeneration; grazing withdrawal"
+      spatial_or_temporal_control:
+        description: >-
+          An unimpacted site or period used as a control in an observational
+          or quasi-experimental design.
+        annotations:
+          exemplars: "upstream reach; pre-invasion period; paired uninvaded catchment"
+      not_reported:
+        description: >-
+          No comparator is stated or recoverable from the text. Informative:
+          it downgrades certainty rather than leaving a silent gap.
+      not_applicable:
+        description: >-
+          The claim is mechanistic, theoretical, or definitional and invokes
+          no contrast.
+
+  # ---------------------------------------------------------------------------
   # Predicate vocabulary
   # ---------------------------------------------------------------------------
 
@@ -756,7 +825,11 @@ enums:
           rosetta_prefix: "removal of"
           fcm_sign: negative
       unchanged:
-        description: "The attribute did not change (control, null result, baseline)."
+        description: >-
+          The attribute did not change: a null result. Use only for a reported
+          absence of change in the attribute itself. The comparison that null
+          result was assessed against belongs in CausalEdge.comparator, not
+          here — controls and baselines are ComparatorTypeEnum values.
         annotations:
           qualifier_family: directional_change
           rosetta_prefix: "no change in"
@@ -1800,7 +1873,7 @@ classes:
         description: "Schema version for compatibility tracking."
         range: string
         required: true
-        ifabsent: string(0.7.8)
+        ifabsent: string(0.7.9)
       provenance:
         description: "Provenance metadata for the graph."
         range: GraphProvenance
@@ -2468,6 +2541,15 @@ classes:
           elm_correspondence: ecosystem_context_qualifier
           examples: "temperate_subhumid_grasslands, seagrass_meadows"
 
+      comparator:
+        description: >-
+          What the effect described by this edge was assessed relative to.
+          Answers "compared with what?" — a property of the causal inference,
+          not an entity in the world, and therefore annotated here rather than
+          as a control node.
+        range: ComparatorAnnotation
+        inlined: true
+
 
       ## ---- Layer 2: Philosophical Account ----
       
@@ -2938,6 +3020,45 @@ classes:
       ecosystem_scope:
         description: "Ecosystem type scope, mapped to IUCN GET."
         range: EcosystemFunctionalGroupEnum
+
+  ComparatorAnnotation:
+    description: >-
+      The comparison basis for a causal edge. Controls are recorded here rather
+      than as nodes: nodes represent states and changes in state, whereas a
+      control represents what a measurement was contrasted with. Modelling a
+      control as a node forces either a hub node shared across unrelated
+      studies or a per-study singleton that can never merge, and neither
+      survives type-level synthesis.
+
+      Where the comparison arm is itself a management decision a practitioner
+      could take — natural regeneration, cessation of grazing — annotate it as
+      an ordinary management_intervention or environmental_process node and
+      point comparator_node_id at it. An arm that exists only to be measured
+      against gets no node.
+
+      A factor applied to every arm including the comparator explains no
+      between-arm difference and is not a cause the study tests; it should not
+      be annotated as a cause in that document's graph.
+    attributes:
+      status:
+        description: "Assertion status for the comparator annotation."
+        range: FeatureAssertionEnum
+        ifabsent: string(not_addressed)
+      comparator_type:
+        description: "The basis against which the effect was assessed."
+        range: ComparatorTypeEnum
+        ifabsent: string(not_reported)
+      comparator_description:
+        description: >-
+          The comparison arm as the source names it, verbatim or near-verbatim.
+          E.g. "natural (disturbed, unseeded)", "no treatment (control)".
+        range: string
+      comparator_node_id:
+        description: >-
+          Node ID of the comparison arm, where that arm is itself annotated as
+          a node. Expected when comparator_type is passive_management_arm or
+          alternative_treatment; normally empty otherwise.
+        range: uriorcurie
 
   # ---------------------------------------------------------------------------
   # Evidential Basis (Layer 4)
