@@ -2650,6 +2650,12 @@ classes:
         description: "Annotation of the evidence type and evidence object supporting the claim."
         range: EvidentialBasis
         inlined: true
+      
+      certainty_grade:
+        description: "GRADE-style certainty assessment for this individual causal claim. Controls downstream language in Rosetta Statement rendering."
+        range: CertaintyGradeEnum
+        ifabsent: string(not_assessed)
+
 
       ## ---- FCM / Causal Modeling support ----
 
