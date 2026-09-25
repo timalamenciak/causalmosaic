@@ -2,6 +2,24 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## Unreleased
+
+### Added: parameter options
+
+A node describes a change in the world. To use CAMO graphs with digital twins (e.g. SMOL) and to build causal models, you also need to know how each node could be measured. Parameter options record that: the sensor, survey, assay, record and model types that could supply a value for a node.
+
+* **`ParameterOptionCatalog`**: a separate, versioned registry of options, kept in its own file and shared by all graphs. It has its own `catalog_version`, independent of the schema version. Validate a catalog with `linkml-validate -s causalmosaic.yaml -C ParameterOptionCatalog catalog.yaml`.
+* **`ParameterOption`**: one option, identified in the new `camo_param:` namespace. Required: `label`, `acquisition_method`, `measurement_relation`, `value_type`. Optional: `observable_property`, `sensor_or_instrument`, `protocol`, `unit` (QUDT or UO), `typical_temporal_resolution` (ISO 8601 duration), `typical_spatial_resolution_m`, `option_description` and `scope`. A rule requires `observable_property` when `measurement_relation` is `proxy` or `derived`.
+* **`ApplicabilityScope`**: which nodes an option can apply to (entity types, entity terms, measured attributes, qualifier families). Used to narrow candidates when matching options to nodes.
+* **`CausalNode.parameter_options`**: ids of the options that could measure the node. Filled from the catalog, not by annotators. It lists possibilities and does not record what any study measured; the DOI conveys that.
+* **New enums:** `AcquisitionMethodEnum` (11 values, from `in_situ_sensor` to `expert_elicitation`), `MeasurementRelationEnum` (`direct`, `proxy`, `derived`) and `ValueTypeEnum`. Each `ValueTypeEnum` value lists its `compatible_qualifier_families`; a new `ci.py` check validates them.
+* **New prefixes:** `camo_param`, `sosa`, `iop` (I-ADOPT), `ECSO`, `EnvThes`, `nvs_p01`, `nvs_l05`, `nvs_l22`, `unit` (QUDT units) and `UO`.
+* **Docs:** new "Parameter options" section in the annotation guide.
+
+This change is additive. Existing 0.8.0 records remain valid and need no migration.
+
+**Note for loom:** regenerate models. `parameter_options` is a calculated field (`loom_role: calculated`) holding references by id. Loom must check that each id exists in the catalog; LinkML does not check references across files. Options apply per `variable_key`: nodes sharing a key should carry the same options, filtered to those whose `value_type` is compatible with the node's qualifier family.
+
 ## 0.7.9 > 0.8.0 — Multiple comparators, canonical null results, `causal_language`
 
 CAMO 0.8.0 contains **breaking changes**. 0.7.9 records need migration (see the notes under each change). `helpers/migrate_0_7_9_to_0_8_0.py` applies the mechanical steps and reports the ones that need a human. The 0.7.9 schema is archived as `old versions/causal_mosaic_v0.7.9.yaml`.

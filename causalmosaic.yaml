@@ -28,6 +28,23 @@
 ## =============================================================================
 ## CHANGELOG
 ## =============================================================================
+## Unreleased
+## Added:
+## - Parameter options: a separate, shared ParameterOptionCatalog of the ways
+##   nodes could be measured (sensor, survey, assay, record and model types),
+##   for digital twins and causal-model building. New classes
+##   ParameterOptionCatalog, ParameterOption and ApplicabilityScope; new enums
+##   AcquisitionMethodEnum, MeasurementRelationEnum and ValueTypeEnum.
+## - CausalNode.parameter_options: ids of the catalog options able to measure
+##   the node. Populated from the catalog, not by annotators; independent of
+##   any source document.
+## - Prefixes camo_param, sosa, iop (I-ADOPT), ECSO, EnvThes, nvs_p01, nvs_l05,
+##   nvs_l22, unit (QUDT) and UO.
+## - ci.py check: ValueTypeEnum.compatible_qualifier_families names real
+##   QualifierFamilyEnum values.
+##
+## NOTE: additive. Existing 0.8.0 records remain valid.
+##
 ## 0.8.0 (from 0.7.9)
 ## Breaking:
 ## - CausalEdge.comparator is now multivalued (inlined_as_list), one
@@ -139,6 +156,16 @@ prefixes:
   wd: http://www.wikidata.org/entity/
   tdwgeco: http://rs.tdwg.org/eco/terms/
   camo_agent: https://w3id.org/camo/agent/
+  camo_param: https://w3id.org/camo/param/
+  sosa: http://www.w3.org/ns/sosa/
+  iop: https://w3id.org/iadopt/ont/
+  ECSO: http://purl.dataone.org/odo/ECSO_
+  EnvThes: http://vocabs.lter-europe.net/EnvThes/
+  nvs_p01: http://vocab.nerc.ac.uk/collection/P01/current/
+  nvs_l05: http://vocab.nerc.ac.uk/collection/L05/current/
+  nvs_l22: http://vocab.nerc.ac.uk/collection/L22/current/
+  unit: http://qudt.org/vocab/unit/
+  UO: http://purl.obolibrary.org/obo/UO_
 
 
 default_prefix: causal_mosaic
@@ -1924,6 +1951,110 @@ enums:
           display_label: "M4.2 Marine aquafarms"
 
   # ---------------------------------------------------------------------------
+  # Parameter options (how a node could be measured)
+  # ---------------------------------------------------------------------------
+
+  AcquisitionMethodEnum:
+    description: >-
+      Broad kind of data collection that a parameter option uses. When more
+      than one value fits, choose the most specific (camera_trap rather than
+      in_situ_sensor; environmental_dna rather than laboratory_assay).
+    permissible_values:
+      in_situ_sensor:
+        description: >-
+          An automated instrument deployed at the site that records
+          continuously or at intervals (e.g. soil moisture probe, water level
+          logger, weather station, flux tower).
+      remote_sensing:
+        description: >-
+          Measurement from satellite, airborne or drone platforms (e.g.
+          multispectral imagery, LiDAR, radar).
+      field_survey:
+        description: >-
+          Direct observation or measurement by people in the field (e.g.
+          quadrat cover, transect counts, plant height, point counts).
+      camera_trap:
+        description: "Motion- or time-triggered cameras recording animals or vegetation."
+      acoustic_monitoring:
+        description: "Passive acoustic recorders or hydrophones (e.g. bird, bat or frog detection)."
+      environmental_dna:
+        description: >-
+          Detection of taxa from DNA in environmental samples (water, soil,
+          air), including metabarcoding.
+      laboratory_assay:
+        description: >-
+          Analysis of collected samples in a laboratory (e.g. soil nutrient
+          analysis, tissue chemistry, seed bank germination trials).
+      citizen_science:
+        description: >-
+          Observations contributed by volunteers or community platforms (e.g.
+          iNaturalist, eBird, structured volunteer surveys).
+      management_record:
+        description: >-
+          Records kept by the people carrying out an action (e.g. burn logs,
+          seeding records, removal tallies, grazing schedules). The usual way
+          to supply management_intervention nodes.
+      model_output:
+        description: >-
+          Values produced by a model, reanalysis or gridded data product
+          rather than direct observation (e.g. climate reanalysis, species
+          distribution model output).
+      expert_elicitation:
+        description: >-
+          Values supplied by expert judgement or structured elicitation, where
+          no measurement is available.
+
+  MeasurementRelationEnum:
+    description: >-
+      How what a parameter option measures relates to the node it supplies.
+      Causal models should allow for measurement error when the relation is
+      proxy or derived.
+    permissible_values:
+      direct:
+        description: "Measures the node's measured_attribute of its entity_term itself."
+      proxy:
+        description: >-
+          Measures a different quantity that correlates with the node's
+          attribute (e.g. NDVI as a proxy for vegetation biomass).
+      derived:
+        description: >-
+          Computed from one or more other measured quantities (e.g. species
+          richness computed from survey records, evapotranspiration from flux
+          measurements).
+
+  ValueTypeEnum:
+    description: >-
+      The kind of value a parameter option produces. The
+      compatible_qualifier_families annotation lists the
+      QualifierFamilyEnum families whose nodes that value type can supply;
+      a pipe-separated list, checked by ci.py.
+    permissible_values:
+      continuous:
+        description: "A real-valued measurement (e.g. concentration, height, depth)."
+        annotations:
+          compatible_qualifier_families: directional_change
+      count:
+        description: "A non-negative integer count (e.g. number of individuals or stems)."
+        annotations:
+          compatible_qualifier_families: "directional_change|presence"
+      proportion:
+        description: "A fraction or percentage (e.g. percent cover, survival rate)."
+        annotations:
+          compatible_qualifier_families: directional_change
+      binary:
+        description: "Two states (e.g. detected / not detected, occurred / did not occur)."
+        annotations:
+          compatible_qualifier_families: "presence|membership_change|process_phase"
+      ordinal:
+        description: "Ordered classes (e.g. cover classes, abundance ranks, condition scores)."
+        annotations:
+          compatible_qualifier_families: directional_change
+      categorical:
+        description: "Unordered classes (e.g. land cover type, process stage)."
+        annotations:
+          compatible_qualifier_families: "presence|membership_change|process_phase"
+
+  # ---------------------------------------------------------------------------
   # Document section (for RAG retrieval)
   # ---------------------------------------------------------------------------
 
@@ -2247,6 +2378,26 @@ classes:
         annotations:
           loom_role: calculated
           note: "Composed of entity_term plus measured_attribute plus applied_to"
+      parameter_options:
+        description: >-
+          Ways the state or change this node represents could be measured or
+          supplied as a parameter, given as ids of ParameterOption entries in
+          a ParameterOptionCatalog. A list of possibilities, independent of
+          any source document: it does not record what a study measured. Used
+          to bind nodes to data streams in digital twins and to choose
+          observable variables when building causal models. Options apply to
+          the variable, so nodes sharing a variable_key should carry the same
+          options, filtered to those whose value_type suits the node's
+          qualifier family.
+        range: ParameterOption
+        multivalued: true
+        inlined: false
+        annotations:
+          loom_role: calculated
+          note: >-
+            Populated from the parameter option catalog, not by annotators.
+            References are by id; loom checks that each id exists in the
+            catalog.
   # ---------------------------------------------------------------------------
   # Text grounding
   # ---------------------------------------------------------------------------
@@ -3252,4 +3403,197 @@ classes:
           OBJECT of evidence: whether it supports correlation, mechanism, or
           both. Per the Russo-Williamson Thesis.
         range: EvidenceObjectEnum
+        multivalued: true
+
+  # ---------------------------------------------------------------------------
+  # Parameter option catalog
+  # ---------------------------------------------------------------------------
+  # A reusable registry of the ways nodes could be measured, maintained
+  # separately from article graphs. CausalNode.parameter_options refers to
+  # entries by id. Validate a catalog file with
+  #   linkml-validate -s causalmosaic.yaml -C ParameterOptionCatalog <file>
+
+  ParameterOptionCatalog:
+    description: >-
+      A versioned registry of parameter options: the sensor, survey, assay,
+      record and model types that can measure or supply CAMO nodes. Kept in
+      its own file and shared by all graphs; nodes refer to its entries by
+      id through CausalNode.parameter_options.
+    attributes:
+      catalog_id:
+        description: "Unique identifier for this catalog."
+        range: uriorcurie
+        required: true
+        identifier: true
+      title:
+        description: "Human-readable name of the catalog."
+        range: string
+      catalog_version:
+        description: >-
+          Version of the catalog contents, changed whenever options are added,
+          edited or deprecated. Independent of the schema version.
+        range: string
+        required: true
+      schema_version:
+        description: "CAMO schema version the catalog conforms to."
+        range: string
+        required: true
+        ifabsent: string(0.8.0)
+      options:
+        description: "The parameter options in this catalog."
+        range: ParameterOption
+        multivalued: true
+        inlined_as_list: true
+        required: true
+
+  ParameterOption:
+    description: >-
+      One way of measuring or supplying a value for a node: a type of sensor,
+      survey, assay, record or model, described independently of any study.
+      Many nodes can share one option (e.g. quadrat percent cover applies to
+      any plant cover node). An option says what could be measured, not what
+      was measured.
+    close_mappings:
+      - sosa:Procedure
+    id_prefixes:
+      - camo_param
+    rules:
+      - description: >-
+          A proxy or derived option measures something other than the node's
+          attribute, so it must say what that is.
+        preconditions:
+          slot_conditions:
+            measurement_relation:
+              any_of:
+                - equals_string: proxy
+                - equals_string: derived
+        postconditions:
+          slot_conditions:
+            observable_property:
+              required: true
+    attributes:
+      id:
+        description: >-
+          Unique identifier for the option, in the camo_param namespace (e.g.
+          camo_param:quadrat_percent_cover). Stable once published, since
+          nodes refer to it.
+        range: uriorcurie
+        required: true
+        identifier: true
+        pattern: '^camo_param:[A-Za-z0-9._-]+$'
+      label:
+        description: >-
+          Short human-readable name (e.g. "Percent cover in fixed quadrats",
+          "NDVI from Sentinel-2 imagery").
+        range: string
+        required: true
+      option_description:
+        description: >-
+          Fuller explanation of the option: what is recorded, typical
+          deployment, and known limitations.
+        range: string
+      acquisition_method:
+        description: "Broad kind of data collection the option uses."
+        range: AcquisitionMethodEnum
+        required: true
+      measurement_relation:
+        description: >-
+          Whether the option measures the node's attribute directly, measures
+          a proxy for it, or derives it from other quantities.
+        range: MeasurementRelationEnum
+        required: true
+      observable_property:
+        description: >-
+          What the option actually measures, as a CURIE (preferred) or free
+          text. Required for proxy and derived options; for direct options it
+          may be left empty, meaning the node's own measured_attribute.
+          Prefer I-ADOPT variables, NVS P01 parameters, ECSO measurement
+          types or EnvThes terms.
+        any_of:
+          - range: uriorcurie
+          - range: string
+        close_mappings:
+          - sosa:observedProperty
+      sensor_or_instrument:
+        description: >-
+          The instrument or device class used, as a CURIE (preferred) or free
+          text. Prefer NVS L05 device categories or L22 instrument terms.
+          Leave empty for methods with no instrument (e.g. expert_elicitation).
+        any_of:
+          - range: uriorcurie
+          - range: string
+        close_mappings:
+          - sosa:madeBySensor
+      protocol:
+        description: >-
+          A standard method this option follows, as a DOI, URL or CURIE, or
+          free text naming it (e.g. a GEO BON protocol, an LTER method, a
+          protocols.io entry).
+        any_of:
+          - range: uriorcurie
+          - range: string
+        close_mappings:
+          - sosa:usedProcedure
+      unit:
+        description: >-
+          Unit of the values the option produces, as a QUDT unit (preferred)
+          or UO term. Leave empty for unitless, binary or categorical values.
+        range: uriorcurie
+        pattern: '^(unit|UO):\S+$'
+      value_type:
+        description: "The kind of value the option produces."
+        range: ValueTypeEnum
+        required: true
+      typical_temporal_resolution:
+        description: >-
+          Typical interval between successive values, as an ISO 8601
+          duration (e.g. PT15M, P1D, P1Y).
+        range: string
+        pattern: '^P(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)?$'
+      typical_spatial_resolution_m:
+        description: >-
+          Typical spatial grain in metres (pixel size, plot or quadrat side,
+          or sensor footprint).
+        range: float
+        minimum_value: 0
+      scope:
+        description: >-
+          Which kinds of node the option can apply to. Used to narrow the
+          candidates when matching options to nodes, and to document intent.
+        range: ApplicabilityScope
+        inlined: true
+
+  ApplicabilityScope:
+    description: >-
+      Describes which nodes a parameter option can apply to. A node is in
+      scope when it matches at least one value in every slot that is filled
+      in; empty slots impose no restriction.
+    attributes:
+      entity_types:
+        description: "Entity types the option can apply to."
+        range: EntityTypeEnum
+        multivalued: true
+      entity_terms:
+        description: >-
+          Entity terms the option can apply to, as CURIEs (preferred) or free
+          text. A broader term covers its members (e.g. wd:Q756, plants,
+          covers every plant taxon); resolving members is left to the
+          matching tool.
+        any_of:
+          - range: uriorcurie
+          - range: string
+        multivalued: true
+      measured_attributes:
+        description: >-
+          Measured attributes the option can supply, as CURIEs (preferred,
+          e.g. PATO terms) or free text.
+        any_of:
+          - range: uriorcurie
+          - range: string
+        multivalued: true
+      qualifier_families:
+        description: >-
+          Qualifier families of the nodes the option can supply. Should be
+          consistent with the option's value_type (see ValueTypeEnum).
+        range: QualifierFamilyEnum
         multivalued: true

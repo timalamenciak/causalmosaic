@@ -188,6 +188,7 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
     <li class="sub"><a href="#entity-types">4 entity types</a></li>
     <li class="sub"><a href="#node-fields">Node fields</a></li>
     <li class="sub"><a href="#pids">Permanent identifiers</a></li>
+    <li class="sub"><a href="#parameter-options">Parameter options</a></li>
     <li class="sub"><a href="#nodes-murphy">Murphy 2005 walkthrough</a></li>
 
     <li class="section-head"><a>Step 3 · Causal Pathways</a></li>
@@ -461,6 +462,7 @@ is_sampling_effort_reported: true</pre>
 <tr><td><code>state_or_change_qualifier</code></td><td>What happened to the attribute. Directional change: <code>increased</code>, <code>decreased</code>, <code>unchanged</code>. Presence: <code>present</code>, <code>absent</code>. Membership change: <code>introduced</code>, <code>removed</code>. Process phase: <code>occurred</code>, <code>initiated</code>, <code>terminated</code>, <code>ongoing</code>, <code>interrupted</code>, <code>aborted</code>. <code>unchanged</code> means the paper reports a stable state as a finding — never use it for a null result.</td><td>Yes</td></tr>
 <tr><td><code>applied_to</code></td><td>Two roles. On <code>environmental_variable</code> nodes: the taxa or guilds whose measurements are aggregated (Wikidata QIDs, or free text such as "native species"). On <code>environmental_process</code> and <code>management_intervention</code> nodes: the entity the process or intervention acts on. Not used on single-taxon nodes.</td><td>When applicable</td></tr>
 <tr><td><code>source_spans</code></td><td>Verbatim text quotes from the paper that ground this node</td><td>Yes</td></tr>
+<tr><td><code>parameter_options</code></td><td>Ways this node could be measured, as ids from the parameter option catalog. Filled from the catalog, not by you — see <a href="#parameter-options">Parameter options</a>.</td><td>Auto</td></tr>
 </tbody>
 </table>
 
@@ -516,6 +518,102 @@ is_sampling_effort_reported: true</pre>
     <p>When your entity term isn't found in the cached ontology, Loom prompts you to propose it. Select the target ontology, optionally add a broader parent term and a definition, then click <strong>Log suggestion</strong> to submit it for curation.</p>
   </div>
 </div>
+
+<h3 id="parameter-options">Parameter options: how a node could be measured</h3>
+
+<p>A node describes a change in the world, such as "increased <em>Sphagnum</em> cover". Someone building a causal model or a digital twin (for example with SMOL) also needs to know how that change could be <em>measured</em>. Cover could come from quadrat surveys or from satellite NDVI. A prescribed burn shows up in a burn log. These are <strong>parameter options</strong>: the sensor, survey, assay, record or model types that could supply a value for a node.</p>
+
+<p>Parameter options live in a separate, shared <strong>parameter option catalog</strong>. Each option is defined once there and gets an id such as <code>camo_param:quadrat_percent_cover</code>. A node's <code>parameter_options</code> field lists the ids of every option that could measure it.</p>
+
+<div class="callout important">
+  <strong class="label">You do not fill this field in</strong>
+  <code>parameter_options</code> is populated from the catalog, not by annotators. Options are matched to nodes by <code>variable_key</code> (entity term + measured attribute + applied to). One match therefore covers every node about that variable, in every paper. What you control is the quality of the match: nodes with ontology CURIEs in <code>entity_term</code> and <code>measured_attribute</code> are far easier to match than free-text ones.
+</div>
+
+<div class="callout warning">
+  <strong class="label">Not what the paper measured</strong>
+  Parameter options are possibilities, independent of any study. They do not record which method a particular paper used; the source document's DOI conveys that. A node can list NDVI as an option even if every paper about it used quadrats.
+</div>
+
+<h4>What a parameter option contains</h4>
+
+<table class="nodes">
+<thead><tr><th>Field</th><th>What it is</th><th>Required?</th></tr></thead>
+<tbody>
+<tr><td><code>id</code></td><td>Stable identifier in the <code>camo_param:</code> namespace. Never changes once published, because nodes refer to it.</td><td>Yes</td></tr>
+<tr><td><code>label</code></td><td>Short name: "Percent cover in fixed quadrats", "NDVI from Sentinel-2 imagery".</td><td>Yes</td></tr>
+<tr><td><code>acquisition_method</code></td><td>Broad kind of data collection (see the list below).</td><td>Yes</td></tr>
+<tr><td><code>measurement_relation</code></td><td><code>direct</code>: measures the node's attribute itself. <code>proxy</code>: measures something that correlates with it (NDVI for biomass). <code>derived</code>: computed from other measurements (richness from survey records).</td><td>Yes</td></tr>
+<tr><td><code>value_type</code></td><td><code>continuous</code>, <code>count</code>, <code>proportion</code>, <code>binary</code>, <code>ordinal</code> or <code>categorical</code>.</td><td>Yes</td></tr>
+<tr><td><code>observable_property</code></td><td>What is actually measured, when it differs from the node's attribute. Prefer I-ADOPT, NVS P01, ECSO or EnvThes terms.</td><td>For <code>proxy</code> and <code>derived</code></td></tr>
+<tr><td><code>sensor_or_instrument</code></td><td>Instrument or device class. Prefer NVS L05 / L22 terms.</td><td>No</td></tr>
+<tr><td><code>protocol</code></td><td>Standard method followed (DOI, URL, GEO BON or LTER protocol).</td><td>No</td></tr>
+<tr><td><code>unit</code></td><td>QUDT unit (e.g. <code>unit:PERCENT</code>) or UO term.</td><td>No</td></tr>
+<tr><td><code>typical_temporal_resolution</code></td><td>Usual interval between values, as an ISO 8601 duration: <code>PT15M</code>, <code>P1D</code>, <code>P1Y</code>.</td><td>No</td></tr>
+<tr><td><code>typical_spatial_resolution_m</code></td><td>Usual spatial grain in metres (pixel size, quadrat side).</td><td>No</td></tr>
+<tr><td><code>scope</code></td><td>Which nodes the option can apply to: entity types, entity terms (a broad term such as <code>wd:Q756</code>, plants, covers its members), measured attributes and qualifier families. Used to narrow candidates when matching.</td><td>No</td></tr>
+</tbody>
+</table>
+
+<h4>Acquisition methods</h4>
+
+<table class="nodes">
+<thead><tr><th>Value</th><th>Covers</th></tr></thead>
+<tbody>
+<tr><td><code>in_situ_sensor</code></td><td>Automated instruments at the site: soil moisture probes, water level loggers, weather stations, flux towers.</td></tr>
+<tr><td><code>remote_sensing</code></td><td>Satellite, airborne or drone imagery, LiDAR, radar.</td></tr>
+<tr><td><code>field_survey</code></td><td>People observing or measuring in the field: quadrats, transects, point counts.</td></tr>
+<tr><td><code>camera_trap</code></td><td>Motion- or time-triggered cameras.</td></tr>
+<tr><td><code>acoustic_monitoring</code></td><td>Passive acoustic recorders and hydrophones.</td></tr>
+<tr><td><code>environmental_dna</code></td><td>Detection from DNA in water, soil or air samples.</td></tr>
+<tr><td><code>laboratory_assay</code></td><td>Lab analysis of collected samples: soil nutrients, tissue chemistry, seed bank trials.</td></tr>
+<tr><td><code>citizen_science</code></td><td>Volunteer or community observations: iNaturalist, eBird, structured volunteer surveys.</td></tr>
+<tr><td><code>management_record</code></td><td>Records kept by practitioners: burn logs, seeding records, removal tallies. The usual option for <code>management_intervention</code> nodes.</td></tr>
+<tr><td><code>model_output</code></td><td>Model, reanalysis or gridded data products.</td></tr>
+<tr><td><code>expert_elicitation</code></td><td>Expert judgement, where no measurement is available.</td></tr>
+</tbody>
+</table>
+
+<p>When two values fit, use the most specific: <code>camera_trap</code> rather than <code>in_situ_sensor</code>, <code>environmental_dna</code> rather than <code>laboratory_assay</code>.</p>
+
+<div class="callout example">
+  <strong class="label">Example: a catalog entry and the node that uses it</strong>
+<div class="yaml-block">
+<div class="yaml-header">parameter option catalog (excerpt)</div>
+<pre>- id: camo_param:s2_ndvi
+  label: NDVI from Sentinel-2 imagery
+  acquisition_method: remote_sensing
+  measurement_relation: proxy
+  observable_property: normalized difference vegetation index
+  sensor_or_instrument: Sentinel-2 MultiSpectral Instrument
+  value_type: continuous
+  typical_temporal_resolution: P5D
+  typical_spatial_resolution_m: 10</pre>
+</div>
+<div class="yaml-block">
+<div class="yaml-header">node (parameter_options filled from the catalog)</div>
+<pre>id: node:sphagnum_cover_increased
+name: "Increased Sphagnum cover"
+entity_type: taxon
+entity_term: wd:Q30019
+measured_attribute: PATO:0001708
+state_or_change_qualifier: increased
+parameter_options:
+  - camo_param:quadrat_percent_cover
+  - camo_param:s2_ndvi</pre>
+</div>
+</div>
+
+<h4>Rules for catalog curators</h4>
+
+<ul>
+  <li><strong>Describe the method, not a study.</strong> An option should apply to any site where the method is used.</li>
+  <li><strong>Proxy and derived options must name what they measure</strong> in <code>observable_property</code>. The schema rejects them otherwise.</li>
+  <li><strong>Match <code>value_type</code> to the node's qualifier.</strong> Binary detection data (camera traps, eDNA) supplies presence and introduction/removal nodes, not "increased abundance" nodes. Continuous, count, proportion and ordinal values supply increased/decreased/unchanged nodes. An option should only be listed on nodes whose qualifier its value type can supply.</li>
+  <li><strong>Never change or reuse an id.</strong> To retire an option, keep it and describe it as deprecated, so existing node references still resolve.</li>
+  <li><strong>Prefer CURIEs</strong> for <code>observable_property</code>, <code>sensor_or_instrument</code> and <code>unit</code>, as with <code>entity_term</code>.</li>
+  <li><strong>Validate the catalog</strong> with <code>linkml-validate -s causalmosaic.yaml -C ParameterOptionCatalog catalog.yaml</code>.</li>
+</ul>
 
 <h3 id="nodes-murphy">Murphy 2005 walkthrough: identifying all nodes</h3>
 
@@ -1266,6 +1364,9 @@ annotation_confidence: 0.86</pre>
 
   <dt>negated edge</dt>
   <dd>An edge where negated: true signals that the causal relationship claimed to exist does NOT hold. The only encoding for a null result; always paired with causal_language: no_relationship.</dd>
+
+  <dt>parameter option</dt>
+  <dd>A way a node could be measured or supplied as a parameter (a sensor, survey, assay, record or model type), defined once in the shared parameter option catalog and listed on nodes by id. Independent of what any paper measured.</dd>
 
   <dt>source_span</dt>
   <dd>A verbatim text quotation from the source paper that grounds a node or edge. Created in Loom by highlighting text in the PDF viewer.</dd>

@@ -38,7 +38,6 @@ DEFAULT_SCHEMA = "causalmosaic.yaml"
 # slot, so the orphan check must not flag them.
 ANNOTATION_ONLY_ENUMS = {
     "AccountFamilyEnum",       # via PhilosophicalAccountEnum.family
-    "QualifierFamilyEnum",     # via StateOrChangeQualifierEnum.qualifier_family
 }
 
 # The Layer 3 causal feature slots on CausalEdge. Every one must carry a
@@ -206,6 +205,27 @@ def check_qualifier_families(schema: dict, r: Report) -> None:
             for name, pv in enums["StateOrChangeQualifierEnum"]["permissible_values"].items()
             if (fam := annotations_of(pv).get("qualifier_family")) not in families
         ]
+        if problems:
+            r.fail("\n          ".join(problems))
+
+
+def check_value_type_families(schema: dict, r: Report) -> None:
+    """Loom matches parameter options to nodes by these families; a typo drops matches."""
+    with r.check("   ", "ValueTypeEnum.compatible_qualifier_families"):
+        enums = schema["enums"]
+        if "ValueTypeEnum" not in enums:
+            r.skip("ValueTypeEnum not declared")
+            return
+        families = set(enums["QualifierFamilyEnum"]["permissible_values"])
+        problems = []
+        for name, pv in enums["ValueTypeEnum"]["permissible_values"].items():
+            raw = annotations_of(pv).get("compatible_qualifier_families")
+            if not raw:
+                problems.append(f"{name}: missing compatible_qualifier_families")
+                continue
+            unknown = sorted(tokens(raw) - families)
+            if unknown:
+                problems.append(f"{name}: {unknown} not in QualifierFamilyEnum")
         if problems:
             r.fail("\n          ".join(problems))
 
@@ -416,6 +436,7 @@ def main(argv: list[str]) -> int:
     check_account_families(schema, r)
     check_qualifier_families(schema, r)
     check_qualifier_signs(schema, r)
+    check_value_type_families(schema, r)
     check_predicate_weights(schema, r)
     check_rosetta_templates(schema, r)
     check_certainty_modifiers(schema, r)
