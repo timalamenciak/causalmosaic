@@ -2,6 +2,99 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## 0.7.9 > 0.8.0 — Multiple comparators, canonical null results, `causal_language`
+
+CAMO 0.8.0 contains **breaking changes**. 0.7.9 records need migration (see the notes under each change). `helpers/migrate_0_7_9_to_0_8_0.py` applies the mechanical steps and reports the ones that need a human. The 0.7.9 schema is archived as `old versions/causal_mosaic_v0.7.9.yaml`.
+
+### Breaking: `comparator` is now a list
+
+In 0.7.9, `CausalEdge.comparator` held a single `ComparatorAnnotation`, so an edge could name only one comparison basis. Before-after-control-impact (BACI) designs, which are common in restoration, contrast against both a pre-treatment baseline and a control site. The worked example (Kramer et al. 1995) has both, and 0.7.9 could not represent it.
+
+`comparator` is now `multivalued: true, inlined_as_list: true`, with one `ComparatorAnnotation` per comparison arm. Each arm keeps its own `comparator_type`, `comparator_description` and `comparator_node_id`. That is why the list sits on `comparator` rather than making `comparator_type` multivalued: a list of types would lose which description and node belong to which arm.
+
+**Migration note for loom:** wrap each existing `comparator` object in a one-item list, and regenerate models. For BACI studies, add a second entry for the arm that could not be recorded before.
+
+### Breaking: `claim_strength` renamed to `causal_language`
+
+`CausalEdge.claim_strength` is now `CausalEdge.causal_language`. The slot still ranges over `ClaimStrengthEnum`, and `claim_strength` is kept as an alias. Generated JSON Schema and Pydantic models key on the new name, so existing records fail validation until the key is renamed.
+
+**Migration note for loom:** rename `claim_strength` to `causal_language` in every edge record, and regenerate models from the schema.
+
+### Breaking: canonical null-result encoding
+
+A null result could previously be recorded three ways: `negated: true`, `claim_strength: no_relationship`, or an object node with the qualifier `unchanged`. Two annotators could encode the same finding differently, which broke node merging and evidence counts.
+
+* **Canonical encoding.** A null result ("X had no effect on Y") is an edge with `negated: true` **and** `causal_language: no_relationship`. The two always occur together: `negated` is true if and only if `causal_language` is `no_relationship`. The object node keeps the qualifier a positive finding would use (the tested direction if stated, otherwise none), so null and positive findings about the same variables land on the same nodes.
+* **`unchanged` narrowed.** The qualifier now means a reported stable state of the outcome variable itself (e.g. "water table remained at 30 cm"), used on a positive, non-negated claim. It is never used to encode a null result.
+* The invariant is declared as `equals_expression` on `CausalEdge.negated`. LinkML rules cannot test a boolean slot (the JSON Schema generator emits `const: "true"` as a string), so generated JSON Schema and Pydantic models do **not** enforce it. Loom must check it at validation time.
+
+**Migration note for loom:**
+
+* Edges with `claim_strength`/`causal_language: no_relationship` and `negated: false` → set `negated: true`.
+* Edges with `negated: true` and any other claim strength → set `causal_language: no_relationship` (the helper reports these for review rather than changing them, since the negation may have been of hedged language).
+* Edges whose object node is `unchanged` and that report a null result → set `negated: true`, `causal_language: no_relationship`, and repoint the object to the node a positive finding would use. The helper reports these; they need a human to decide.
+
+### Added: predicate and causal-language consistency rules
+
+* `associated_with`, `correlated_with` and `precedes` may only carry `causal_language` of `associational` or `no_relationship`.
+* `causes` may not carry `associational`.
+
+These rules are enforced by generated JSON Schema. Records that break them now fail validation; the migration helper lists them.
+
+### Changed: `associated_with` and `correlated_with`
+
+* `correlated_with` is now `is_a: associated_with`, and is reserved for sources that report a correlation statistic (e.g. Pearson or Spearman r, R², regression slope). Otherwise use `associated_with`.
+* Both carry `exact_mappings` to `biolink:associated_with` and `biolink:correlated_with`.
+
+### Documented: FCM sign composition
+
+Predicates carry a `sign` annotation and qualifiers carry `fcm_sign`, but nothing said how they combine, so two renderers could build opposite FCMs from the same graph. The rule is now stated in the `CausalPredicateEnum` and `CausalEdge.fcm_weight` descriptions, and in the rendering guide:
+
+* **State level** (FCM concepts are CAMO nodes as annotated): edge sign = predicate sign. Node qualifiers are part of each concept's identity and are not applied. `fcm_weight` is stored at this level.
+* **Variable level** (nodes collapsed to entity + attribute): edge sign = subject `fcm_sign` × predicate sign × object `fcm_sign`. A node with no qualifier, `occurred` or `ongoing` counts as +1; edges with an `unchanged` node are left out.
+* Worked examples: "increased X prevents Y" and "decreased X causes Y" both come out negative at the variable level.
+
+This also fixes the rendering guide, which gave the variable-level rule as `predicate sign × object fcm_sign`, leaving out the subject. That would have flipped every edge whose subject is a `decreased`, `absent`, `removed` or `terminated` state.
+
+No schema structure changed; this is documentation only.
+
+### Fixed: `EvidenceTypeEnum` ECO grounding
+
+Six values used ECO terms as `meaning`. Checked against ECO via OLS, five were unrelated molecular-biology terms and the sixth was a parent term:
+
+| Value | Old `meaning` | What that ECO ID actually is |
+|---|---|---|
+| `randomized_experiment` | ECO:0000006 | experimental evidence (a parent, not an equivalent) |
+| `mechanistic_study` | ECO:0000231 | quantitative polymerase chain reaction evidence |
+| `structural_equation_model` | ECO:0000222 | Illumina sequencing evidence |
+| `meta_analysis` | ECO:0006153 | self-reported individual's statement evidence |
+| `case_study` | ECO:0000066 | yeast one-hybrid evidence |
+| `practitioner_experience` | ECO:0000182 | obsolete (in vitro culture assay evidence) |
+
+ECO has no exact equivalent for any of the 15 study designs, so every `meaning` is removed. Where ECO has a parent term, it is now a `broad_mapping`:
+
+| Value | `broad_mappings` |
+|---|---|
+| `randomized_experiment`, `quasi_experiment` | ECO:0000006 experimental evidence |
+| `meta_analysis`, `systematic_review` | ECO:0000212 combinatorial evidence |
+| `modeling_simulation` | ECO:0007672 computational evidence |
+| `expert_judgment`, `practitioner_experience` | ECO:0006151 documented statement evidence |
+| `theoretical` | ECO:0000361 inferential evidence |
+
+`natural_experiment`, `observational_longitudinal`, `observational_cross_sectional`, `mechanistic_study`, `structural_equation_model`, `case_study` and `indigenous_knowledge` have no ECO parent and are left unmapped.
+
+Permissible value names are unchanged, so annotation data is unaffected. The value IRIs in generated OWL/RDF change, because they no longer resolve to the ECO IDs.
+
+### Housekeeping
+
+* Renamed `claim_strength` to `causal_language` throughout `docs/` (rendering guide, annotation guide, schema guide), and aligned their null-result wording with the canonical encoding.
+* Removed a stale mention of the `unspecified` qualifier (dropped in 0.7.8) from the `state_or_change_qualifier` description, and listed the `process_phase` values (`occurred`, `initiated`, `terminated`, `ongoing`, `interrupted`, `aborted`) in `QualifierFamilyEnum`, as the other families already do.
+* Brought `docs/camo_annotation_guide.html` in line with 0.8.0. Predicate section: removed the defunct `positively_regulates` / `negatively_regulates`, added `correlated_with`, and added a predicate table with signs and the allowed `causal_language` for each, a selection procedure, and guidance on reading predicate and node qualifier together. Corrected the Murphy example's `fcm_weight` to the state-level sign (+0.75, not -0.75). Also documented `comparator` and `ecosystem_context`, the 16 causal features, the sampling-effort fields, `applied_to` in place of the nonexistent `taxonomic_scope`, and the `wd:` prefix.
+* Added `helpers/migrate_0_7_9_to_0_8_0.py`, which migrates 0.7.9 datasets to 0.8.0.
+* Archived the pre-breaking 0.7.9 schema as `old versions/causal_mosaic_v0.7.9.yaml`.
+* Replaced the `→` characters in schema descriptions and comments. `gen-pydantic` crashed with a `UnicodeEncodeError` on Windows consoles.
+* Updated `AGENTS.md` with the real schema file name, the checks CI runs, the LinkML version it pins (1.11.1), and authoring notes: LinkML rules can't test boolean slots, rules must name the current slot rather than an alias, and descriptions must stay cp1252-encodable.
+
 ## 0.7.8 > 0.7.9  — Comparators and experimental controls
 
 CAMO 0.7.9 adds a representation for what a causal claim was assessed *relative to*. It is an additive release: existing 0.7.8 records remain valid without migration.

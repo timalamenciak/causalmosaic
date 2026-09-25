@@ -63,8 +63,10 @@ rendering a default.
 ### `negated`
 
 `CausalEdge.negated` (default `false`) inverts the claim: the source asserted
-that the relationship does **not** hold. This is not the same as
-`claim_strength: no_relationship`, which is a positive finding of absence.
+that the relationship does **not** hold. It is the canonical null-result
+encoding and always pairs with `causal_language: no_relationship`: one is set
+if and only if the other is. A null result is never encoded as an object node
+with the qualifier `unchanged`, which means a reported stable state instead.
 Every renderer must handle `negated` explicitly; ignoring it inverts meaning.
 
 ### Model-building targets need external inputs
@@ -94,7 +96,7 @@ human-readable targets build on.
 | `CausalNode.state_or_change_qualifier` → `rosetta_prefix` | node label prefix |
 | `CausalNode.measured_attribute`, `entity_term` | node label body |
 | `CausalPredicateEnum` → `rosetta_template` | sentence frame |
-| `CausalEdge.claim_strength` | hedging (article-level) |
+| `CausalEdge.causal_language` | hedging (article-level) |
 | `CertaintyGradeEnum` → `rosetta_verb_modifier` | hedging (aggregate) |
 | `CausalEdge.negated` | negation |
 | `mediation`, `context_dependence`, `strength` | optional trailing clauses |
@@ -121,7 +123,7 @@ Substitute the rendered labels.
   `aggregate_certainty_grade`: `high` → no modifier, `moderate` → **probably**,
   `low` → **may**, `very_low` → **might**.
 
-- **Article-level edges** use `claim_strength`, which reflects the source's own
+- **Article-level edges** use `causal_language`, which reflects the source's own
   language rather than an assessment of it.
 Do not apply both. A statement hedged twice ("may probably contribute to")
 misrepresents the annotation.
@@ -186,16 +188,16 @@ expected.
 | `CausalEdge.fcm_weight`, `fcm_weight_source` | article-level fallback |
 | `CausalPredicateEnum` → `fcm_default_weight`, `sign` | final fallback weight |
 | `StateOrChangeQualifierEnum` → `fcm_sign` | node polarity (conditional — see below) |
-| `CausalEdge.claim_strength` | article-level inclusion filter |
+| `CausalEdge.causal_language` | article-level inclusion filter |
 | `direction.status` | edge orientation |
 | `aggregate_certainty_grade` | uncertainty metadata / optional explicit down-weighting rule |
 
 ### Procedure
 
 **Step 1 — select edges.** An FCM models causal influence, so filter on
-`claim_strength`. Including `associational` and `no_relationship` edges puts
+`causal_language`. Including `associational` and `no_relationship` edges puts
 non-causal claims into a causal model. A reasonable default is
-`claim_strength IN (uncertain_causal, direct_causal)`.
+`causal_language IN (uncertain_causal, direct_causal)`.
 **Step 2 — drop structural predicates.** `mediates`, `moderates`, and
 `precedes` carry `fcm_default_weight: 0.0` and signs `pathway`, `modifier`,
 `temporal`. These are **not zero-weight edges** — they are not edges of this
@@ -228,9 +230,25 @@ node, not a variable with a negative value. So:
   identity.
 
 - **If you have first collapsed signed nodes into variables** (as the BBN
-  target does — see §5), apply `predicate sign × object fcm_sign`.
+  target does — see §5), apply `subject fcm_sign × predicate sign × object
+  fcm_sign`, with positive = +1 and negative = −1. A node with no qualifier,
+  or with `occurred` or `ongoing`, counts as +1. Leave out edges with an
+  `unchanged` node on either end; they have no variable-level sign.
+
 Doing both double-counts polarity and silently flips the sign of every edge
-whose object is a `decreased` or `absent` state.
+whose object is a `decreased` or `absent` state. Using only the object sign
+flips every edge whose subject is `decreased`, `absent`, `removed` or
+`terminated`.
+
+| Annotation | State-level sign | Variable-level sign |
+|---|---|---|
+| increased X `prevents` Y | − | (+1)(−1)(+1) = − |
+| decreased X `causes` Y | + | (−1)(+1)(+1) = − |
+| decreased X `causes` decreased Y | + | (−1)(+1)(−1) = + |
+| removed X `disrupts` increased Y | − | (−1)(−1)(+1) = + |
+
+`CausalEdge.fcm_weight` is stored at the state level. The full rule is in the
+`CausalPredicateEnum` description.
 **Step 5 — orient.** `direction.status: asserted` → single arc.
 `bidirectional` → two arcs; FCMs tolerate this. `uncertain` or `not_addressed`
 → include with a flag, or exclude, but be consistent.
@@ -927,7 +945,7 @@ miss the source's own phrasing.
 | `applied_to` | | | | ● | ● | ○ | | |
 | `entity_type` | | | ● | ● | | ● | | |
 | `predicate` | ● | ● | ● | | ● | ● | ● | |
-| `claim_strength` | ● | ● | | | | ○ | | |
+| `causal_language` | ● | ● | | | | ○ | | |
 | `negated` | ● | ● | ● | ● | ● | ● | ● | |
 | `ecosystem_context` | ○ | | | ● | | ● | ● | |
 | `direction` | | ● | ● | | ● | ○ | | |

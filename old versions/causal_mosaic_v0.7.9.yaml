@@ -24,55 +24,10 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.8.0
+## Schema version: 0.7.9
 ## =============================================================================
 ## CHANGELOG
 ## =============================================================================
-## 0.8.0 (from 0.7.9)
-## Breaking:
-## - CausalEdge.comparator is now multivalued (inlined_as_list), one
-##   ComparatorAnnotation per comparison arm, so BACI and other multi-control
-##   designs can be represented. A single comparator object becomes a
-##   one-item list.
-## - Renamed CausalEdge.claim_strength to causal_language; claim_strength is
-##   kept as an alias. Existing records must rename the key.
-## - One canonical null-result encoding: negated: true if and only if
-##   causal_language: no_relationship. The "unchanged" qualifier now means a
-##   reported stable state of the outcome, never a null result. Declared via
-##   equals_expression on CausalEdge.negated; not enforced by generated JSON
-##   Schema (LinkML rules cannot test booleans).
-## - Added CausalEdge rules: associated_with, correlated_with and precedes
-##   may only carry associational or no_relationship causal language; causes
-##   may not carry associational.
-## Changed:
-## - correlated_with is now is_a associated_with and reserved for a reported
-##   correlation statistic; both map exactly to their biolink predicates.
-## Fixed:
-## - EvidenceTypeEnum ECO grounding. Five of six meaning IDs were unrelated
-##   terms (qPCR, Illumina sequencing, yeast one-hybrid, a self-report
-##   statement, and an obsolete culture assay); the sixth (ECO:0000006) was a
-##   parent, not an equivalent. All meanings removed; ECO parents added as
-##   broad_mappings on 8 values.
-## - Removed a stale mention of the "unspecified" qualifier (dropped in
-##   0.7.8) and listed the process_phase values in QualifierFamilyEnum.
-## Documented:
-## - FCM sign composition (state level: predicate sign only; variable level:
-##   subject fcm_sign x predicate sign x object fcm_sign) in
-##   CausalPredicateEnum and CausalEdge.fcm_weight.
-## Housekeeping:
-## - Replaced "→" in descriptions and comments (gen-pydantic crashed on
-##   Windows consoles).
-## - Renamed claim_strength to causal_language throughout docs/.
-## - Aligned the annotation guide with 0.8.0 (predicate list and selection
-##   rules, FCM sign of the worked example, comparator, 16 features).
-## - Archived the 0.7.9 schema as old versions/causal_mosaic_v0.7.9.yaml.
-## - Added helpers/migrate_0_7_9_to_0_8_0.py to migrate 0.7.9 datasets.
-## - Updated AGENTS.md: real file name, CI checks and LinkML version, and
-##   authoring notes on boolean rules, aliases and encoding.
-##
-## NOTE: 0.8.0 is breaking. Migrate 0.7.9 records with
-## helpers/migrate_0_7_9_to_0_8_0.py (see CHANGELOG.md).
-##
 ## 0.7.9 (from 0.7.8)
 ## - Added ComparatorTypeEnum and ComparatorAnnotation, plus CausalEdge.comparator
 ##   (Layer 1), recording what an effect was assessed relative to. Experimental
@@ -112,7 +67,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.8.0
+version: 0.7.9
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -452,12 +407,7 @@ enums:
       of evidence.
     permissible_values:
       no_relationship:
-        description: >-
-          Explicitly states no causal or associational relationship: a null
-          result. Always paired with negated: true on the same edge (and
-          negated: true is used only with this value). The object node keeps
-          the qualifier a positive finding would use; it is not set to
-          "unchanged".
+        description: "Explicitly states no causal or associational relationship."
         annotations:
           exemplars: "no significant effect; did not affect; no association was found"
       associational:
@@ -541,35 +491,6 @@ enums:
       Controlled predicate vocabulary for causal edges, grounded primarily in
       CAMO and cross-linked to Biolink / RO where possible. Each predicate
       carries a sign and transitivity property for FCM rendering.
-
-      FCM sign composition. The predicate's sign annotation and the nodes'
-      fcm_sign annotations (StateOrChangeQualifierEnum) combine by one of two
-      conventions, chosen once per rendering and never mixed:
-
-      (1) State level: FCM concepts are CAMO nodes as annotated ("decreased
-      X" and "increased X" are different concepts). Edge sign = predicate
-      sign. Node qualifiers are not applied; they are already part of each
-      concept's identity. CausalEdge.fcm_weight is stored at this level.
-
-      (2) Variable level: nodes are first collapsed to variables (entity +
-      measured_attribute, qualifier dropped). Edge sign = subject fcm_sign x
-      predicate sign x object fcm_sign, with positive = +1 and negative = -1.
-      A node with no qualifier counts as +1, as do the process_phase values
-      occurred and ongoing (fcm_sign neutral), since the node is the
-      variable's reference state. An edge with an unchanged node on either end
-      has no variable-level sign and is left out.
-
-      Worked examples, variable level: "increased X prevents Y" = (+1)(-1)(+1)
-      = negative; "decreased X causes Y" = (-1)(+1)(+1) = negative (the same
-      finding, same sign); "decreased X causes decreased Y" = (-1)(+1)(-1) =
-      positive; "removed X disrupts increased Y" = (-1)(-1)(+1) = positive.
-      Applying node signs at the state level, or using only the object sign at
-      the variable level, flips edges.
-
-      Only predicates whose sign is positive or negative carry an FCM sign.
-      unspecified, variable, pathway, modifier and temporal predicates need an
-      explicit fcm_weight or are left out of the FCM. Negated edges (null
-      results, causal_language: no_relationship) produce no FCM arc.
     permissible_values:
       causes:
         description: "Direct positive causation: C produces E."
@@ -586,11 +507,8 @@ enums:
           fcm_default_weight: "0.4"
           rosetta_template: "{subject} contributes to {object}"
       associated_with:
-        description: >-
-          Association or co-occurrence without causal commitment, where no
-          correlation statistic is reported. Parent of correlated_with.
+        description: "Statistical or observational association without causal commitment."
         meaning: camo:associated_with
-        exact_mappings: [biolink:associated_with]
         annotations:
           sign: unspecified
           fcm_default_weight: "0.3"
@@ -631,7 +549,7 @@ enums:
           fcm_default_weight: "0.0"
           rosetta_template: "{subject} mediates the effect on {object}"
       moderates:
-        description: "Z modifies the strength or direction of the C-to-E relationship."
+        description: "Z modifies the strength or direction of the C→E relationship."
         meaning: camo:moderates
         annotations:
           sign: modifier
@@ -647,14 +565,8 @@ enums:
           fcm_default_weight: "0.0"
           rosetta_template: "{subject} precedes {object}"
       correlated_with:
-        description: >-
-          A reported statistical correlation (e.g., Pearson or Spearman r,
-          Rsquared, regression slope) without direction or causal commitment. A
-          narrower form of associated_with: use it only when the source
-          reports a correlation statistic; otherwise use associated_with.
+        description: "Statistical correlation without direction or causal commitment."
         meaning: camo:correlated_with
-        is_a: associated_with
-        exact_mappings: [biolink:correlated_with]
         annotations:
           sign: unspecified
           fcm_default_weight: "0.2"
@@ -668,54 +580,43 @@ enums:
     description: >-
       TYPE of evidence per Illari's type/object distinction: what kind of study
       or reasoning produced the evidence.
-
-      ECO grounding: the Evidence and Conclusion Ontology is built around
-      molecular and clinical assays and has no equivalent for any of these
-      study designs, so no value uses meaning (which asserts equivalence).
-      Where ECO has a parent term, it is given as a broad_mapping. Values
-      with no ECO parent (natural_experiment, the observational designs,
-      mechanistic_study, structural_equation_model, case_study,
-      indigenous_knowledge) are left unmapped rather than forced onto an
-      unrelated term. IDs verified against ECO via OLS, 2026-09-24.
     permissible_values:
       randomized_experiment:
         description: "Randomized controlled trial or field experiment."
-        broad_mappings: [ECO:0000006]  # experimental evidence
+        meaning: ECO:0000006
       natural_experiment:
         description: "Natural experiment or exogenous shock."
       quasi_experiment:
         description: "Quasi-experimental design (BACI, difference-in-differences, etc.)."
-        broad_mappings: [ECO:0000006]  # experimental evidence
       observational_longitudinal:
         description: "Longitudinal observational study (cohort, panel)."
       observational_cross_sectional:
         description: "Cross-sectional observational study or survey."
       mechanistic_study:
         description: "Laboratory or field study of mechanism (pathway dissection, process tracing)."
+        meaning: ECO:0000231
       structural_equation_model:
         description: "Structural equation model or path analysis quantifying covariation patterns."
+        meaning: ECO:0000222
       meta_analysis:
         description: "Quantitative synthesis of multiple studies."
-        broad_mappings: [ECO:0000212]  # combinatorial evidence
+        meaning: ECO:0006153
       systematic_review:
         description: "Systematic review (qualitative or quantitative)."
-        broad_mappings: [ECO:0000212]  # combinatorial evidence
       modeling_simulation:
         description: "Computational model, simulation, or theoretical prediction."
-        broad_mappings: [ECO:0007672]  # computational evidence
       expert_judgment:
         description: "Expert elicitation, Delphi method, or professional opinion."
-        broad_mappings: [ECO:0006151]  # documented statement evidence
       case_study:
         description: "Single case study or natural history observation."
+        meaning: ECO:0000066
       theoretical:
         description: "Deduction from theory without empirical test."
-        broad_mappings: [ECO:0000361]  # inferential evidence
       indigenous_knowledge:
         description: "Traditional ecological knowledge or Indigenous knowledge systems."
       practitioner_experience:
         description: "Practitioner or land manager field experience."
-        broad_mappings: [ECO:0006151]  # documented statement evidence
+        meaning: ECO:0000182
 
   EvidenceObjectEnum:
     description: >-
@@ -860,7 +761,7 @@ enums:
   # (what property) + state/change qualifier (whether or how it changed).
   # E.g., entity = Canis lupus, attribute = PATO:0000070 (abundance),
   # state/change qualifier = increased
-  # gives "increased abundance of Canis lupus"
+  # → "increased abundance of Canis lupus"
 
   QualifierFamilyEnum:
     description: >-
@@ -877,9 +778,7 @@ enums:
       membership_change:
         description: "Transition in binary presence. Values: introduced, removed."
       process_phase:
-        description: >-
-          Stage of a process or event. Values: occurred, initiated, terminated,
-          ongoing, interrupted, aborted.
+        description: "Stage of a process or event."
 
   StateOrChangeQualifierEnum:
     description: >-
@@ -927,16 +826,10 @@ enums:
           fcm_sign: negative
       unchanged:
         description: >-
-          The attribute stayed the same, reported as a measured state of the
-          outcome variable itself (e.g. "water table depth remained stable
-          at 30 cm"). Use it on a positive, non-negated claim — for example
-          that a cause maintained or buffered a variable, or that a stable
-          variable caused something else. Do not use it to encode a null
-          result ("X had no effect on Y"): record that as negated: true with
-          causal_language: no_relationship, leaving the object node's
-          qualifier as it would be for a positive finding. The comparison
-          the stability was assessed against belongs in CausalEdge.comparator,
-          not here — controls and baselines are ComparatorTypeEnum values.
+          The attribute did not change: a null result. Use only for a reported
+          absence of change in the attribute itself. The comparison that null
+          result was assessed against belongs in CausalEdge.comparator, not
+          here — controls and baselines are ComparatorTypeEnum values.
         annotations:
           qualifier_family: directional_change
           rosetta_prefix: "no change in"
@@ -1017,7 +910,7 @@ enums:
           Wikidata QID in entity_term and the measured property in
           measured_attribute. The node is both the organism and the
           measurement (e.g., entity_term=Q30019, measured_attribute=cover,
-          qualifier=increased gives "increased Sphagnum cover"). The taxon node
+          qualifier=increased → "increased Sphagnum cover"). The taxon node
           participates directly in causal edges.
 
           (2) Multi-taxon aggregate or ecological guild — use
@@ -1980,7 +1873,7 @@ classes:
         description: "Schema version for compatibility tracking."
         range: string
         required: true
-        ifabsent: string(0.8.0)
+        ifabsent: string(0.7.9)
       provenance:
         description: "Provenance metadata for the graph."
         range: GraphProvenance
@@ -2068,9 +1961,9 @@ classes:
       anything by itself; the causally relevant annotation concerns the state
       or change of an attribute of a taxon. Therefore each node decomposes into:
 
-        entity: what thing (taxon, chemical, abiotic factor, process)
-        attribute: what measurable property (abundance, cover, rate)
-        qualifier: whether or how it changed (present, increased, etc.)
+        entity  →  what thing (taxon, chemical, abiotic factor, process)
+        attribute  →  what measurable property (abundance, cover, rate)
+        qualifier  →  whether or how it changed (present, increased, etc.)
 
       The human-readable 'name' is the composed form: "Increased abundance
       of Canis lupus". The structured fields allow decomposed querying:
@@ -2159,13 +2052,11 @@ classes:
       state_or_change_qualifier:
         description: >-
           Qualifier indicating the state or change in the attribute, including
-          cases where the attribute is present, absent, or unchanged.
-          "unchanged" describes a reported stable state, not a null result;
-          null results are encoded on the edge (see CausalEdge.negated).
+          cases where the attribute is present, absent, unchanged, or unspecified.
           Corresponds to ELMO's direction_qualifier slot. Combined with entity_term and
           measured_attribute to produce the node's full meaning:
           e.g., entity=Canis lupus, attribute=abundance,
-          qualifier=increased gives "increased abundance of Canis lupus."
+          qualifier=increased → "increased abundance of Canis lupus."
         range: StateOrChangeQualifierEnum
 
       applied_to:
@@ -2598,35 +2489,6 @@ classes:
         Layer 3: Sixteen causal features
         Layer 4: Evidential basis
       Plus rendering metadata for each downstream target.
-    rules:
-      - description: >-
-          Non-causal predicates (associated_with, correlated_with, precedes)
-          may only carry non-causal claim strength.
-        preconditions:
-          slot_conditions:
-            predicate:
-              any_of:
-                - equals_string: associated_with
-                - equals_string: correlated_with
-                - equals_string: precedes
-        postconditions:
-          slot_conditions:
-            causal_language:
-              any_of:
-                - equals_string: associational
-                - equals_string: no_relationship
-      - description: >-
-          The causes predicate asserts causation, so it cannot carry
-          associational claim strength.
-        preconditions:
-          slot_conditions:
-            predicate:
-              equals_string: causes
-        postconditions:
-          slot_conditions:
-            causal_language:
-              none_of:
-                - equals_string: associational
     attributes:
       id:
         description: "Unique edge identifier."
@@ -2653,30 +2515,15 @@ classes:
         range: CausalNode
         required: true
       negated:
-        description: >-
-          True if the source reports that the relationship does NOT hold — a
-          null result. This is the canonical null-result encoding, and it is
-          always paired with causal_language: no_relationship: negated is true
-          if and only if causal_language is no_relationship. Leave the object
-          node as it would be for a positive finding (the tested direction if
-          stated, otherwise no qualifier); never encode a null result by
-          giving the object node the qualifier "unchanged".
+        description: "True if the claim is that the relationship does NOT hold."
         range: boolean
         ifabsent: boolean(false)
-        equals_expression: "{causal_language} == 'no_relationship'"
-        annotations:
-          canonical_null_result: >-
-            Invariant: negated == (causal_language == no_relationship).
-            Declared via equals_expression because LinkML rules cannot yet
-            test a boolean slot; generated JSON Schema and Pydantic do not
-            enforce it, so validating tools (e.g. loom) must check it.
 
       ## ---- Layer 1: Claim Strength & Context ----
 
-      causal_language:
+      claim_strength:
         description: "How strong is the causal language used?"
         range: ClaimStrengthEnum
-        aliases: [claim_strength]
         required: true
       original_sentence:
         description: >-
@@ -2699,15 +2546,9 @@ classes:
           What the effect described by this edge was assessed relative to.
           Answers "compared with what?" — a property of the causal inference,
           not an entity in the world, and therefore annotated here rather than
-          as a control node. One entry per comparison arm, so designs with more
-          than one contrast keep a separate description and comparator_node_id
-          for each: a BACI design (e.g. Kramer et al. 1995) records one
-          pre_treatment_baseline entry and one untreated_control or
-          spatial_or_temporal_control entry. Use a single entry when the
-          source reports one comparison.
+          as a control node.
         range: ComparatorAnnotation
-        multivalued: true
-        inlined_as_list: true
+        inlined: true
 
 
       ## ---- Layer 2: Philosophical Account ----
@@ -2821,15 +2662,9 @@ classes:
       fcm_weight:
         description: >-
           Numeric edge weight for Fuzzy Cognitive Map rendering. Range: -1.0
-          (strong negative) to +1.0 (strong positive). Stored at the state
-          level: its sign is the predicate sign only, and the subject and
-          object qualifiers are not applied, because they are part of each
-          node's identity. A variable-level FCM multiplies this weight by the
-          subject and object fcm_sign at render time (see the sign-composition
-          rule in CausalPredicateEnum). Magnitude is derived from the
-          predicate's fcm_default_weight, causal_language, and the strength
-          annotation. Can be overridden by expert elicitation; record which
-          in fcm_weight_source.
+          (strong negative) to +1.0 (strong positive). Derived from predicate
+          sign, claim_strength, and strength annotation. Can be overridden
+          by expert elicitation.
         range: float
         minimum_value: -1.0
         maximum_value: 1.0
@@ -3194,8 +3029,7 @@ classes:
 
   ComparatorAnnotation:
     description: >-
-      One comparison arm of a causal edge; an edge lists one per arm (see
-      CausalEdge.comparator). Controls are recorded here rather
+      The comparison basis for a causal edge. Controls are recorded here rather
       than as nodes: nodes represent states and changes in state, whereas a
       control represents what a measurement was contrasted with. Modelling a
       control as a node forces either a hub node shared across unrelated

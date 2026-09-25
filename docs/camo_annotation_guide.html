@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CAMO Annotation Guide — Loom (0.3.0) / Causal Mosaic (0.7.6)</title>
+<title>CAMO Annotation Guide — Loom (0.3.0) / Causal Mosaic (0.8.0)</title>
 <style>
 :root {
   --forest:   #243F32;
@@ -171,7 +171,7 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
 <nav class="sidebar" id="sidebar">
   <div class="logo">
     <h1>Causal Mosaic Annotation Guide</h1>
-    <p><a href="https://github.com/timalamenciak/loom">Loom (0.3.0)</a> / <a href="https://github.com/timalamenciak/causalmosaic">Causal Mosaic (0.7.6)</a></p>
+    <p><a href="https://github.com/timalamenciak/loom">Loom (0.3.0)</a> / <a href="https://github.com/timalamenciak/causalmosaic">Causal Mosaic (0.8.0)</a></p>
   </div>
   <ul>
     <li class="section-head"><a>Overview</a></li>
@@ -195,9 +195,9 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
 
     <li class="section-head"><a>Step 4 · Edges</a></li>
     <li><a href="#edges-intro">Edge basics</a></li>
-    <li class="sub"><a href="#layer1">Layer 1: Claim strength</a></li>
+    <li class="sub"><a href="#layer1">Layer 1: Causal language &amp; comparator</a></li>
     <li class="sub"><a href="#layer2">Layer 2: Philosophical accounts</a></li>
-    <li class="sub"><a href="#layer3">Layer 3: 15 causal features</a></li>
+    <li class="sub"><a href="#layer3">Layer 3: 16 causal features</a></li>
     <li class="sub"><a href="#layer4">Layer 4: Evidential basis</a></li>
     <li class="sub"><a href="#edge-metadata">Supporting metadata</a></li>
     <li class="sub"><a href="#edges-murphy">Murphy 2005 walkthrough</a></li>
@@ -298,8 +298,8 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
 <div class="screenshot">
   <div class="icon">📸</div>
   <div>
-    <img src="./screenshots/source_document_studydesign.jpg" alt="Study design dropdown and sample size field" style="width:100%;height:auto;">
-    <p>The study design dropdown and sample size field. Choose the closest match for study design and describe replication level as free text in sample size.</p>
+    <img src="./screenshots/source_document_studydesign.jpg" alt="Study design dropdown and sample size fields" style="width:100%;height:auto;">
+    <p>The study design dropdown and sample size field. Choose the closest match for study design, then record the sample size as a value and unit and describe the replication structure in the sampling effort protocol.</p>
   </div>
 </div>
 
@@ -309,7 +309,9 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
   <li><strong>study_coordinates</strong> — latitude and longitude in decimal degrees (WGS 84) if reported. Loom will guess the country and province/state from the coordinates you enter here. <b>If no coordinates are reported, use the coordinates from the nearest named location (usually a municipality).</b></li>
   <li><strong>study_country</strong> and <strong>study_state_or_province</strong> — where the fieldwork happened (not where the authors are based)</li>
   <li><strong>study_period_start / end</strong> — when data collection happened, in ISO format (e.g., <code>1997</code>, <code>2000</code>). Not the publication date.</li>
-  <li><strong>study_sample_size</strong> — free text, e.g., "40 plots: 4 randomized complete blocks × 10 density treatments"</li>
+  <li><strong>sample_size_value</strong> and <strong>sample_size_unit</strong> — the reported sample size or sampling effort as a number plus unit, e.g., <code>40</code> and <code>plots</code></li>
+  <li><strong>sampling_effort_protocol</strong> — how that effort was structured, e.g., "4 randomized complete blocks × 10 density treatments; each plot 1 m²"</li>
+  <li><strong>is_sampling_effort_reported</strong> — set to <code>false</code> if the paper gives no sampling effort at all (this is informative, not a gap)</li>
 </ul>
 
 <div class="screenshot">
@@ -332,7 +334,8 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
   <strong class="label">Murphy 2005 — completed source document</strong>
 <div class="yaml-block">
 <div class="yaml-header">source_document (from edge metadata)</div>
-<pre>doi: "10.1111/j.1526-100X.2005.00075.x"
+<pre>document_id: "10.1111/j.1526-100X.2005.00075.x"  # the DOI where one exists
+doi: "10.1111/j.1526-100X.2005.00075.x"
 title: "Concurrent Management of an Exotic Species and
   Initial Restoration Efforts in Forests"
 authors:
@@ -346,8 +349,11 @@ study_period_end: "2000"
 study_temporal_note: "Transplants installed autumn 1997;
   responses monitored during 1997-2000 growing seasons."
 study_design: randomized_experiment
-study_sample_size: "40 plots: 4 randomized complete blocks
-  x 10 Sanguinaria canadensis density treatments; each plot 1 m²."</pre>
+sample_size_value: 40
+sample_size_unit: "plots"
+sampling_effort_protocol: "4 randomized complete blocks x 10
+  Sanguinaria canadensis density treatments; each plot 1 m²."
+is_sampling_effort_reported: true</pre>
 </div>
 </div>
 
@@ -390,7 +396,7 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 <p>In Loom, these three parts correspond to three fields: <code>entity_term</code>, <code>measured_attribute</code>, and <code>state_or_change_qualifier</code>. The <code>name</code> field is a human-readable composed form of all three.</p>
 
 <h3 id="entity-types">The four entity types</h3>
-<p>Every node has an <code>entity_type</code> — the broad category of the thing at the heart of the node. There are four types in CAMO v0.7.4:</p>
+<p>Every node has an <code>entity_type</code> — the broad category of the thing at the heart of the node. There are four types in CAMO 0.8.0:</p>
 
 <div class="entity-card">
   <div class="entity-badge et-taxon">🌿</div>
@@ -408,8 +414,8 @@ study_sample_size: "40 plots: 4 randomized complete blocks
   <div>
     <h4>environmental_variable</h4>
     <p>A measurable aspect of ecosystem state at a point in time — a "snapshot" of a condition. Examples: soil pH, canopy height, light availability, native species richness, bare soil cover.</p>
-    <p><strong>Use for:</strong> abiotic conditions, multi-taxon aggregates (using <code>taxonomic_scope</code>), or ecosystem state variables.</p>
-    <p><strong>Murphy examples:</strong> Resource availability to <em>A. petiolata</em>; reestablishment of native understory species (with <code>taxonomic_scope: native forest understory species</code>).</p>
+    <p><strong>Use for:</strong> abiotic conditions, multi-taxon aggregates (listing the taxa in <code>applied_to</code>), or ecosystem state variables.</p>
+    <p><strong>Murphy examples:</strong> Resource availability to <em>A. petiolata</em>; reestablishment of native understory species (with <code>applied_to</code> set to the free-text guild "native forest understory species").</p>
     <p><strong>Grounding:</strong> There is not a single source for environmental variables. Some will be grounded in <a href="https://bioportal.bioontology.org/ontologies/ENVO">ENVO</a> or <a href="https://obofoundry.org/ontology/pato.html">PATO</a>. We have added many to <a href="https://timalamenciak.github.io/elmo/elmo.html">ELMO</a>.</p>
   </div>
 </div>
@@ -438,7 +444,7 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 
 <div class="callout tip">
   <strong class="label">Taxon vs. environmental_variable for multi-species measurements</strong>
-  If the paper reports a measurement on a <em>single species</em>, use <code>entity_type: taxon</code>. If it reports on a group of species (e.g., "native species richness", "invasive plant cover"), use <code>entity_type: environmental_variable</code> and list the taxa in <code>taxonomic_scope</code>.
+  If the paper reports a measurement on a <em>single species</em>, use <code>entity_type: taxon</code>. If it reports on a group of species (e.g., "native species richness", "invasive plant cover"), use <code>entity_type: environmental_variable</code> and list the taxa or guild in <code>applied_to</code>.
 </div>
 
 <h3 id="node-fields">Node fields walkthrough</h3>
@@ -452,9 +458,8 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 <tr><td><code>entity_type</code></td><td>One of the 4 entity types above</td><td>Yes</td></tr>
 <tr><td><code>entity_term</code></td><td>Ontology CURIE for the entity — ideally a Wikidata QID for taxa, ENVO term for environments, GO term for processes. Can be free text as a fallback.</td><td>Yes</td></tr>
 <tr><td><code>measured_attribute</code></td><td>What property of the entity is being measured. Ideally a PATO term (e.g., PATO:0000070 = abundance).</td><td>Strongly recommended</td></tr>
-<tr><td><code>state_or_change_qualifier</code></td><td>What happened to the attribute: <code>increased</code>, <code>decreased</code>, <code>present</code>, <code>absent</code>, <code>unchanged</code>, <code>introduced</code>, <code>removed</code>, etc.</td><td>Yes</td></tr>
-<tr><td><code>taxonomic_scope</code></td><td>For <code>environmental_variable</code> nodes only: which taxa are included in this measurement</td><td>When applicable</td></tr>
-<tr><td><code>applied_to</code></td><td>For <code>management_intervention</code> nodes: what organism or system the intervention targets</td><td>When applicable</td></tr>
+<tr><td><code>state_or_change_qualifier</code></td><td>What happened to the attribute. Directional change: <code>increased</code>, <code>decreased</code>, <code>unchanged</code>. Presence: <code>present</code>, <code>absent</code>. Membership change: <code>introduced</code>, <code>removed</code>. Process phase: <code>occurred</code>, <code>initiated</code>, <code>terminated</code>, <code>ongoing</code>, <code>interrupted</code>, <code>aborted</code>. <code>unchanged</code> means the paper reports a stable state as a finding — never use it for a null result.</td><td>Yes</td></tr>
+<tr><td><code>applied_to</code></td><td>Two roles. On <code>environmental_variable</code> nodes: the taxa or guilds whose measurements are aggregated (Wikidata QIDs, or free text such as "native species"). On <code>environmental_process</code> and <code>management_intervention</code> nodes: the entity the process or intervention acts on. Not used on single-taxon nodes.</td><td>When applicable</td></tr>
 <tr><td><code>source_spans</code></td><td>Verbatim text quotes from the paper that ground this node</td><td>Yes</td></tr>
 </tbody>
 </table>
@@ -470,18 +475,18 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 <div class="screenshot">
   <div class="icon">📸</div>
   <div>
-    <img src="./screenshots/node_bottomhalf.jpg" alt="Node form bottom half showing taxonomic scope and applied to fields" style="width:100%;height:auto;">
-    <p>The bottom half of the node form. Taxonomic scope is used only on <code>environmental_variable</code> nodes spanning multiple taxa. Applied to is used on <code>management_intervention</code> and <code>environmental_process</code> nodes to specify the target entity.</p>
+    <img src="./screenshots/node_bottomhalf.jpg" alt="Node form bottom half showing the applied to field" style="width:100%;height:auto;">
+    <p>The bottom half of the node form. Applied to lists the taxa or guild on <code>environmental_variable</code> nodes spanning multiple taxa, and the target entity on <code>management_intervention</code> and <code>environmental_process</code> nodes.</p>
   </div>
 </div>
 
 <h3 id="pids">Permanent identifiers — a critical step</h3>
 
-<p>The <code>entity_term</code> field should almost always contain an <strong>ontology CURIE</strong> rather than plain text. A CURIE looks like <code>WD:Q157057</code> or <code>ENVO:01000253</code>. This is one of the most important practices in CAMO annotation.</p>
+<p>The <code>entity_term</code> field should almost always contain an <strong>ontology CURIE</strong> rather than plain text. A CURIE looks like <code>wd:Q157057</code> or <code>ENVO:01000253</code>. This is one of the most important practices in CAMO annotation.</p>
 
 <div class="callout important">
   <strong class="label">Why permanent identifiers matter</strong>
-  Without ontology CURIEs, "Sanguinaria canadensis" in your annotation and "bloodroot" in someone else's are invisible to each other. A machine cannot tell they refer to the same plant. With CURIEs, both become <code>WD:Q157057</code> and every edge involving bloodroot across hundreds of papers can be connected automatically.
+  Without ontology CURIEs, "Sanguinaria canadensis" in your annotation and "bloodroot" in someone else's are invisible to each other. A machine cannot tell they refer to the same plant. With CURIEs, both become <code>wd:Q157057</code> and every edge involving bloodroot across hundreds of papers can be connected automatically.
 </div>
 
 <p>Here's which ontology to use for different entity types:</p>
@@ -489,7 +494,7 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 <table class="nodes">
 <thead><tr><th>Entity type</th><th>Preferred ontology</th><th>Example</th></tr></thead>
 <tbody>
-<tr><td>Taxa (species, genus)</td><td>Wikidata (WD:Q…)</td><td><code>WD:Q157057</code> = <em>Sanguinaria canadensis</em></td></tr>
+<tr><td>Taxa (species, genus)</td><td>Wikidata (wd:Q…)</td><td><code>wd:Q157057</code> = <em>Sanguinaria canadensis</em></td></tr>
 <tr><td>Environments</td><td>ENVO</td><td><code>ENVO:01000253</code> = grassland</td></tr>
 <tr><td>Qualities/attributes</td><td>PATO</td><td><code>PATO:0000070</code> = abundance</td></tr>
 <tr><td>Biological processes</td><td>GO (Gene Ontology)</td><td><code>GO:0008150</code> = biological process</td></tr>
@@ -532,11 +537,11 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 <thead><tr><th>#</th><th>Name</th><th>entity_type</th><th>entity_term</th><th>measured_attribute</th><th>qualifier</th></tr></thead>
 <tbody>
 <tr><td>1</td><td>Introduction of transplanted S. canadensis</td><td>management_intervention</td><td>plant translocation</td><td>—</td><td>introduced</td></tr>
-<tr><td>2</td><td>Decreased population performance of A. petiolata</td><td>taxon</td><td>WD:Q30055</td><td>population performance</td><td>decreased</td></tr>
-<tr><td>3</td><td>Decreased reproductive output of A. petiolata</td><td>taxon</td><td>WD:Q30055</td><td>reproductive output</td><td>decreased</td></tr>
+<tr><td>2</td><td>Decreased population performance of A. petiolata</td><td>taxon</td><td>wd:Q30055</td><td>population performance</td><td>decreased</td></tr>
+<tr><td>3</td><td>Decreased reproductive output of A. petiolata</td><td>taxon</td><td>wd:Q30055</td><td>reproductive output</td><td>decreased</td></tr>
 <tr><td>4</td><td>Decreased resource availability to A. petiolata</td><td>environmental_variable</td><td>resource availability</td><td>—</td><td>decreased</td></tr>
-<tr><td>5</td><td>Persistent A. petiolata seed bank</td><td>taxon</td><td>WD:Q30055</td><td>seed bank persistence</td><td>present</td></tr>
-<tr><td>6</td><td>Unchanged seasonal seedling emergence</td><td>taxon</td><td>WD:Q30055</td><td>seasonal seedling emergence</td><td>unchanged</td></tr>
+<tr><td>5</td><td>Persistent A. petiolata seed bank</td><td>taxon</td><td>wd:Q30055</td><td>seed bank persistence</td><td>present</td></tr>
+<tr><td>6</td><td>Unchanged seasonal seedling emergence</td><td>taxon</td><td>wd:Q30055</td><td>seasonal seedling emergence</td><td>unchanged</td></tr>
 <tr><td>7</td><td>Reestablishment of native understory species</td><td>environmental_variable</td><td>re-establishment</td><td>—</td><td>increased (negated at edge)</td></tr>
 </tbody>
 </table>
@@ -548,7 +553,7 @@ study_sample_size: "40 plots: 4 randomized complete blocks
 <pre>id: node:murphy2005_alliaria_population_performance
 name: "Decreased population performance of Alliaria petiolata"
 entity_type: taxon
-entity_term: "Alliaria petiolata"  # ideally: WD:Q30055
+entity_term: "Alliaria petiolata"  # ideally: wd:Q30055
 measured_attribute: "population performance"
 state_or_change_qualifier: decreased
 source_spans:
@@ -605,48 +610,78 @@ source_spans:
   <li><code>subject</code> — the node ID of the cause</li>
   <li><code>predicate</code> — what kind of causal relationship this is (from a controlled vocabulary)</li>
   <li><code>object</code> — the node ID of the effect</li>
-  <li><code>negated</code> — set to <code>true</code> if the claim is that the relationship does <em>not</em> hold</li>
+  <li><code>negated</code> — set to <code>true</code> if the claim is that the relationship does <em>not</em> hold; always paired with <code>causal_language: no_relationship</code></li>
 </ul>
 
 <h3>Predicates</h3>
-<p>Choose the predicate that best matches the direction and type of causal influence described:</p>
+<p>Choose the predicate that best matches the kind of causal influence described. CAMO 0.8.0 has eleven predicates, and only these eleven — free-text predicates are not valid:</p>
 <div class="pred-chips">
   <span class="pred-chip pred-pos">causes</span>
   <span class="pred-chip pred-pos">contributes_to</span>
   <span class="pred-chip pred-pos">enables</span>
-  <span class="pred-chip pred-pos">positively_regulates</span>
   <span class="pred-chip pred-neg">prevents</span>
   <span class="pred-chip pred-neg">disrupts</span>
-  <span class="pred-chip pred-neg">negatively_regulates</span>
   <span class="pred-chip pred-neu">regulates</span>
-  <span class="pred-chip pred-neu">associated_with</span>
   <span class="pred-chip pred-neu">mediates</span>
   <span class="pred-chip pred-neu">moderates</span>
+  <span class="pred-chip pred-neu">associated_with</span>
+  <span class="pred-chip pred-neu">correlated_with</span>
   <span class="pred-chip pred-neu">precedes</span>
 </div>
 
+<table class="nodes">
+<thead><tr><th>Predicate</th><th>Sign</th><th>Use when</th><th>Allowed <code>causal_language</code></th></tr></thead>
+<tbody>
+<tr><td><code>causes</code></td><td>positive</td><td>C directly produces E. A strong claim: the text presents C as bringing E about, not as one factor among many.</td><td>uncertain_causal, direct_causal, no_relationship (<em>not</em> associational)</td></tr>
+<tr><td><code>contributes_to</code></td><td>positive</td><td>C is one of several contributing factors to E. Pairs naturally with <code>contributing_sole: contributing_cause</code>.</td><td>any</td></tr>
+<tr><td><code>enables</code></td><td>positive</td><td>C facilitates or promotes E but is not sufficient on its own. Pairs naturally with <code>sufficiency: explicitly_denied</code>.</td><td>any</td></tr>
+<tr><td><code>prevents</code></td><td>negative</td><td>C inhibits, blocks, or reduces E.</td><td>any</td></tr>
+<tr><td><code>disrupts</code></td><td>negative</td><td>C degrades, suppresses, or disrupts E.</td><td>any</td></tr>
+<tr><td><code>regulates</code></td><td>variable</td><td>C modulates E, and the direction is not fixed by the predicate — it depends on the node states. Use it only when a signed predicate would misstate the claim.</td><td>any</td></tr>
+<tr><td><code>mediates</code></td><td>pathway</td><td>The subject is on the causal pathway to the object ("M mediates the effect on E").</td><td>any</td></tr>
+<tr><td><code>moderates</code></td><td>modifier</td><td>The subject changes the strength or direction of a C → E relationship without sitting on its pathway.</td><td>any</td></tr>
+<tr><td><code>associated_with</code></td><td>unspecified</td><td>Association or co-occurrence with no causal commitment, and <em>no correlation statistic</em> reported.</td><td>associational, no_relationship</td></tr>
+<tr><td><code>correlated_with</code></td><td>unspecified</td><td>A narrower form of <code>associated_with</code>: use it only when the source reports a correlation statistic (Pearson or Spearman r, R², regression slope).</td><td>associational, no_relationship</td></tr>
+<tr><td><code>precedes</code></td><td>temporal</td><td>C comes before E in time, with no causal commitment.</td><td>associational, no_relationship</td></tr>
+</tbody>
+</table>
+
 <div class="callout tip">
   <strong class="label">Which predicate to use?</strong>
-  <ul>
-    <li>Causal positive (A makes B happen or increases B): <code>causes</code> (strong, sole) or <code>contributes_to</code> (one of many) or <code>enables</code> (facilitates but not sufficient) or <code>positively_regulates</code> (modulates upward)</li>
-    <li>Causal negative (A suppresses or reduces B): <code>prevents</code> (blocks it) or <code>disrupts</code> (degrades it) or <code>negatively_regulates</code> (modulates downward)</li>
-    <li>Uncertain direction: <code>regulates</code></li>
-    <li>Association only (no causal commitment): <code>associated_with</code> or <code>correlated_with</code></li>
-  </ul>
-  In Murphy (2005), transplanting <em>negatively regulates</em> garlic mustard performance — it doesn't prevent it outright (garlic mustard is still present) but downregulates it.
+  <ol>
+    <li><strong>Does the text make a causal claim at all?</strong> If not, use <code>associated_with</code> — or <code>correlated_with</code> if a correlation statistic is reported — or <code>precedes</code> for bare temporal order. These three may only carry <code>causal_language: associational</code> (or <code>no_relationship</code> for a null result); validation rejects any other combination.</li>
+    <li><strong>Causal, pushing the object node's state up or bringing it about:</strong> <code>causes</code> (C produces E), <code>contributes_to</code> (one of several factors) or <code>enables</code> (facilitates, not sufficient). In ecology, <code>contributes_to</code> is usually the honest choice. <code>causes</code> may not be paired with <code>associational</code> language — if the text only reports an association, the predicate should not assert causation.</li>
+    <li><strong>Causal, pushing the object node's state down or blocking it:</strong> <code>prevents</code> (blocks or inhibits) or <code>disrupts</code> (degrades or suppresses).</li>
+    <li><strong>Causal, but the direction genuinely depends on conditions:</strong> <code>regulates</code>. It has no fixed sign, so it drops out of fuzzy cognitive maps unless an explicit <code>fcm_weight</code> is given. Don't reach for it just because a positive or negative predicate feels awkward — see the next callout first.</li>
+    <li><strong>A third variable's role in another relationship:</strong> <code>mediates</code> or <code>moderates</code>. Where you can, prefer the structural form: create the C → M and M → E edges and list M in the parent edge's <code>mediation.mediator_node_ids</code> (or <code>moderation.moderator_node_ids</code>). Like <code>regulates</code>, these carry no FCM sign.</li>
+  </ol>
+  The old <code>positively_regulates</code> and <code>negatively_regulates</code> predicates no longer exist. Use a signed predicate from steps 2–3, or <code>regulates</code> when the direction really is conditional.
+</div>
+
+<div class="callout important">
+  <strong class="label">The node carries the change; the predicate carries the influence</strong>
+  Nodes already say which way things moved (<code>increased</code>, <code>decreased</code>, <code>introduced</code>…). The predicate says how the subject bears on <em>that</em> node. Read the edge aloud as a sentence and check it says what the paper says. Murphy's main result, with the object node "Decreased population performance of <em>A. petiolata</em>", reads: <em>"Introduction of transplanted S. canadensis contributes to decreased population performance of A. petiolata."</em> That takes a <strong>positive</strong> predicate. Writing <code>prevents</code> here would be a double negative — "prevents decreased performance" says bloodroot <em>helps</em> garlic mustard. An equivalent encoding would be <code>prevents</code> pointing at an "increased" or unqualified performance node, but the node list in Step 2 already fixed the object as "decreased", so the predicate must be positive. Pick the node the paper actually reports first, then the predicate.
+</div>
+
+<div class="callout tip">
+  <strong class="label">Murphy (2005): why <code>contributes_to</code></strong>
+  Edge 1 uses <code>contributes_to</code>. Murphy's language is unhedged ("was effective at mitigating"), so <code>causal_language</code> is <code>direct_causal</code>. But garlic mustard persisted, its seed bank kept supplying seedlings, and immigration could counter the effect — bloodroot is one factor, not the whole story. <code>causes</code> would overstate that, and <code>enables</code> describes facilitation, not suppression.
 </div>
 
 <h3>The <code>negated</code> field</h3>
-<p>This is used when the paper explicitly says a relationship does <em>not</em> exist. For Murphy (2005), the paper states that transplanting bloodroot did <em>not</em> lead to an increase in native species by 2000. The edge predicate is still <code>enables</code> (because we're asking about a positive facilitation pathway), but <code>negated: true</code> captures that this pathway was absent.</p>
+<p>This is used when the paper explicitly reports that a relationship does <em>not</em> hold — a null result. In CAMO 0.8.0 there is exactly one way to encode a null result: <code>negated: true</code> together with <code>causal_language: no_relationship</code>. The two always go together: <code>negated</code> is true if and only if <code>causal_language</code> is <code>no_relationship</code>.</p>
+<p>For Murphy (2005), the paper states that transplanting bloodroot did <em>not</em> lead to an increase in native species by 2000. The edge keeps the predicate a positive finding would have used — <code>enables</code>, because the tested pathway is facilitation — and the object node keeps the qualifier a positive finding would have used (<code>increased</code>). <code>negated: true</code> records that this pathway was not observed.</p>
 
 <div class="callout warning">
-  <strong class="label">Negated ≠ negative predicate</strong>
-  A <em>negative predicate</em> (like <code>negatively_regulates</code>) means the relationship goes in the negative direction. A <em>negated edge</em> means the relationship claimed to hold does not hold at all. These are different. Murphy's bloodroot → native recovery edge has <code>predicate: enables</code> and <code>negated: true</code> because the author is saying "we hoped bloodroot would enable native recovery, but it did not."
+  <strong class="label">Negated ≠ negative predicate ≠ "unchanged"</strong>
+  A <em>negative predicate</em> (like <code>prevents</code> or <code>disrupts</code>) means the subject pushes the object down. A <em>negated edge</em> means the relationship claimed to hold does not hold at all. These are different. Murphy's bloodroot → native recovery edge has <code>predicate: enables</code> and <code>negated: true</code> because the author is saying "we hoped bloodroot would enable native recovery, but it did not."<br><br>
+  Never encode a null result by giving the object node the qualifier <code>unchanged</code>. <code>unchanged</code> means the paper <em>reports a stable state</em> of the variable as a finding (for example, a cause that buffered or maintained it — see edge 4 below), on an ordinary non-negated edge.
 </div>
 
 <!-- LAYER 1 -->
-<h3 id="layer1">Layer 1: Claim strength</h3>
-<p>How confident and direct is the causal language in the text? There are four levels:</p>
+<h3 id="layer1">Layer 1: Causal language &amp; comparator</h3>
+<h4><code>causal_language</code></h4>
+<p>How confident and direct is the causal language in the text? This field was called <code>claim_strength</code> before 0.8.0. It records the text's commitment, not the actual strength of the evidence. There are four levels:</p>
 
 <div class="strength-scale">
   <div class="strength-cell s0"><span class="name">no_relationship</span>Explicitly states no effect<br><em>"did not affect"</em></div>
@@ -656,7 +691,7 @@ source_spans:
 </div>
 
 <div class="callout example">
-  <strong class="label">Murphy 2005 — claim strength examples</strong>
+  <strong class="label">Murphy 2005 — causal language examples</strong>
   <ul>
     <li>"transplanting S. canadensis <em>was effective at mitigating</em> the spread of A. petiolata" → <code>direct_causal</code></li>
     <li>"It <em>appears that</em> intermediate and higher densities deprived A. petiolata of sufficient resources" → <code>uncertain_causal</code> (the word "appears" hedges the causal claim)</li>
@@ -664,7 +699,33 @@ source_spans:
   </ul>
 </div>
 
+<div class="callout warning">
+  <strong class="label">Causal language must fit the predicate</strong>
+  <code>associated_with</code>, <code>correlated_with</code> and <code>precedes</code> accept only <code>associational</code> or <code>no_relationship</code>. <code>causes</code> never accepts <code>associational</code>. And <code>no_relationship</code> always means <code>negated: true</code>. If validation rejects an edge, one of these three rules is usually why — fix whichever of the predicate or the language misreads the text.
+</div>
+
 <p>You'll also provide the <code>original_sentence</code> — the full sentence from the text that best expresses this causal claim. This is preserved verbatim for quality control and RAG retrieval.</p>
+
+<h4><code>comparator</code> — compared with what?</h4>
+<p>An effect only means something relative to a comparison. Record what the claim was assessed against in <code>comparator</code>, not as a node: a control plot is not a state or change in state. <code>comparator</code> is a <strong>list</strong>, one entry per comparison arm, so a BACI design gets two entries (a <code>pre_treatment_baseline</code> and an <code>untreated_control</code> or <code>spatial_or_temporal_control</code>). Each entry has <code>comparator_type</code>, <code>comparator_description</code> (the arm as the paper names it) and, where the arm is itself a node, <code>comparator_node_id</code>.</p>
+<ul>
+  <li><code>untreated_control</code> — concurrent units with no manipulation of the tested factor</li>
+  <li><code>reference_undisturbed</code> — an intact system used as a recovery benchmark</li>
+  <li><code>pre_treatment_baseline</code> — the same units before treatment</li>
+  <li><code>alternative_treatment</code> — a different active arm</li>
+  <li><code>passive_management_arm</code> — a real do-nothing or cease-disturbance decision (natural regeneration, grazing withdrawal). Annotate that arm as its own node and point <code>comparator_node_id</code> at it.</li>
+  <li><code>spatial_or_temporal_control</code> — an unimpacted site or period in an observational design</li>
+  <li><code>not_reported</code> — no comparator is recoverable (this lowers certainty; don't leave it blank)</li>
+  <li><code>not_applicable</code> — mechanistic, theoretical or definitional claims with no contrast</li>
+</ul>
+<div class="callout tip">
+  <strong class="label">When does a control arm become a node?</strong>
+  Only when it is a decision. Ask in order: could a practitioner choose it? Does the paper report its outcomes as findings in their own right? Would the node ever merge with one from another paper? A "no" at any step means it is a comparator, not a node. Also: a factor applied to <em>every</em> arm, control included, explains no difference between arms — don't annotate it as a cause.
+</div>
+<p>For Murphy (2005), the 0 ramets/m² plots are the comparison: <code>comparator: [{comparator_type: untreated_control, comparator_description: "0 ramets/m² control plots"}]</code>.</p>
+
+<h4><code>ecosystem_context</code></h4>
+<p>The IUCN Global Ecosystem Typology (Level 3) functional group where the relationship was observed, chosen from a fixed list. Murphy's woodlots are <code>deciduous_temperate_forests</code>.</p>
 
 <!-- LAYER 2 -->
 <h3 id="layer2">Layer 2: Philosophical accounts of causation</h3>
@@ -721,7 +782,7 @@ source_spans:
   <p>Based on Machamer, Darden, and Craver (2000). Causation involves identifiable entities and activities organized to produce the phenomenon — a mechanism. In ecology, mechanisms might be competition for resources, trophic interactions, or chemical signaling. When an author proposes a <em>how</em>, they are invoking a mechanistic account.</p>
   <div class="cues"><strong>Linguistic cues:</strong> "the mechanism by which"; "pathway from X to Y"; "exerts its effect via"; "step-by-step process"</div>
   <div class="murphy">
-    <strong>Murphy 2005:</strong> Murphy proposes that bloodroot competes with garlic mustard for light during spring phenological overlap. This proposed mechanism (resource competition → reduced garlic mustard growth) makes the resource availability node central. However, Murphy notes he did not directly test the mechanism — so this account is supported for the mechanism edge but with <code>claim_strength: uncertain_causal</code>.
+    <strong>Murphy 2005:</strong> Murphy proposes that bloodroot competes with garlic mustard for light during spring phenological overlap. This proposed mechanism (resource competition → reduced garlic mustard growth) makes the resource availability node central. However, Murphy notes he did not directly test the mechanism — so this account is supported for the mechanism edge but with <code>causal_language: uncertain_causal</code>.
   </div>
 </div>
 
@@ -775,8 +836,8 @@ source_spans:
 </div>
 
 <!-- LAYER 3 -->
-<h3 id="layer3">Layer 3: The 15 causal features</h3>
-<p>This is the most detailed annotation layer. CAMO's 15 causal features are structured questions about the <em>character</em> of the causal relationship. Each feature has a fixed set of values: <code>explicitly_asserted</code>, <code>implicitly_assumed</code>, <code>explicitly_denied</code>, or <code>not_addressed</code>.</p>
+<h3 id="layer3">Layer 3: The 16 causal features</h3>
+<p>This is the most detailed annotation layer. CAMO's 16 causal features are structured questions about the <em>character</em> of the causal relationship. Most take the four values <code>explicitly_asserted</code>, <code>implicitly_assumed</code>, <code>explicitly_denied</code>, or <code>not_addressed</code>; a few have their own value sets or structured sub-fields, noted below.</p>
 
 <p>Your job is to look at what the <em>text actually says</em> about each feature — not what you think is true, but what the paper claims. If the paper doesn't address a feature, mark it <code>not_addressed</code>.</p>
 
@@ -927,20 +988,20 @@ source_spans:
 
 <h4>Context dependence</h4>
 
-<p><code>context_dependence</code> is an additional structured field (beyond the 15 features) that captures the scope conditions — where, when, and under what circumstances does this relationship hold?</p>
+<p><code>context_dependence</code> is the sixteenth feature: a structured field that captures the scope conditions — where, when, and under what circumstances does this relationship hold?</p>
 
 <div class="feature-grid">
 <div class="feature-entry">
-  <h4>context_dependence</h4>
+  <h4>16. context_dependence</h4>
   <p class="q">Under what conditions does this relationship hold? Where and when was it tested?</p>
-  <p>Sub-fields: <code>status</code>, <code>scope_conditions</code> (list of conditions), <code>geographic_scope</code>, <code>temporal_scope</code>, <code>ecosystem_scope</code>.</p>
+  <p>Sub-fields: <code>status</code>, <code>scope_conditions</code> (list of conditions), <code>geographic_scope</code>, <code>temporal_scope</code>, <code>ecosystem_scope</code> (an IUCN Global Ecosystem Typology value from the same fixed list as <code>ecosystem_context</code>, not free text).</p>
   <p>This is one of the most important fields for practitioners. A relationship found in a degraded Ontario woodlot in the 1990s may not hold in a large continuous forest or in a different climate zone.</p>
   <div class="murphy-eg"><strong>Murphy 2005:</strong>
     <ul>
       <li><code>scope_conditions:</code> "degraded deciduous woodlot edge"; "high local A. petiolata density"; "intermediate S. canadensis density most effective"</li>
       <li><code>geographic_scope:</code> "Region of Waterloo, Ontario, Canada"</li>
       <li><code>temporal_scope:</code> "1997–2000 field experiment"</li>
-      <li><code>ecosystem_scope:</code> "degraded deciduous forest/woodlot edge"</li>
+      <li><code>ecosystem_scope:</code> <code>deciduous_temperate_forests</code> (the "degraded woodlot edge" detail goes in <code>scope_conditions</code>)</li>
     </ul>
   </div>
 </div>
@@ -960,9 +1021,11 @@ source_spans:
   <li><code>observational_longitudinal</code> — cohort or panel study</li>
   <li><code>observational_cross_sectional</code> — cross-sectional survey</li>
   <li><code>mechanistic_study</code> — laboratory or field study of mechanism</li>
+  <li><code>structural_equation_model</code> — SEM or path analysis</li>
   <li><code>meta_analysis</code>, <code>systematic_review</code>, <code>modeling_simulation</code></li>
   <li><code>theoretical</code> — deduction from theory only</li>
   <li><code>expert_judgment</code>, <code>case_study</code>, <code>practitioner_experience</code></li>
+  <li><code>indigenous_knowledge</code> — traditional ecological or Indigenous knowledge systems</li>
 </ul>
 
 <p><strong>evidence_objects</strong> — what does the evidence address?</p>
@@ -999,7 +1062,9 @@ source_spans:
 </ul>
 
 <h4>fcm_weight</h4>
-<p>A numeric weight between -1.0 and +1.0 for Fuzzy Cognitive Map rendering. Negative weights are for inhibitory relationships. This is usually filled in automatically from the predicate and strength annotation — you may leave it to the system or override it. For Murphy's main suppression edge, <code>fcm_weight: -0.75</code> captures a strong negative regulatory relationship.</p>
+<p>A numeric weight between -1.0 and +1.0 for Fuzzy Cognitive Map rendering. This is usually filled in automatically from the predicate, <code>causal_language</code> and strength annotation — you may leave it to the system or override it (record which in <code>fcm_weight_source</code>).</p>
+<p>The stored weight takes its <strong>sign from the predicate only</strong>. Node qualifiers are not applied, because "decreased X" and "increased X" are already different nodes. So Murphy's main edge (<code>contributes_to</code> → <em>decreased</em> population performance) stores a <strong>positive</strong> weight, <code>fcm_weight: 0.75</code>. When a renderer collapses nodes to variables (dropping the qualifiers), it multiplies subject sign × predicate sign × object sign — here (+1)(+1)(−1) — and the edge correctly comes out negative: more bloodroot, less garlic mustard. Don't pre-apply that yourself; entering −0.75 here would flip the edge.</p>
+<p><code>regulates</code>, <code>mediates</code>, <code>moderates</code>, <code>precedes</code>, <code>associated_with</code> and <code>correlated_with</code> have no fixed sign, so they only enter an FCM if you give an explicit weight. Negated edges (null results) produce no FCM arc; leave <code>fcm_weight</code> empty on them.</p>
 
 <h4>source_spans</h4>
 <p>The verbatim text quotes from the paper that ground this edge. These are critical for provenance — future users can check exactly where you got the claim. In Loom, you create these by highlighting text in the PDF viewer. Always provide at least one source span per edge.</p>
@@ -1014,7 +1079,7 @@ source_spans:
   <div class="icon">📸</div>
   <div>
     <img src="./screenshots/edge_creation.jpg" alt="Edge creation form in Loom showing Layer 1 claim and predicate fields, ELMO context, and the node list above" style="width:100%;height:auto;">
-    <p>The edge annotation panel with Layer 1 (Claim &amp; Predicate) expanded. Select predicate and claim strength, optionally check Negated, and paste the original sentence. The node list at the top shows all available nodes to connect. Layers 2–4 appear as collapsible panels below.</p>
+    <p>The edge annotation panel with Layer 1 (Claim &amp; Predicate) expanded. Select the predicate and causal language, check Negated only for a null result (causal language <code>no_relationship</code>), and paste the original sentence. The node list at the top shows all available nodes to connect. Layers 2–4 appear as collapsible panels below.</p>
   </div>
 </div>
 
@@ -1026,9 +1091,13 @@ source_spans:
 predicate: contributes_to
 object: node:murphy2005_alliaria_population_performance
 negated: false
-claim_strength: direct_causal
+causal_language: direct_causal
 original_sentence: "the experiments indicated that transplanting
   S. canadensis was effective at mitigating the spread of A. petiolata."
+ecosystem_context: deciduous_temperate_forests
+comparator:
+  - comparator_type: untreated_control
+    comparator_description: "0 ramets/m² control plots"
 philosophical_accounts: [interventionist, probabilistic, agency]
 necessity: not_addressed
 sufficiency: explicitly_denied
@@ -1060,11 +1129,12 @@ context_dependence:
     - "intermediate S. canadensis density most effective"
   geographic_scope: "Region of Waterloo, Ontario, Canada"
   temporal_scope: "1997-2000 field experiment"
-  ecosystem_scope: "degraded deciduous forest/woodlot edge"
+  ecosystem_scope: deciduous_temperate_forests
 evidential_basis:
   evidence_types: [randomized_experiment]
   evidence_objects: [both]
-fcm_weight: -0.75
+certainty_grade: not_assessed
+fcm_weight: 0.75   # state level: sign of contributes_to (+); see fcm_weight above
 annotation_confidence: 0.92</pre>
 </div>
 </div>
@@ -1077,7 +1147,7 @@ annotation_confidence: 0.92</pre>
 predicate: enables
 object: node:murphy2005_alliaria_seedling_emergence
 negated: false
-claim_strength: uncertain_causal
+causal_language: uncertain_causal
 original_sentence: "Early-spring emergence of seedlings in A. petiolata
   remained relatively constant, probably indicating that an existing,
   extensive seed bank persisted throughout."
@@ -1097,11 +1167,11 @@ philosophical_accounts: [mechanistic, regularity]
 predicate: enables
 object: node:murphy2005_native_understory_reestablishment
 negated: true   # the claim is that this relationship does NOT hold (yet)
-claim_strength: no_relationship
+causal_language: no_relationship
 original_sentence: "By 2000, I had not detected any increase in
   other native species or other exotics in any treatments."
 token_or_type: token   # specific to this site, this time window
-fcm_weight: 0.0
+# no fcm_weight: negated edges produce no FCM arc
 annotation_confidence: 0.86</pre>
 </div>
   Null results are just as important as positive results. This edge explicitly records that bloodroot transplanting did NOT (yet) facilitate native understory recovery. Without this edge, node 7 would have no connections — violating the orphan node rule and losing a critical management insight.
@@ -1123,9 +1193,13 @@ annotation_confidence: 0.86</pre>
   <li>Every edge has at least one <code>source_span</code></li>
   <li>Every edge has an <code>original_sentence</code></li>
   <li>Philosophical accounts are selected (multiple accounts are expected and encouraged)</li>
-  <li>All 15 causal features are filled in (at minimum, mark <code>not_addressed</code> rather than leaving blank)</li>
-  <li>Evidential basis (evidence_type and evidence_object) is filled in for every edge</li>
-  <li>Null results are annotated as negated edges, not simply omitted</li>
+  <li>All 16 causal features are filled in (at minimum, mark <code>not_addressed</code> rather than leaving blank)</li>
+  <li>Every predicate comes from the controlled list, and the edge reads correctly aloud with its node qualifiers (no double negatives)</li>
+  <li><code>causal_language</code> fits the predicate: <code>associated_with</code> / <code>correlated_with</code> / <code>precedes</code> only with <code>associational</code> or <code>no_relationship</code>; <code>causes</code> never with <code>associational</code></li>
+  <li><code>correlated_with</code> is used only where a correlation statistic is reported</li>
+  <li><code>comparator</code> has one entry per comparison arm, or <code>not_reported</code> / <code>not_applicable</code></li>
+  <li>Evidential basis (<code>evidence_types</code> and <code>evidence_objects</code>) is filled in for every edge</li>
+  <li>Null results are annotated as negated edges, not simply omitted: <code>negated: true</code> with <code>causal_language: no_relationship</code>, never an <code>unchanged</code> object node</li>
   <li>Mediator nodes appear as both standalone nodes AND in the <code>mediation.mediator_node_ids</code> field of parent edges</li>
   <li><code>context_dependence</code> captures ecosystem, geographic, and temporal scope</li>
   <li><code>annotation_confidence</code> honestly reflects your certainty</li>
@@ -1152,16 +1226,22 @@ annotation_confidence: 0.86</pre>
   <dd>The broad category of the entity at the core of a node: taxon, environmental_variable, environmental_process, or management_intervention.</dd>
 
   <dt>entity_term</dt>
-  <dd>The ontology CURIE (or free-text fallback) identifying the specific entity. For taxa, use Wikidata QIDs (WD:Q…).</dd>
+  <dd>The ontology CURIE (or free-text fallback) identifying the specific entity. For taxa, use Wikidata QIDs (wd:Q…).</dd>
 
   <dt>state_or_change_qualifier</dt>
-  <dd>What happened to the measured attribute: increased, decreased, present, absent, unchanged, introduced, removed, etc.</dd>
+  <dd>What happened to the measured attribute: increased, decreased, unchanged (a reported stable state, never a null result), present, absent, introduced, removed, or a process phase (occurred, initiated, terminated, ongoing, interrupted, aborted).</dd>
 
-  <dt>claim_strength</dt>
-  <dd>How strong is the causal language used in the text? Four levels: no_relationship, associational, uncertain_causal, direct_causal.</dd>
+  <dt>causal_language</dt>
+  <dd>How strong is the causal language used in the text? Four levels: no_relationship, associational, uncertain_causal, direct_causal. Called claim_strength before 0.8.0.</dd>
+
+  <dt>predicate</dt>
+  <dd>The type of causal relationship on an edge, from a closed list of eleven: causes, contributes_to, enables, prevents, disrupts, regulates, mediates, moderates, associated_with, correlated_with, precedes.</dd>
+
+  <dt>comparator</dt>
+  <dd>What an edge's effect was assessed against (untreated control, pre-treatment baseline, etc.). A list with one entry per comparison arm; controls are recorded here, not as nodes.</dd>
 
   <dt>philosophical account</dt>
-  <dd>The implicit theory of causation invoked by a causal claim. CAMO recognizes seven: counterfactual, probabilistic, interventionist, transmission, mechanistic, regularity, inus_component, agency.</dd>
+  <dd>The implicit theory of causation invoked by a causal claim. CAMO recognizes eight: counterfactual, probabilistic, interventionist, transmission, mechanistic, regularity, inus_component, agency.</dd>
 
   <dt>mediation</dt>
   <dd>A causal feature describing an intermediate variable (mediator) on the pathway between cause and effect. When a mediator exists, it should be represented both as a node and in the mediation metadata of the parent edge.</dd>
@@ -1170,13 +1250,13 @@ annotation_confidence: 0.86</pre>
   <dd>A causal feature describing a third variable that changes the strength or direction of the cause-effect relationship (an effect modifier or interaction).</dd>
 
   <dt>FCM weight</dt>
-  <dd>Fuzzy Cognitive Map weight: a numeric value from -1.0 to +1.0 representing the sign and magnitude of the causal relationship. Used to render the annotation as a causal model.</dd>
+  <dd>Fuzzy Cognitive Map weight: a numeric value from -1.0 to +1.0 representing the sign and magnitude of the causal relationship. Stored with the predicate's sign only; node qualifiers are applied at render time.</dd>
 
   <dt>Russo-Williamson thesis</dt>
   <dd>The philosophical position that good causal evidence requires both difference-making evidence (showing C makes a difference to E) and production evidence (showing the mechanism). CAMO's evidence_object field captures whether each edge has correlation evidence, mechanism evidence, or both.</dd>
 
   <dt>CURIE</dt>
-  <dd>Compact URI — a shortened form of an ontology term identifier, e.g., WD:Q157057 for Sanguinaria canadensis in Wikidata, or PATO:0000070 for the quality "abundance."</dd>
+  <dd>Compact URI — a shortened form of an ontology term identifier, e.g., wd:Q157057 for Sanguinaria canadensis in Wikidata, or PATO:0000070 for the quality "abundance."</dd>
 
   <dt>token claim</dt>
   <dd>A causal claim about a specific instance: "in this particular study, this specific thing caused that." Compare with type claim.</dd>
@@ -1185,7 +1265,7 @@ annotation_confidence: 0.86</pre>
   <dd>A general causal claim: "in general, this kind of thing causes that kind of thing." CAMO primarily captures type claims.</dd>
 
   <dt>negated edge</dt>
-  <dd>An edge where negated: true signals that the causal relationship claimed to exist does NOT hold. Used for null results and explicitly denied relationships.</dd>
+  <dd>An edge where negated: true signals that the causal relationship claimed to exist does NOT hold. The only encoding for a null result; always paired with causal_language: no_relationship.</dd>
 
   <dt>source_span</dt>
   <dd>A verbatim text quotation from the source paper that grounds a node or edge. Created in Loom by highlighting text in the PDF viewer.</dd>

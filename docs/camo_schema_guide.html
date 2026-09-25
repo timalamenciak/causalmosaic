@@ -1081,7 +1081,7 @@ edges:
     subject: node:example_cause
     predicate: causes
     object: node:example_effect
-    claim_strength: direct_causal
+    causal_language: direct_causal
     philosophical_accounts:
       - interventionist
     source_spans:
@@ -1272,7 +1272,7 @@ edges:
               </tr>
               <tr>
                 <td>Layer 1</td>
-                <td><code>claim_strength</code>, <code>original_sentence</code>, <code>ecosystem_context</code></td>
+                <td><code>causal_language</code>, <code>original_sentence</code>, <code>ecosystem_context</code></td>
                 <td>How strongly does the source text phrase the causal claim, and where was it observed?</td>
               </tr>
               <tr>
@@ -1607,7 +1607,7 @@ edges:
               </tr>
               <tr>
                 <td>Suppression did not yet produce broad native recovery.</td>
-                <td>A negated edge with <code>claim_strength: no_relationship</code>.</td>
+                <td>A negated edge with <code>causal_language: no_relationship</code>.</td>
                 <td>Null results are still evidence and should remain visible in synthesis.</td>
               </tr>
             </tbody>
@@ -1618,7 +1618,7 @@ edges:
   subject: node:murphy2005_sanguinaria_transplanting
   predicate: regulates
   object: node:murphy2005_alliaria_population_performance
-  claim_strength: direct_causal
+  causal_language: direct_causal
   ecosystem_context: deciduous_temperate_forests
   philosophical_accounts:
     - interventionist
@@ -1713,8 +1713,8 @@ edges:
             <li>Every node is a state or change, not just a bare species, process, or place.</li>
             <li>Every node has a useful <code>name</code>, <code>entity_term</code>, and, where applicable, <code>measured_attribute</code>.</li>
             <li>Single-taxon measurements use <code>entity_type: taxon</code>; multi-taxon or guild measurements use <code>taxonomic_scope</code>.</li>
-            <li>Every edge has <code>subject</code>, <code>predicate</code>, <code>object</code>, <code>claim_strength</code>, and <code>philosophical_accounts</code>.</li>
-            <li>Null results are represented with <code>claim_strength: no_relationship</code> and, when appropriate, <code>negated: true</code>.</li>
+            <li>Every edge has <code>subject</code>, <code>predicate</code>, <code>object</code>, <code>causal_language</code>, and <code>philosophical_accounts</code>.</li>
+            <li>Null results are represented with <code>causal_language: no_relationship</code> and <code>negated: true</code>, always together; never with an <code>unchanged</code> object node.</li>
             <li>Feature statuses distinguish explicit claims from assumptions and from silence.</li>
             <li>Mechanisms are marked as inferred when the source does not directly test them.</li>
             <li><code>evidential_basis.evidence_types</code> describes study design; <code>evidence_objects</code> describes what the evidence supports.</li>

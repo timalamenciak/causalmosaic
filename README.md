@@ -7,7 +7,7 @@
 [![Latest release](https://img.shields.io/github/v/tag/timalamenciak/causalmosaic?label=release)](https://github.com/timalamenciak/causalmosaic/tags)
 [![LinkML schema](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml/badge.svg)](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml)
 
-**Current schema version: 0.7.9**
+**Current schema version: 0.8.0**
 
 The **Causal Mosaic Schema (CAMO)** is a [LinkML](https://linkml.io/) schema for representing causal claims from ecological evidence as a structured, ontology-grounded labeled property graph.
 
@@ -157,7 +157,7 @@ How explicitly does the source make a causal claim?
 
 Relevant fields include:
 
-* `claim_strength`
+* `causal_language` (formerly `claim_strength`)
 * `original_sentence`
 * `negated`
 * `comparator`
@@ -167,6 +167,8 @@ This distinguishes direct causal assertions from weaker or more qualified causal
 ##### Comparators and experimental controls
 
 `comparator` records what the effect was assessed *relative to*: untreated plots, undisturbed remnant, the same plots before treatment, or another active treatment. The same reported effect means different things under each, so the comparison basis is part of what the claim says.
+
+`comparator` is a list with one entry per comparison arm, each with its own `comparator_type`, `comparator_description` and `comparator_node_id`. A before-after-control-impact (BACI) design therefore has two entries: a `pre_treatment_baseline` and an `untreated_control` (or `spatial_or_temporal_control`). A study with a single contrast has a one-item list.
 
 Experimental controls are annotated here rather than as nodes. Nodes represent states and changes in state; a control represents what a measurement was contrasted with. Modelling one as a node forces either a hub shared across unrelated studies or a per-study singleton that can never merge, and neither survives type-level synthesis.
 
@@ -280,7 +282,7 @@ describes the **state of a variable**.
 
 CAMO therefore provides enough information for a downstream modeller to avoid accidentally treating incompatible qualifier families as states of the same variable.
 
-An absent qualifier means that a state or change was not annotated. `unchanged`, by contrast, represents an explicit null or no-change result.
+An absent qualifier means that a state or change was not annotated. `unchanged`, by contrast, represents a reported stable state of the variable (e.g. "water table remained at 30 cm"). It is not how null results are encoded: a finding that X had no effect on Y is an edge with `negated: true` and `causal_language: no_relationship`, which always occur together.
 
 ---
 

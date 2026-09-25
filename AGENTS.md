@@ -7,37 +7,46 @@ Code (via a `CLAUDE.md` symlink), Codex, and OpenCode. Keep it lean.
 
 The **source of truth** for the Causal Mosaic schema — a **LinkML data model**
 (YAML), grounded in Illari & Russo's causal mosaic framework, used to annotate
-restoration-ecology causal evidence. Current version: **v0.7.3**.
+restoration-ecology causal evidence. The schema lives in `causalmosaic.yaml`;
+its current version is the `version:` field there (0.8.0 at time of writing).
+Past released versions are archived in `old versions/`. Data-migration scripts
+between versions live in `helpers/`; add one with each breaking release.
 
 This is a **schema, not an ontology and not app code.** The `.yaml` is authored
-by hand; everything else (Pydantic, JSON Schema, SHACL, OWL, docs) is
-*generated* from it. Downstream repos — notably loom — generate code and
-validate data against what is released here, so class and slot **names are a
-published contract.**
+by hand; Pydantic, JSON Schema, SHACL and OWL are *generated* from it on
+demand (none are committed here). The pages in `docs/`, `README.md` and
+`CHANGELOG.md` are hand-maintained and must be kept in step with the schema.
+Downstream repos — notably loom — generate code and validate data against
+what is released here, so class and slot **names are a published contract.**
 
 ## The loop (non-negotiable)
 
+CI (`.github/workflows/linkml-schema.yml`) runs these three checks with
+`linkml==1.11.1`. Run them with that version; older releases (e.g. 1.8.x)
+miss errors CI catches.
+
 ```bash
-./validate.sh
+linkml validate causalmosaic.yaml
+linkml lint causalmosaic.yaml
+python ci.py causalmosaic.yaml
 ```
 
-Green means: the schema lints (`linkml-lint`), the example / test data validates
-against it (`linkml-validate`), and all generated artifacts regenerate cleanly
-with no uncommitted diff. Never hand back a state that fails. Fix the schema, not
-the checks.
+Green means: the schema is valid against the LinkML metamodel, it lints, and
+CAMO's own invariants hold (`ci.py` checks the annotation crosswalks LinkML
+treats as opaque strings). Never hand back a state that fails. Fix the schema,
+not the checks.
 
 ## Commands
 
-<!-- CONFIRM each; replace guesses -->
-
-| Task                | Command                                       |
-| ------------------- | --------------------------------------------- |
-| Validate (all)      | `./validate.sh`                               |
-| Lint schema         | `linkml-lint camo.yaml`                        |
-| Validate data       | `linkml-validate -s camo.yaml «data».yaml`     |
-| Regenerate artifacts| `gen-project -d generated/ camo.yaml`          |
-| Pydantic models     | `gen-pydantic camo.yaml`                       |
-| Tests               | `pytest`                                        |
+| Task                 | Command                                             |
+| -------------------- | --------------------------------------------------- |
+| Metamodel validation | `linkml validate causalmosaic.yaml`                 |
+| Lint schema          | `linkml lint causalmosaic.yaml`                     |
+| CAMO invariants      | `python ci.py causalmosaic.yaml`                    |
+| Validate data        | `linkml-validate -s causalmosaic.yaml «data».yaml`  |
+| JSON Schema          | `gen-json-schema causalmosaic.yaml`                 |
+| Pydantic models      | `gen-pydantic causalmosaic.yaml`                    |
+| Migrate 0.7.9 data   | `python helpers/migrate_0_7_9_to_0_8_0.py «data».yaml -o «out».yaml` |
 
 ## Authoring conventions (this is a LinkML schema)
 
@@ -56,6 +65,17 @@ the checks.
 - **Model causal-relation categories as closed enums grounded in the causal
   mosaic framework**, not free-text strings or ad hoc permissible values.
 - **Bump the schema `version:` on any breaking change**, with a changelog note.
+  Record changes in both the `## CHANGELOG` header of `causalmosaic.yaml` and
+  `CHANGELOG.md`; until the bump, log them under "Unreleased". Before the first
+  breaking change after a release, archive that release as
+  `old versions/causal_mosaic_v«version».yaml`.
+- **LinkML rules can't test boolean slots.** `equals_string: "true"` compiles
+  to the JSON string `"true"`, not a boolean, so such rules misfire. State
+  boolean invariants with `equals_expression` and note that loom enforces them.
+- **Rules must name the current slot**, not an alias. JSON Schema output keys on
+  slot names, so a rule citing an alias requires a property that can't exist.
+- **Keep descriptions encodable in cp1252** (no `→` or similar). Generators
+  crash on Windows consoles otherwise.
 
 ## Hard "do not"
 
