@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAMO Causal Conceptions</title>
+<style>
+:root {
+  --bg: #EFE8DD;
+  --surface: #FBF8F3;
+  --ink: #2B2A28;
+  --muted: #6A655E;
+  --line: #D4C4A0;
+  --forest: #243F32;
+  --node-fill: #243F32;
+  --node-ink: #F3EEE6;
+  --node-sub: #A9C7B0;
+  --tint: rgba(47, 107, 79, .10);
+  --hl: rgba(156, 116, 36, .16);
+
+  --pos: #2F6B4F;
+  --neg: #9A3446;
+  --ctx: #9C7424;
+  --non: #6E6A64;
+
+  --dm: #2C6F83;
+  --pr: #6A4C93;
+  --co: #B0603A;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171A18; --surface: #212622; --ink: #ECE6DC; --muted: #A39D93; --line: #3A413C;
+    --forest: #8FBF9F; --node-fill: #2E4A3C; --node-ink: #F3EEE6; --node-sub: #A9C7B0;
+    --tint: rgba(127, 194, 156, .12); --hl: rgba(217, 178, 94, .16);
+    --pos: #7FC29C; --neg: #E48A99; --ctx: #D9B25E; --non: #A8A39B;
+    --dm: #6DB8CC; --pr: #B39AE0; --co: #E79A72;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171A18; --surface: #212622; --ink: #ECE6DC; --muted: #A39D93; --line: #3A413C;
+  --forest: #8FBF9F; --node-fill: #2E4A3C; --node-ink: #F3EEE6; --node-sub: #A9C7B0;
+  --tint: rgba(127, 194, 156, .12); --hl: rgba(217, 178, 94, .16);
+  --pos: #7FC29C; --neg: #E48A99; --ctx: #D9B25E; --non: #A8A39B;
+  --dm: #6DB8CC; --pr: #B39AE0; --co: #E79A72;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+  padding: 1.5rem 16px 3rem;
+}
+.wrap { max-width: 1800px; margin: 0 auto; }
+header h1 { font-size: 1.6rem; color: var(--forest); letter-spacing: -.01em; }
+header p { color: var(--muted); margin-top: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 900px) { header p { white-space: normal; } }
+h2.section { font-size: 1.3rem; color: var(--forest); margin: 2.5rem 0 .4rem; }
+p.lede { color: var(--muted); max-width: 90ch; }
+code { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: .88em; }
+
+/* Figures */
+.figure {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .5rem;
+  margin-top: .9rem;
+}
+
+/* One-edge stage */
+.stage { padding: 2.6rem 2rem 2.2rem; }
+.edge-row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+  max-width: 1100px; margin: 0 auto;
+}
+.node-box {
+  background: var(--node-fill); color: var(--node-ink); border-radius: 16px;
+  width: 170px; height: 130px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+}
+.node-box .nt { font-size: 2.6rem; font-weight: 800; line-height: 1; }
+.node-box .ns { font-size: .78rem; color: var(--node-sub); margin-top: .45rem; line-height: 1.35; }
+.edge { position: relative; height: 230px; }
+.edge-line {
+  position: absolute; left: 0; right: 2px; top: 50%;
+  border-top: 4px solid var(--c, var(--muted)); transform: translateY(-2px);
+  transition: border-color .2s;
+}
+.edge-line.dashed { border-top-style: dashed; }
+.edge-line::after {
+  content: ""; position: absolute; right: -4px; top: -13px;
+  border-left: 20px solid var(--c, var(--muted));
+  border-top: 9px solid transparent; border-bottom: 9px solid transparent;
+  transition: border-color .2s;
+}
+.slot-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
+.rel-label { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(50% + 32px); white-space: nowrap; }
+.pick.on-line { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.edge-slot.bottom {
+  position: absolute; left: 50%; transform: translateX(-50%); top: calc(50% + 42px);
+  display: flex; flex-direction: column; align-items: center; gap: .35rem; white-space: nowrap;
+}
+.stage .surprise { position: absolute; top: .9rem; right: 1rem; }
+
+.pick {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font: inherit; background: var(--surface); color: var(--ink);
+  border: 2.5px solid var(--c, var(--line)); border-radius: 999px;
+  padding: .45rem .75rem .45rem 1.1rem; cursor: pointer; white-space: nowrap;
+}
+.pick code { font-size: 1.2rem; font-weight: 700; color: var(--c); }
+.pick .caret { color: var(--muted); font-size: .8em; }
+.pick:hover, .pick[aria-expanded="true"] { box-shadow: 0 0 0 5px var(--hl); }
+
+.reading { max-width: 860px; margin: 1.4rem auto 0; text-align: center; }
+.fit-badge {
+  display: inline-block;
+  font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  padding: .22rem .7rem; border-radius: 999px; border: 1.5px solid currentColor;
+}
+.fit-badge.natural { color: var(--pos); }
+.fit-badge.possible { color: var(--ctx); }
+.fit-badge.strained { color: var(--non); }
+.reading .big { font-size: 1.6rem; font-style: italic; line-height: 1.4; margin: .8rem auto 1.5rem; max-width: 34em; }
+.reading .two { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2rem; text-align: left; font-size: .95rem; }
+.reading .mini-k { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.reading .two code { font-size: 1rem; font-weight: 700; }
+.reading .hint { color: var(--muted); font-size: .85rem; margin-top: .25rem; }
+
+.ghost-btn {
+  font: inherit; font-size: .85rem; background: none; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px; padding: .3rem .85rem; cursor: pointer;
+}
+.ghost-btn:hover { color: var(--ink); border-color: var(--muted); }
+.menu {
+  position: absolute; z-index: 20; width: min(560px, calc(100% - 1rem));
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .2); padding: .8rem .9rem .9rem; text-align: left;
+}
+.menu .menu-note { font-size: .78rem; color: var(--muted); margin-bottom: .5rem; }
+.menu h5 { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; margin: .7rem 0 .3rem; }
+.menu h5:first-of-type { margin-top: 0; }
+.menu .opts { display: flex; flex-wrap: wrap; gap: .35rem; }
+.opt {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-family: Consolas, "SF Mono", Menlo, monospace; font-size: .85rem; font-weight: 600;
+  color: var(--c); background: var(--surface); border: 1.5px solid var(--c);
+  border-radius: 999px; padding: .2rem .7rem .2rem .5rem; cursor: pointer;
+}
+.opt:hover, .opt:focus-visible { box-shadow: 0 0 0 3px var(--hl); outline: none; }
+.opt[aria-selected="true"] { background: var(--c); color: var(--surface); }
+.opt[aria-selected="true"] .mark { color: var(--surface); }
+.opt.strained:not([aria-selected="true"]) { opacity: .5; }
+
+@media (max-width: 700px) {
+  .stage { padding: 3rem .7rem 1.6rem; }
+  .node-box { width: 58px; height: 86px; border-radius: 12px; }
+  .node-box .nt { font-size: 1.8rem; }
+  .node-box .ns { display: none; }
+  .pick { padding: .35rem .55rem .35rem .8rem; }
+  .pick code { font-size: .95rem; }
+  .reading .big { font-size: 1.2rem; }
+  .reading .two { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+.panel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+
+/* Pairing map */
+.pair-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 1.2rem; align-items: start; margin-top: 1rem; }
+@media (max-width: 900px) { .pair-grid { grid-template-columns: 1fr; } }
+.pm-controls { display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; font-size: .85rem; color: var(--muted); padding: .3rem .5rem .6rem; }
+.pm-controls label { display: inline-flex; gap: .4rem; align-items: center; cursor: pointer; color: var(--ink); }
+.pm-controls .k { display: inline-flex; gap: .4rem; align-items: center; }
+.pm-controls .k i { display: inline-block; width: 26px; border-top: 3px solid var(--muted); }
+.pm-controls .k i.dash { border-top: 1.5px dashed var(--muted); }
+svg#pairmap { display: block; width: 100%; height: auto; max-height: calc(100vh - 9rem); margin: 0 auto; }
+.pm-link { fill: none; transition: opacity .15s; pointer-events: none; }
+.pm-link.natural { stroke-width: 3; opacity: .55; }
+.pm-link.possible { stroke-width: 1.4; stroke-dasharray: 4 3; opacity: .5; }
+.pm-hit { fill: none; stroke: transparent; stroke-width: 9; cursor: pointer; }
+.pm-focus .pm-link { opacity: .06; }
+.pm-focus .pm-link.on { opacity: .95; }
+.pm-node { cursor: pointer; outline: none; transition: opacity .15s; }
+.pm-node rect { stroke-width: 1.5; }
+.pm-node text { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 13px; font-weight: 600; }
+.pm-node.pinned rect, .pm-node:focus-visible rect { stroke-width: 3; }
+.pm-focus .pm-node { opacity: .28; }
+.pm-focus .pm-node.on { opacity: 1; }
+.pm-grp { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.pair-detail { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+.pair-detail .kicker { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.pair-detail h3 { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 1.1rem; margin: .1rem 0 .4rem; }
+.pair-detail h3.plain { font-family: inherit; }
+.pair-detail p { font-size: .9rem; }
+.pair-detail p + p { margin-top: .5rem; }
+.pair-detail h4 { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: .9rem 0 .2rem; }
+.pair-detail .pair { font-size: .86rem; margin-top: .45rem; }
+.pair-detail .pair code { font-weight: 700; }
+.pair-detail .ex { font-style: italic; }
+.pair-detail .hint { color: var(--muted); font-size: .85rem; }
+@media (max-width: 900px) { .pair-detail { position: static; max-height: none; } }
+
+/* Compatibility table */
+.answer {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0;
+}
+@media (max-width: 900px) { .answer { grid-template-columns: 1fr; } }
+.answer .panel h4 { font-size: .95rem; margin-bottom: .3rem; color: var(--forest); }
+.answer .panel p { font-size: .88rem; }
+.key { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: .85rem; margin: .8rem 0; color: var(--muted); }
+.key span b { color: var(--ink); }
+.mark { display: inline-block; width: 1.1em; text-align: center; font-weight: 700; }
+.mark.natural { color: var(--pos); }
+.mark.possible { color: var(--ctx); }
+.mark.strained { color: var(--non); }
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface);
+}
+table.compat { border-collapse: separate; border-spacing: 0; font-size: .8rem; min-width: 2100px; }
+table.compat th, table.compat td { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: .55rem .6rem; vertical-align: top; text-align: left; }
+table.compat thead th {
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+  font-family: Consolas, "SF Mono", Menlo, monospace; font-size: .8rem; white-space: nowrap;
+  border-bottom: 3px solid var(--line);
+}
+table.compat thead th .sub { display: block; font-family: system-ui, sans-serif; font-weight: 500; font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+table.compat th.rowhead {
+  position: sticky; left: 0; background: var(--surface); z-index: 2;
+  width: 170px; min-width: 170px;
+  font-family: Consolas, "SF Mono", Menlo, monospace; font-size: .82rem;
+  border-left: 4px solid;
+}
+table.compat th.rowhead .sub { display: block; font-family: system-ui, sans-serif; font-weight: 500; font-size: .7rem; color: var(--muted); margin-top: .15rem; }
+table.compat thead th.corner { left: 0; z-index: 3; }
+table.compat td { width: 175px; min-width: 175px; }
+td.natural { background: var(--tint); }
+td.strained { color: var(--muted); font-style: italic; }
+td .mark { margin-right: .2rem; font-style: normal; }
+table.compat .hl { box-shadow: inset 0 0 0 999px var(--hl); }
+
+footer { margin-top: 1.5rem; font-size: .8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Conceptions of causation in CAMO</h1>
+  <p>Every edge joins a cause <strong>C</strong> to an effect <strong>E</strong> with one <strong>relation</strong> (predicate), read under a <strong>conception</strong> of causation (philosophical account). Pick one of each.</p>
+</header>
+
+<div class="figure stage" id="stage">
+  <button type="button" class="ghost-btn surprise" id="surprise">Surprise me</button>
+  <div class="edge-row">
+    <div class="node-box"><div class="nt">C</div><div class="ns">cause &middot; subject<br>state or change of X</div></div>
+    <div class="edge">
+      <div class="edge-line" id="edge-line"></div>
+      <div class="slot-label rel-label">relation</div>
+      <button type="button" class="pick on-line" id="pick-pred" aria-haspopup="listbox" aria-expanded="false"></button>
+      <div class="edge-slot bottom">
+        <div class="slot-label">read as</div>
+        <button type="button" class="pick" id="pick-acc" aria-haspopup="listbox" aria-expanded="false"></button>
+      </div>
+    </div>
+    <div class="node-box"><div class="nt">E</div><div class="ns">effect &middot; object<br>state or change of Y</div></div>
+  </div>
+  <div class="reading" id="reading" aria-live="polite"></div>
+  <div class="menu" id="menu" role="listbox" hidden></div>
+</div>
+
+<h2 class="section" id="pairings">Pairing map</h2>
+<p class="lede">Above, you pick one pairing at a time; this view shows all of them at once. Each line joins a predicate to an account it fits, using the ratings from the compatibility table below. Hover over a name or a line; click to pin.</p>
+
+<div class="pair-grid">
+  <div class="figure">
+    <div class="pm-controls">
+      <label><input type="checkbox" id="show-possible"> Show possible pairings too</label>
+      <span class="k"><i></i> natural</span>
+      <span class="k"><i class="dash"></i> possible</span>
+      <span>Strained pairings are not drawn.</span>
+    </div>
+    <svg id="pairmap" viewBox="0 0 900 480" role="group" aria-label="Predicates on the left joined by lines to the philosophical accounts they fit on the right"></svg>
+  </div>
+  <aside class="panel pair-detail" id="pair-detail" aria-live="polite"></aside>
+</div>
+
+<h2 class="section" id="compat">Do predicates and accounts constrain each other?</h2>
+<p class="lede">Not in the schema, but in practice some pairs fit much better than others.</p>
+
+<div class="answer">
+  <section class="panel">
+    <h4>Formally: independent</h4>
+    <p>CAMO 0.8.0 has no rule linking <code>predicate</code> to <code>philosophical_accounts</code>. The only predicate rules involve <code>causal_language</code>. Any of the 88 combinations validates.</p>
+  </section>
+  <section class="panel">
+    <h4>Conceptually: loosely coupled</h4>
+    <p>The predicate says <em>what</em> is claimed; the account says <em>what kind of causation</em> that claim relies on. For the eight causal predicates most accounts are workable, and a few pairings are especially natural (mediates with mechanistic, moderates with INUS, prevents with counterfactual).</p>
+  </section>
+  <section class="panel">
+    <h4>The real constraint: non-causal predicates</h4>
+    <p><code>associated_with</code>, <code>correlated_with</code> and <code>precedes</code> make no causal claim, yet <code>philosophical_accounts</code> is required on every edge. Only <code>probabilistic</code> (co-variation) and <code>regularity</code> (constant conjunction) describe what such evidence can show. Production, intervention, counterfactual and agency accounts all presuppose causation.</p>
+  </section>
+</div>
+
+<div class="key">
+  <span><span class="mark natural">&#9679;</span> <b>Natural</b>: a usual reading of this predicate</span>
+  <span><span class="mark possible">&#9675;</span> <b>Possible</b>: coherent, less common</span>
+  <span><span class="mark strained">&times;</span> <b>Strained</b>: the account presupposes more than the predicate claims</span>
+</div>
+
+<div class="table-scroll">
+  <table class="compat" id="compat-table"></table>
+</div>
+<p class="lede" style="margin-top:.6rem;font-size:.85rem">Ratings are interpretive guidance, not schema rules. Example sentences are illustrative restoration-ecology claims, not findings from specific papers, except the two Murphy (2005) examples. Selecting an arc above highlights its row or column.</p>
+
+<footer>
+  Source: <code>CausalPredicateEnum</code> and <code>PhilosophicalAccountEnum</code> in <code>causalmosaic.yaml</code>, CAMO 0.8.0. Accounts follow Illari &amp; Russo (2014), <em>Causality: Philosophical Theory Meets Scientific Practice</em>.
+</footer>
+</div>
+
+<script>
+const LANG_ALL = ["no_relationship", "associational", "uncertain_causal", "direct_causal"];
+const LANG_NONCAUSAL = ["associational", "no_relationship"];
+const LANG_CAUSES = ["uncertain_causal", "direct_causal", "no_relationship"];
+
+const CAT = {
+  pos: { label: "Positive", color: "var(--pos)" },
+  neg: { label: "Negative", color: "var(--neg)" },
+  ctx: { label: "Variable, pathway or modifier", color: "var(--ctx)" },
+  non: { label: "Non-causal", color: "var(--non)", dashed: true }
+};
+const FAM = {
+  dm: { label: "Difference-making", color: "var(--dm)" },
+  pr: { label: "Production", color: "var(--pr)" },
+  co: { label: "Complementary", color: "var(--co)" }
+};
+
+// Inner to outer: strongest causal commitment to none.
+const PREDICATES = [
+  { id: "causes", cat: "pos", sign: "positive", w: "0.7", tpl: "C causes E", desc: "Direct positive causation: C produces E.", lang: LANG_CAUSES },
+  { id: "contributes_to", cat: "pos", sign: "positive", w: "0.4", tpl: "C contributes to E", desc: "C is one of several contributing factors to E.", lang: LANG_ALL },
+  { id: "enables", cat: "pos", sign: "positive", w: "0.5", tpl: "C enables E", desc: "C facilitates or promotes E but is not sufficient.", lang: LANG_ALL },
+  { id: "prevents", cat: "neg", sign: "negative", w: "-0.6", tpl: "C prevents E", desc: "C inhibits, blocks, or reduces E.", lang: LANG_ALL },
+  { id: "disrupts", cat: "neg", sign: "negative", w: "-0.5", tpl: "C disrupts E", desc: "C degrades, suppresses, or disrupts E.", lang: LANG_ALL },
+  { id: "regulates", cat: "ctx", sign: "variable", w: "0.0", tpl: "C regulates E", desc: "C modulates E; the direction may be positive or negative, depending on the node state changes.", lang: LANG_ALL },
+  { id: "mediates", cat: "ctx", sign: "pathway", w: "0.0", tpl: "C mediates the effect on E", desc: "The subject is on the causal pathway to the object. Here C plays the mediator, M.", lang: LANG_ALL },
+  { id: "moderates", cat: "ctx", sign: "modifier", w: "0.0", tpl: "C moderates the relationship with E", desc: "The subject modifies the strength or direction of another cause's effect on E. Here C plays the moderator, Z.", lang: LANG_ALL },
+  { id: "correlated_with", cat: "non", sign: "unspecified", w: "0.2", tpl: "C is correlated with E", desc: "A reported statistical correlation (Pearson or Spearman r, R², regression slope) with no direction or causal commitment. A narrower form of associated_with.", lang: LANG_NONCAUSAL },
+  { id: "associated_with", cat: "non", sign: "unspecified", w: "0.3", tpl: "C is associated with E", desc: "Association or co-occurrence with no causal commitment, and no correlation statistic reported.", lang: LANG_NONCAUSAL },
+  { id: "precedes", cat: "non", sign: "temporal", w: "0.0", tpl: "C precedes E", desc: "Temporal precedence with no causal commitment.", lang: LANG_NONCAUSAL }
+];
+
+// Inner to outer, grouped by family.
+const ACCOUNTS = [
+  { id: "interventionist", fam: "dm", q: "Does intervening on C change E?", desc: "There exists an intervention on C that changes E or its probability distribution. Woodward (2003); Pearl's do-calculus.", cues: "experimental manipulation of; treatment resulted in; randomized trial showed" },
+  { id: "counterfactual", fam: "dm", q: "Would E have occurred without C?", desc: "Had C not occurred, E would not have occurred. Lewis (1973); operationalized by potential outcomes and control groups.", cues: "without X; in the absence of; would not have" },
+  { id: "probabilistic", fam: "dm", q: "Does C raise the probability of E, or do variations in C systematically track variations in E?", desc: "C raises the probability of E, or causation is identified through systematic co-variation. Suppes, Eells; Russo (2009) on variation.", cues: "risk factor for; odds ratio; regression coefficient; SEM; dose-response" },
+  { id: "mechanistic", fam: "pr", q: "What entities and activities produce E from C?", desc: "Entities and activities organized to produce the phenomenon. Machamer, Darden & Craver (2000). Dominant in biology and ecology.", cues: "the mechanism by which; pathway from X to Y; trophic cascade" },
+  { id: "transmission", fam: "pr", q: "What conserved quantity, material flow, signal, or information is transmitted from C to E?", desc: "Causal production as transmission between system states. Salmon, Dowe; Collier & Illari (2011) on information.", cues: "energy transfer; nutrient transport; sediment transport; tracer" },
+  { id: "regularity", fam: "co", q: "Does C-type always or usually precede E-type?", desc: "Constant conjunction between event types. Hume, Mill and neo-Humean accounts.", cues: "wherever X appears, Y follows; consistently observed" },
+  { id: "inus_component", fam: "co", q: "Is C a necessary component of a sufficient cause constellation?", desc: "C is an Insufficient but Necessary part of an Unnecessary but Sufficient condition. Mackie (1965); Rothman's component causes.", cues: "one of several causes; in combination with; necessary but not sufficient" },
+  { id: "agency", fam: "co", q: "Can an agent bring about E by doing C?", desc: "C causes E if bringing about C is an effective means for an agent to bring about E. von Wright (1971); Menzies & Price (1993). Key for restoration prescriptions.", cues: "managers can achieve Y by doing X; restoration prescription" }
+];
+
+// Compatibility: [rating, text]. n = natural, p = possible, x = strained.
+const NONCAUSAL_X = {
+  interventionist: "An intervention that changed E supports more than association. If the study manipulated C, a causal predicate fits better.",
+  counterfactual: "“E would not have occurred without C” is a causal claim; an associational predicate does not make it.",
+  mechanistic: "Proposing a mechanism is a production claim. If the text gives one, the predicate should be causal.",
+  transmission: "Tracing a flow from C to E asserts production; an associational predicate withholds it.",
+  inus_component: "Being part of a sufficient cause set is causal. Pure association can't place C in one.",
+  agency: "An agent can't reliably bring about E by doing C if C is only known to go with E."
+};
+const M = {
+  interventionist: {
+    causes: ["n", "Experimental removal of cattle causes recovery of riparian willow cover."],
+    contributes_to: ["n", "In the fertilization trial, nitrogen addition contributes to loss of native forb richness."],
+    enables: ["n", "Scarifying soil in treated plots enables jack pine seedling establishment."],
+    prevents: ["n", "Installing deer exclosures prevents browsing damage to oak seedlings."],
+    disrupts: ["n", "Experimental pond drawdown disrupts amphibian breeding."],
+    regulates: ["p", "Manipulated grazing intensity regulates grass-shrub balance: shrubs gain at low intensity, grasses at high."],
+    mediates: ["p", "Shade-cloth plots removed the effect, showing reduced light mediates the effect of bloodroot on garlic mustard."],
+    moderates: ["p", "Irrigated plots showed a weaker fire effect: soil moisture moderates fire's effect on seedling mortality."],
+    correlated_with: ["x", NONCAUSAL_X.interventionist],
+    associated_with: ["x", NONCAUSAL_X.interventionist],
+    precedes: ["x", "An intervention reported only as coming first makes no difference-making claim."]
+  },
+  counterfactual: {
+    causes: ["n", "Dam construction causes collapse of cottonwood recruitment; undammed reaches kept recruiting."],
+    contributes_to: ["n", "Control catchments without beavers had less wetland: beaver damming contributes to wetland expansion."],
+    enables: ["n", "Without fire, serotinous cones stay closed: fire enables lodgepole pine seed release."],
+    prevents: ["n", "Where wolves were absent, elk stripped aspen: wolf presence prevents that browsing."],
+    disrupts: ["n", "Unlit control sites kept normal moth pollination; artificial night light disrupts it."],
+    regulates: ["p", "Without tidal exchange, salinity would drift up or down with the season: tidal exchange regulates salinity."],
+    mediates: ["p", "Had soil nitrogen not risen, the legume invasion would not have shifted grass composition: soil nitrogen mediates the effect."],
+    moderates: ["p", "Outside the drought year the grazing effect on cover was small: drought moderates grazing effects."],
+    correlated_with: ["x", NONCAUSAL_X.counterfactual],
+    associated_with: ["x", NONCAUSAL_X.counterfactual],
+    precedes: ["x", NONCAUSAL_X.counterfactual]
+  },
+  probabilistic: {
+    causes: ["p", "Across 200 lakes, road-salt loading causes zooplankton collapse, raising its probability sharply above a chloride threshold."],
+    contributes_to: ["n", "In a regression across 60 streams, impervious cover contributes to lower invertebrate diversity (β = −0.4)."],
+    enables: ["p", "Sites with coarse woody debris had higher odds of salamander occupancy: debris enables occupancy."],
+    prevents: ["p", "Canopy cover above 60% lowers the probability of buckthorn invasion: dense canopy prevents it."],
+    disrupts: ["p", "Each 10% rise in impervious cover lowered the odds of an intact riffle community."],
+    regulates: ["p", "An SEM showed a hump-shaped response: grazing intensity regulates plant diversity."],
+    mediates: ["n", "In the SEM, soil moisture mediates the effect of canopy cover on seedling survival (indirect path = 0.3)."],
+    moderates: ["n", "A significant interaction term: soil pH moderates the effect of liming on moss cover."],
+    correlated_with: ["n", "Pike density is correlated with perch body size across lakes (r = 0.52)."],
+    associated_with: ["p", "Invasive earthworms are associated with thinner forest-floor litter. Co-variation, but no statistic reported."],
+    precedes: ["p", "In the monitoring record, algal blooms precede most fish kills."]
+  },
+  mechanistic: {
+    causes: ["n", "Beaver dams cause wetland formation by impounding water and raising the water table."],
+    contributes_to: ["n", "Garlic mustard contributes to native decline by exuding compounds that suppress mycorrhizal fungi."],
+    enables: ["n", "Nurse shrubs enable seedling establishment by shading soil and reducing evaporation."],
+    prevents: ["n", "Dense sedge thatch prevents tree seedling establishment by blocking light at the soil surface."],
+    disrupts: ["n", "Perched culverts disrupt fish migration by creating velocity barriers."],
+    regulates: ["p", "Mycorrhizal networks regulate seedling carbon balance, moving carbon toward or away from shaded seedlings."],
+    mediates: ["n", "Reduced light mediates the effect of bloodroot transplanting on garlic mustard growth (Murphy 2005)."],
+    moderates: ["p", "Soil texture moderates drought effects on trees by setting water-holding capacity."],
+    correlated_with: ["x", NONCAUSAL_X.mechanistic],
+    associated_with: ["x", NONCAUSAL_X.mechanistic],
+    precedes: ["x", NONCAUSAL_X.mechanistic]
+  },
+  transmission: {
+    causes: ["n", "Upstream fertilizer runoff causes downstream eutrophication by transporting phosphorus."],
+    contributes_to: ["n", "Salmon carcasses contribute to riparian tree growth by transferring marine-derived nitrogen."],
+    enables: ["p", "Hyphal connections enable nitrogen transfer from alders to neighbouring conifers."],
+    prevents: ["p", "Riparian buffers prevent nitrate reaching the stream by intercepting subsurface flow."],
+    disrupts: ["n", "Dams disrupt sediment delivery to downstream deltas."],
+    regulates: ["p", "Wetlands regulate downstream flow, storing water in wet periods and releasing it in dry ones."],
+    mediates: ["n", "Groundwater flow mediates the effect of upland fertilization on spring-fed fens."],
+    moderates: ["p", "Stream velocity moderates how far a contaminant pulse travels from its source."],
+    correlated_with: ["x", NONCAUSAL_X.transmission],
+    associated_with: ["x", NONCAUSAL_X.transmission],
+    precedes: ["x", NONCAUSAL_X.transmission]
+  },
+  regularity: {
+    causes: ["p", "Wherever beavers colonize a valley, wetlands form: colonization causes wetland formation."],
+    contributes_to: ["p", "Deep-snow winters consistently accompany higher deer mortality: snow depth contributes to it."],
+    enables: ["p", "Stand-replacing fires are consistently followed by aspen suckering: fire enables regeneration."],
+    prevents: ["p", "Where reed canary grass dominates, sedge meadow is consistently absent: dominance prevents it."],
+    disrupts: ["p", "Across decades of records, El Niño years accompany seabird breeding failure."],
+    regulates: ["x", "A constant conjunction runs one way; an effect whose direction flips is not a simple regularity."],
+    mediates: ["p", "In every burned stand, an ash-bed nutrient pulse came between fire and the fireweed flush."],
+    moderates: ["p", "The browsing effect on trillium is consistently weaker after deep-snow winters."],
+    correlated_with: ["p", "Year after year, spring temperature is correlated with oak mast size."],
+    associated_with: ["n", "Across surveys, zebra mussels are associated with clearer water."],
+    precedes: ["n", "Spring ice-out consistently precedes the walleye spawning run."]
+  },
+  inus_component: {
+    causes: ["p", "Lightning causes crown fire, but only in stands that also have drought and heavy fuel loads."],
+    contributes_to: ["n", "Nitrogen deposition contributes to heathland loss, together with the end of grazing."],
+    enables: ["n", "Canopy gaps enable oak recruitment, given low deer density and a nearby seed source."],
+    prevents: ["p", "Sedge thatch prevents buckthorn invasion where shade and a high water table are also present."],
+    disrupts: ["p", "Warm low-flow summers disrupt brook trout spawning when combined with fine-sediment loading."],
+    regulates: ["p", "Soil pH regulates phosphorus availability, jointly with iron and aluminium content."],
+    mediates: ["p", "A raised water table mediates the effect of rewetting on bog recovery, alongside a surviving Sphagnum source."],
+    moderates: ["n", "Seed-source distance moderates the effect of canopy gaps on oak recruitment."],
+    correlated_with: ["x", NONCAUSAL_X.inus_component],
+    associated_with: ["x", NONCAUSAL_X.inus_component],
+    precedes: ["x", NONCAUSAL_X.inus_component]
+  },
+  agency: {
+    causes: ["n", "Managers can cause native grassland recovery by reintroducing prescribed fire."],
+    contributes_to: ["n", "Transplanting bloodroot contributes to garlic mustard control (Murphy 2005)."],
+    enables: ["n", "Removing drainage tiles enables wetland plants to recolonize."],
+    prevents: ["n", "Cleaning boots at trailheads prevents the spread of invasive seed."],
+    disrupts: ["n", "Mowing before seed set disrupts spotted knapweed reproduction."],
+    regulates: ["p", "Managers can regulate shrub cover by adjusting grazing intensity up or down."],
+    mediates: ["p", "Ditch blocking restores Sphagnum through a raised water table, which mediates the effect."],
+    moderates: ["p", "Burning in spring rather than autumn moderates how strongly fire suppresses woody encroachment."],
+    correlated_with: ["x", NONCAUSAL_X.agency],
+    associated_with: ["x", NONCAUSAL_X.agency],
+    precedes: ["x", NONCAUSAL_X.agency]
+  }
+};
+const MARK = { n: ["natural", "●"], p: ["possible", "○"], x: ["strained", "×"] };
+
+/* ---------- SVG helper (used by the pairing map) ---------- */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+
+/* ---------- One edge: one relation x one conception ---------- */
+const reading = document.getElementById("reading");
+const sel = { p: "contributes_to", a: "interventionist" };
+const RATE = { n: "natural", p: "possible", x: "strained" };
+
+function choose(kind, id) {
+  if (kind === "predicate") sel.p = id; else sel.a = id;
+  render(true);
+}
+function render(byUser) {
+  const pred = PREDICATES.find(x => x.id === sel.p), acc = ACCOUNTS.find(x => x.id === sel.a);
+  const [r, text] = M[sel.a][sel.p];
+  const rating = RATE[r];
+  const pc = CAT[pred.cat].color, fc = FAM[acc.fam].color;
+
+  const line = document.getElementById("edge-line");
+  line.style.setProperty("--c", pc);
+  line.classList.toggle("dashed", !!CAT[pred.cat].dashed);
+
+  const pickPred = document.getElementById("pick-pred"), pickAcc = document.getElementById("pick-acc");
+  pickPred.style.setProperty("--c", pc);
+  pickAcc.style.setProperty("--c", fc);
+  pickPred.innerHTML = `<code>${pred.id}</code><span class="caret">&#9662;</span>`;
+  pickAcc.innerHTML = `<code>${acc.id}</code><span class="caret">&#9662;</span>`;
+  pickPred.setAttribute("aria-label", `Relation: ${pred.id}. Change`);
+  pickAcc.setAttribute("aria-label", `Conception: ${acc.id}. Change`);
+
+  const fcm = ["variable", "pathway", "modifier", "temporal"].includes(pred.sign) ? "no fixed sign" : `default FCM weight ${pred.w}`;
+  reading.innerHTML = `
+    <span class="fit-badge ${rating}">${MARK[r][1]} ${rating} pairing</span>
+    <p class="big">${r === "x" ? text : `&ldquo;${text}&rdquo;`}</p>
+    <div class="two">
+      <div>
+        <div class="mini-k" style="color:${pc}">Relation &middot; ${CAT[pred.cat].label}</div>
+        <code style="color:${pc}">${pred.id}</code>: ${pred.desc}
+        <div class="hint">${pred.sign} sign &middot; ${fcm}</div>
+      </div>
+      <div>
+        <div class="mini-k" style="color:${fc}">Conception &middot; ${FAM[acc.fam].label}</div>
+        <code style="color:${fc}">${acc.id}</code>: &ldquo;${acc.q}&rdquo;
+        <div class="hint">cues: ${acc.cues}</div>
+      </div>
+    </div>`;
+
+  highlightPair(sel.p, sel.a);
+  if (byUser) { try { history.replaceState(null, "", `#pair=${sel.p},${sel.a}`); } catch (e) {} }
+}
+
+// Dropdown menus with fit marks relative to the other half of the pair
+const menu = document.getElementById("menu");
+let menuFor = null;
+function openMenu(kind, button) {
+  if (menuFor === kind) { closeMenu(); return; }
+  closeMenu();
+  menuFor = kind;
+  button.setAttribute("aria-expanded", "true");
+  const groups = kind === "predicate"
+    ? Object.keys(CAT).map(c => ({ label: CAT[c].label, color: CAT[c].color, list: PREDICATES.filter(p => p.cat === c) }))
+    : Object.keys(FAM).map(f => ({ label: FAM[f].label, color: FAM[f].color, list: ACCOUNTS.filter(a => a.fam === f) }));
+  const other = kind === "predicate" ? sel.a : sel.p;
+  const current = kind === "predicate" ? sel.p : sel.a;
+  let h = `<div class="menu-note">Fit with <code>${other}</code>: ${MARK.n[1]} natural &middot; ${MARK.p[1]} possible &middot; ${MARK.x[1]} strained</div>`;
+  groups.forEach(g => {
+    h += `<h5 style="color:${g.color}">${g.label}</h5><div class="opts">`;
+    g.list.forEach(o => {
+      const r = kind === "predicate" ? M[sel.a][o.id][0] : M[o.id][sel.p][0];
+      h += `<button type="button" class="opt ${RATE[r]}" role="option" aria-selected="${o.id === current}" data-id="${o.id}" style="--c:${g.color}"><span class="mark ${RATE[r]}">${MARK[r][1]}</span>${o.id}</button>`;
+    });
+    h += `</div>`;
+  });
+  menu.innerHTML = h;
+  menu.hidden = false;
+  const fig = button.closest(".figure").getBoundingClientRect(), b = button.getBoundingClientRect();
+  const centred = b.left - fig.left + b.width / 2 - menu.offsetWidth / 2;
+  menu.style.left = Math.max(8, Math.min(centred, fig.width - menu.offsetWidth - 8)) + "px";
+  menu.style.top = (b.bottom - fig.top + 8) + "px";
+  (menu.querySelector('.opt[aria-selected="true"]') || menu.querySelector(".opt")).focus();
+}
+function closeMenu() {
+  if (!menuFor) return;
+  document.getElementById(menuFor === "predicate" ? "pick-pred" : "pick-acc").setAttribute("aria-expanded", "false");
+  menuFor = null;
+  menu.hidden = true;
+}
+menu.addEventListener("click", e => {
+  const o = e.target.closest(".opt");
+  if (!o) return;
+  const kind = menuFor;
+  closeMenu();
+  choose(kind, o.dataset.id);
+  document.getElementById(kind === "predicate" ? "pick-pred" : "pick-acc").focus();
+});
+document.getElementById("pick-pred").addEventListener("click", e => openMenu("predicate", e.currentTarget));
+document.getElementById("pick-acc").addEventListener("click", e => openMenu("account", e.currentTarget));
+document.addEventListener("click", e => { if (menuFor && !e.target.closest("#menu, .pick")) closeMenu(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenu(); });
+window.addEventListener("resize", closeMenu);
+document.getElementById("surprise").addEventListener("click", () => {
+  const pool = [];
+  ACCOUNTS.forEach(a => PREDICATES.forEach(p => {
+    if (M[a.id][p.id][0] === "n" && !(p.id === sel.p && a.id === sel.a)) pool.push([p.id, a.id]);
+  }));
+  const [pp, aa] = pool[Math.floor(Math.random() * pool.length)];
+  sel.p = pp; sel.a = aa;
+  render(true);
+});
+
+/* ---------- Compatibility table ---------- */
+const table = document.getElementById("compat-table");
+function buildTable() {
+  let h = `<thead><tr><th class="corner rowhead" style="border-left-color:transparent">account \\ predicate</th>`;
+  PREDICATES.forEach(p => {
+    h += `<th data-col="${p.id}" style="color:${CAT[p.cat].color}">${p.id}<span class="sub">${p.sign}</span></th>`;
+  });
+  h += `</tr></thead><tbody>`;
+  ACCOUNTS.forEach(a => {
+    h += `<tr data-row="${a.id}"><th class="rowhead" style="border-left-color:${FAM[a.fam].color}">${a.id}<span class="sub">${FAM[a.fam].label}</span></th>`;
+    PREDICATES.forEach(p => {
+      const [r, text] = M[a.id][p.id];
+      const [cls, sym] = MARK[r];
+      h += `<td class="${cls}" data-col="${p.id}" title="${a.id} + ${p.id}: ${cls}"><span class="mark ${cls}">${sym}</span>${text}</td>`;
+    });
+    h += `</tr>`;
+  });
+  table.innerHTML = h + `</tbody>`;
+}
+function highlightPair(pId, aId) {
+  table.querySelectorAll(".hl").forEach(n => n.classList.remove("hl"));
+  table.querySelectorAll(`[data-col="${pId}"]`).forEach(n => n.classList.add("hl"));
+  table.querySelectorAll(`tr[data-row="${aId}"] > *`).forEach(n => n.classList.add("hl"));
+}
+function highlight(kind, id) {
+  if (!kind) { highlightPair(sel.p, sel.a); return; }   // fall back to the football's pair
+  table.querySelectorAll(".hl").forEach(n => n.classList.remove("hl"));
+  if (kind === "predicate") table.querySelectorAll(`[data-col="${id}"]`).forEach(n => n.classList.add("hl"));
+  if (kind === "account") table.querySelectorAll(`tr[data-row="${id}"] > *`).forEach(n => n.classList.add("hl"));
+}
+buildTable();
+render();
+
+/* ---------- Pairing map ---------- */
+const pm = document.getElementById("pairmap");
+const pmDetail = document.getElementById("pair-detail");
+const showPossible = document.getElementById("show-possible");
+const SHORT_CAT = { pos: "Positive", neg: "Negative", ctx: "No fixed sign", non: "Non-causal" };
+const RATING = { n: "natural", p: "possible", x: "strained" };
+let pmNodes = [], pmLinks = [], pmPinned = null;
+
+function buildPairMap() {
+  pm.textContent = "";
+  const PL = 290, PR = 610, ROW = 34, GRP_GAP = 22, FAM_GAP = 34, TOP = 26;
+  const predY = {}, accY = {};
+  let y = TOP, last = null;
+  PREDICATES.forEach(p => { if (last && p.cat !== last) y += GRP_GAP; predY[p.id] = y; last = p.cat; y += ROW; });
+  const bottom = y - ROW;
+  const accStep = (bottom - TOP - 2 * FAM_GAP) / (ACCOUNTS.length - 1);
+  y = TOP; last = null;
+  ACCOUNTS.forEach(a => { if (last && a.fam !== last) y += FAM_GAP; accY[a.id] = y; last = a.fam; y += accStep; });
+  pm.setAttribute("viewBox", `0 0 900 ${bottom + TOP}`);
+
+  // Group labels
+  let seen = {};
+  PREDICATES.forEach(p => {
+    if (seen[p.cat]) return; seen[p.cat] = 1;
+    el("text", { x: 10, y: predY[p.id] + 4, class: "pm-grp", fill: CAT[p.cat].color }, pm).textContent = SHORT_CAT[p.cat];
+  });
+  seen = {};
+  ACCOUNTS.forEach(a => {
+    if (seen[a.fam]) return; seen[a.fam] = 1;
+    el("text", { x: 890, y: accY[a.id] + 4, "text-anchor": "end", class: "pm-grp", fill: FAM[a.fam].color }, pm).textContent = FAM[a.fam].label;
+  });
+
+  // Links (drawn first so the name pills sit on top)
+  pmLinks = [];
+  const linkLayer = el("g", {}, pm);
+  const hitLayer = el("g", {}, pm);
+  ACCOUNTS.forEach(a => PREDICATES.forEach(p => {
+    const r = M[a.id][p.id][0];
+    if (r === "x" || (r === "p" && !showPossible.checked)) return;
+    const y1 = predY[p.id], y2 = accY[a.id];
+    const d = `M${PL},${y1} C${PL + 130},${y1} ${PR - 130},${y2} ${PR},${y2}`;
+    const path = el("path", { d, class: "pm-link " + RATING[r], stroke: FAM[a.fam].color }, linkLayer);
+    const hit = el("path", { d, class: "pm-hit" }, hitLayer);
+    const link = { p: p.id, a: a.id, r, path };
+    pmLinks.push(link);
+    hit.addEventListener("mouseenter", () => { if (!pmPinned) pmFocus({ type: "link", p: p.id, a: a.id }); });
+    hit.addEventListener("click", e => { e.stopPropagation(); pmPin({ type: "link", p: p.id, a: a.id }); });
+  }));
+
+  // Name pills
+  pmNodes = [];
+  const pill = (kind, d, x, yy, color, anchorRight) => {
+    const w = d.id.length * 7.8 + 20;
+    const g = el("g", { class: "pm-node", tabindex: 0, role: "button", "aria-label": `${kind} ${d.id}` }, pm);
+    const rx = anchorRight ? x - w : x;
+    el("rect", { x: rx, y: yy - 11, width: w, height: 22, rx: 11, fill: "var(--surface)", stroke: color }, g);
+    el("text", { x: rx + w / 2, y: yy + 4.5, "text-anchor": "middle", fill: color }, g).textContent = d.id;
+    const node = { kind, id: d.id, g };
+    pmNodes.push(node);
+    const target = { type: kind, id: d.id };
+    g.addEventListener("mouseenter", () => { if (!pmPinned) pmFocus(target); });
+    g.addEventListener("focus", () => { if (!pmPinned) pmFocus(target); });
+    g.addEventListener("click", e => { e.stopPropagation(); pmPin(target); });
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pmPin(target); } });
+  };
+  PREDICATES.forEach(p => pill("predicate", p, PL, predY[p.id], CAT[p.cat].color, true));
+  ACCOUNTS.forEach(a => pill("account", a, PR, accY[a.id], FAM[a.fam].color, false));
+
+  if (pmPinned) pmFocus(pmPinned, true); else pmReset();
+}
+
+function sameTarget(a, b) {
+  return a && b && a.type === b.type && a.id === b.id && a.p === b.p && a.a === b.a;
+}
+function pmPin(t) {
+  pmPinned = sameTarget(pmPinned, t) ? null : t;
+  if (pmPinned) pmFocus(pmPinned, true); else pmReset();
+}
+function pmFocus(t, isPin) {
+  pm.classList.add("pm-focus");
+  const onLink = l => t.type === "link" ? (l.p === t.p && l.a === t.a)
+                    : t.type === "predicate" ? l.p === t.id : l.a === t.id;
+  const onNodes = new Set();
+  if (t.type === "link") { onNodes.add("predicate:" + t.p); onNodes.add("account:" + t.a); }
+  else onNodes.add(t.type + ":" + t.id);
+  pmLinks.forEach(l => {
+    const on = onLink(l);
+    l.path.classList.toggle("on", on);
+    if (on) { onNodes.add("predicate:" + l.p); onNodes.add("account:" + l.a); }
+  });
+  pmNodes.forEach(n => {
+    n.g.classList.toggle("on", onNodes.has(n.kind + ":" + n.id));
+    n.g.classList.toggle("pinned", !!pmPinned && pmPinned.type === n.kind && pmPinned.id === n.id);
+  });
+  if (t.type === "link") highlight(null); else highlight(t.type, t.id);
+  pmDetail.innerHTML = t.type === "link" ? pairHtml(t.p, t.a) : t.type === "predicate" ? predHtml(t.id) : accHtml(t.id);
+}
+function pmReset() {
+  pm.classList.remove("pm-focus");
+  pmLinks.forEach(l => l.path.classList.remove("on"));
+  pmNodes.forEach(n => n.g.classList.remove("on", "pinned"));
+  highlight(null);
+  const nat = pmLinks.filter(l => l.r === "n").length;
+  const pos = ACCOUNTS.reduce((n, a) => n + PREDICATES.filter(p => M[a.id][p.id][0] === "p").length, 0);
+  pmDetail.innerHTML = `
+    <div class="kicker" style="color:var(--muted)">Reading the map</div>
+    <h3 class="plain">Which pairs fit</h3>
+    <p>Of the 88 possible pairings, <strong>${nat}</strong> are natural, <strong>${pos}</strong> are possible and the rest are strained.</p>
+    <p>Three patterns stand out. The five signed predicates (positive and negative) pair naturally with most accounts. The no-fixed-sign predicates have fewer natural partners, and <code>regulates</code> has none: tick "possible" to see its links. The three non-causal predicates connect only to <code>probabilistic</code> and <code>regularity</code>, the two accounts that describe what an association can show.</p>
+    <p class="hint">Hover over a name to see its pairings with example sentences, or over a line for a single pair.</p>`;
+}
+function exampleLine(pId, aId, showPred) {
+  const [r, text] = M[aId][pId];
+  const who = showPred ? pId : aId;
+  return `<div class="pair"><span class="mark ${RATING[r]}">${MARK[r][1]}</span><code>${who}</code>: <span class="ex">${text}</span></div>`;
+}
+function predHtml(id) {
+  const d = PREDICATES.find(p => p.id === id), c = CAT[d.cat];
+  const by = r => ACCOUNTS.filter(a => M[a.id][id][0] === r);
+  const strained = by("x").map(a => `<code>${a.id}</code>`).join(", ");
+  return `
+    <div class="kicker" style="color:${c.color}">Predicate &middot; ${c.label}</div>
+    <h3>${id}</h3>
+    <p class="ex">&ldquo;${d.tpl}&rdquo;</p>
+    <h4>Natural accounts</h4>${by("n").map(a => exampleLine(id, a.id, false)).join("") || "<p class='hint'>none</p>"}
+    <h4>Possible</h4>${by("p").map(a => exampleLine(id, a.id, false)).join("") || "<p class='hint'>none</p>"}
+    ${strained ? `<h4>Strained</h4><p class="hint">${strained}</p>` : ""}`;
+}
+function accHtml(id) {
+  const d = ACCOUNTS.find(a => a.id === id), f = FAM[d.fam];
+  const by = r => PREDICATES.filter(p => M[id][p.id][0] === r);
+  const strained = by("x").map(p => `<code>${p.id}</code>`).join(", ");
+  return `
+    <div class="kicker" style="color:${f.color}">Philosophical account &middot; ${f.label}</div>
+    <h3>${id}</h3>
+    <p class="ex">&ldquo;${d.q}&rdquo;</p>
+    <h4>Natural predicates</h4>${by("n").map(p => exampleLine(p.id, id, true)).join("") || "<p class='hint'>none</p>"}
+    <h4>Possible</h4>${by("p").map(p => exampleLine(p.id, id, true)).join("") || "<p class='hint'>none</p>"}
+    ${strained ? `<h4>Strained</h4><p class="hint">${strained}</p>` : ""}`;
+}
+function pairHtml(pId, aId) {
+  const [r, text] = M[aId][pId];
+  const a = ACCOUNTS.find(x => x.id === aId);
+  return `
+    <div class="kicker" style="color:${FAM[a.fam].color}">Pairing &middot; ${RATING[r]}</div>
+    <h3>${pId} &times; ${aId}</h3>
+    <p class="ex">${text}</p>
+    <p class="hint">${a.q}</p>`;
+}
+pm.addEventListener("mouseleave", () => { if (!pmPinned) pmReset(); });
+pm.addEventListener("click", () => { pmPinned = null; pmReset(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && pmPinned) { pmPinned = null; pmReset(); } });
+showPossible.addEventListener("change", buildPairMap);
+buildPairMap();
+
+// Deep links: #pair=<predicate>,<account> or #arc=<either>.
+(function () {
+  const pair = location.hash.match(/^#pair=([a-z_]+),([a-z_]+)$/);
+  const one = location.hash.match(/^#arc=([a-z_]+)$/);
+  const isP = id => PREDICATES.some(x => x.id === id), isA = id => ACCOUNTS.some(x => x.id === id);
+  if (pair && isP(pair[1]) && isA(pair[2])) { sel.p = pair[1]; sel.a = pair[2]; }
+  if (one && isP(one[1])) sel.p = one[1];
+  if (one && isA(one[1])) sel.a = one[1];
+  if (pair || one) render();
+})();
+</script>
+</body>
+</html>
