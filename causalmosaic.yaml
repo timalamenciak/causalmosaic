@@ -24,11 +24,11 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.8.0
+## Schema version: 0.9.0
 ## =============================================================================
 ## CHANGELOG
 ## =============================================================================
-## Unreleased
+## 0.9.0
 ## Added:
 ## - Added prefix for NCBITaxon (NCBI Taxonomy) to support taxon-linked variables.
 ## - Parameter options: a separate, shared ParameterOptionCatalog of the ways
@@ -43,6 +43,7 @@
 ##   nvs_l22, unit (QUDT) and UO.
 ## - ci.py check: ValueTypeEnum.compatible_qualifier_families names real
 ##   QualifierFamilyEnum values.
+## - Removed TokenOrType in favour of scope, drawing on Semantic Units framework.
 ##
 ## NOTE: additive. Existing 0.8.0 records remain valid.
 ##
@@ -132,7 +133,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.8.0
+version: 0.9.0
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -380,17 +381,22 @@ enums:
       structural_model:
         description: "Direction established by DAG or structural equation model."
 
-  TokenTypeEnum:
-    description: "Whether a causal claim is about a specific instance or a general type."
+  ScopeEnum:
+    description: >-
+      What a claim is about, following Vogt's semantic unit types. Replaces
+      TokenTypeEnum for new records. Values and definitions must match WARP's
+      SemanticUnitScopeEnum, so that ingestion copies them unchanged.
     permissible_values:
-      token:
-        description: "Singular claim: this specific C caused this specific E."
-      type:
-        description: "General claim: C-type causes E-type."
-      ambiguous:
-        description: "Cannot determine if token or type."
-      not_addressed:
-        description: "Not relevant or not discussed."
+      assertional:
+        description: "About one particular case: this site, these plots, this time."
+      contingent:
+        description: "About some cases, under stated conditions."
+      prototypical:
+        description: "About typical cases: what usually happens."
+      universal:
+        description: "About all cases of the kind."
+      unclear:
+        description: "The scope cannot be determined from the source."
 
   DeterminismEnum:
     description: "Whether the causal relationship frames the underlying process as deterministic or indeterministic, or uses probability only to express epistemic uncertainty."
@@ -471,6 +477,56 @@ enums:
         description: "Trivially small effect."
       not_specified:
         description: "Strength not characterized."
+
+    EffectMetricEnum:
+    description: "The metric of a reported effect size."
+    permissible_values:
+      raw_mean_difference:
+        description: "Difference between arm means in the outcome's own units."
+      standardized_mean_difference:
+        description: "Mean difference divided by a pooled standard deviation (Cohen's d, Hedges' g)."
+      log_response_ratio:
+        description: "Natural log of the ratio of treatment to comparator means."
+      percent_change:
+        description: "Percentage difference from the comparator."
+      risk_ratio:
+        description: "Ratio of event probabilities between arms."
+      odds_ratio:
+        description: "Ratio of event odds between arms."
+      correlation_coefficient:
+        description: "Pearson, Spearman or similar correlation."
+      regression_coefficient:
+        description: "Slope or coefficient from a regression or mixed model, in the model's units."
+      other:
+        description: "Another metric; name it in quantitative_value."
+
+  IntervalTypeEnum:
+    description: "The kind of uncertainty interval reported around an effect size."
+    permissible_values:
+      confidence:
+        description: "Frequentist confidence interval."
+      credible:
+        description: "Bayesian credible interval."
+      standard_error_range:
+        description: "Estimate plus or minus one standard error."
+      standard_deviation_range:
+        description: "Estimate plus or minus one standard deviation."
+
+  DoseResponseShapeEnum:
+    description: "The shape of a reported dose-response relationship."
+    permissible_values:
+      monotonic:
+        description: "The effect keeps increasing (or decreasing) with dose across the range tested."
+      threshold:
+        description: "Little or no effect below a dose, then an effect at or above it."
+      saturating:
+        description: "The effect increases with dose and then levels off."
+      unimodal:
+        description: "The effect peaks at an intermediate dose and weakens at higher doses."
+      none:
+        description: "Several doses were tested and the effect did not change with dose."
+      not_reported:
+        description: "A dose-response is described but its shape is not stated."
 
   # ---------------------------------------------------------------------------
   # Claim Strength (Layer 1)
@@ -829,9 +885,12 @@ enums:
         annotations:
           rosetta_verb_modifier: "may"
       very_low:
-        description: "Very low certainty. Rosetta rendering: 'X might increase Y'."
+        description: >-
+          Very low certainty. Rosetta rendering: 'The evidence is very
+          uncertain about the effect of X on Y'.
         annotations:
-          rosetta_verb_modifier: "might"
+          rosetta_verb_modifier: ""
+          rosetta_template: "The evidence is very uncertain about the effect of {subject} on {object}"      
       not_assessed:
         description: "Certainty not formally assessed."
 
@@ -1045,18 +1104,18 @@ enums:
           Two-path model for taxon-specific measurements:
 
           (1) Single-taxon measurement — use entity_type: taxon with the
-          Wikidata QID in entity_term and the measured property in
+          NCBITaxon ID in entity_term and the measured property in
           measured_attribute. The node is both the organism and the
-          measurement (e.g., entity_term=Q30019, measured_attribute=cover,
+          measurement (e.g., entity_term=NCBITaxon:9612, measured_attribute=cover,
           qualifier=increased gives "increased Sphagnum cover"). The taxon node
           participates directly in causal edges.
 
           (2) Multi-taxon aggregate or ecological guild — use
           entity_type: environmental_variable with applied_to listing
-          the relevant Wikidata QIDs or free-text guild names. Reserve this
+          the relevant NCBITaxon IDs or free-text guild names. Reserve this
           for cases where the measurement spans multiple taxa
           ("richness of liverworts, Sphagnum, and true mosses") or refers to
-          an ecologically defined group with no single Wikidata resolution
+          an ecologically defined group with no single NCBITaxon resolution
           ("native species", "shade-tolerant species"). Edges remain
           purely causal; applied_to is a queryable annotation field,
           not a structural link.
@@ -2057,7 +2116,17 @@ enums:
         description: "Unordered classes (e.g. land cover type, process stage)."
         annotations:
           compatible_qualifier_families: "presence|membership_change|process_phase"
-
+  NativenessBasisEnum:
+    description: "How the source decided which taxa counted as native."
+    permissible_values:
+      regional_flora_or_fauna:
+        description: "A regional flora, fauna or checklist."
+      national_checklist:
+        description: "A national checklist or database (e.g. VASCAN, USDA PLANTS)."
+      author_judgement:
+        description: "The authors' own assignment, without a cited source."
+      not_reported:
+        description: "The source groups taxa as native without saying how."
   # ---------------------------------------------------------------------------
   # Document section (for RAG retrieval)
   # ---------------------------------------------------------------------------
@@ -2216,12 +2285,12 @@ classes:
       qualifier + state/change qualifier structure.
 
       For taxon-specific measurements a two-path model applies. Single-taxon
-      measurements use entity_type: taxon, with the Wikidata QID in
+      measurements use entity_type: taxon, with the NCBITaxon ID in
       entity_term and the measured property in measured_attribute — the taxon
       node is both organism and measurement and participates directly in
       causal edges. Multi-taxon aggregates and ecological guilds ("native
       species", "shade-tolerant species") use entity_type: environmental_variable
-      with one or more Wikidata QIDs or free-text guild names in applied_to.
+      with one or more NCBITaxon IDs or free-text guild names in applied_to.
       Causal edges are never used for taxon-to-measurement links; applied_to
       is a queryable annotation field only.
     attributes:
@@ -2258,7 +2327,7 @@ classes:
           no cached ontology term matches yet. This is the "what thing" —
           the taxon, chemical, abiotic factor, or process class, and is the
           authoritative ontology grounding for the node's entity. Corresponds
-          to ELMO's subject_value / object_value slot. Examples: wd:Q18498
+          to ELMO's subject_value / object_value slot. Examples: NCBITaxon:9612
           (Canis lupus), CHEBI:24279 (glucosinolate), ENVO:01000253
           (grassland). Secondary ontology crosswalks, if needed, should be
           maintained outside article annotations in SSSOM files.
@@ -2268,8 +2337,9 @@ classes:
         required: true
         annotations:
           note: >-
-            For taxa use Wikidata; for chemicals CHEBI; for environments
-            ENVO; for processes GO or ENVO process terms; for qualities PATO.
+            For taxa use NCBITaxon where the taxon exists there, otherwise
+            Wikidata; for chemicals CHEBI; for environments ENVO; for
+            processes GO or ENVO process terms; for qualities PATO.
 
       measured_attribute:
         description: >-
@@ -2312,15 +2382,15 @@ classes:
           (1) Scope role (environmental_variable): one or more taxa or
           ecological guilds whose measurements are aggregated or grouped —
           for example, "richness of liverworts, Sphagnum, and true mosses"
-          (list the Wikidata QID for each group) or "abundance of native
-          species" (free text "native species", tracked in NAO). Wikidata
-          QIDs for higher-rank taxa enable downstream traversal to all
-          taxon nodes sharing that QID without requiring a structural edge.
+          (list the NCBITaxon ID for each group) or "abundance of native
+          species" (free text "native species", tracked in NAO). NCBITaxon
+          IDs for higher-rank taxa enable downstream traversal to all
+          taxon nodes sharing that ID without requiring a structural edge.
           Free-text values are accepted for functional groups and guilds
-          with no Wikidata resolution (e.g., "native species",
+          with no NCBITaxon resolution (e.g., "native species",
           "shade-tolerant species", "invasive plants") and should be
           tracked in the project NAO list. Do not use on single-taxon
-          nodes — use entity_type: taxon with the QID in entity_term
+          nodes — use entity_type: taxon with the NCBITaxon ID in entity_term
           instead.
 
           (2) Target role (environmental_process and
@@ -2402,6 +2472,34 @@ classes:
             Populated from the parameter option catalog, not by annotators.
             References are by id; loom checks that each id exists in the
             catalog.
+      components:
+        description: >-
+          For management_intervention nodes that apply a mixture or package,
+          what it contained: one entry per component, with the taxon or
+          material in counted_entity and its rate in the value fields (e.g. a
+          seed mix of ten species with seeding rates). Defines what the
+          intervention was; do not annotate components as separate nodes or
+          edges unless the source reports results for them separately.
+        range: QuantityValue
+        multivalued: true
+        inlined_as_list: true
+      spatial_grain:
+        description: >-
+          For environmental_variable nodes, the area of the sampling unit the
+          measurement was made on, e.g. 1 m2 quadrats. Matters most for
+          area-dependent attributes such as species richness. Not part of
+          variable_key.
+        range: QuantityValue
+        inlined: true
+      nativeness_basis:
+        description: >-
+          For nodes whose applied_to names native or non-native species, how
+          nativeness was assigned.
+        range: NativenessBasisEnum
+  # ---------------------------------------------------------------------------
+  # Text grounding
+  # ---------------------------------------------------------------------------
+  
   # ---------------------------------------------------------------------------
   # Text grounding
   # ---------------------------------------------------------------------------
@@ -2421,7 +2519,8 @@ classes:
       entity_term:
         description: >-
           The target entity as an ontology CURIE (preferred) or free text.
-          For taxa use Wikidata QIDs; for environments ENVO; for processes GO.
+          For taxa use NCBITaxon where available, otherwise Wikidata QIDs; for
+          environments ENVO; for processes GO.
         any_of:
           - range: uriorcurie
           - range: string
@@ -2910,6 +3009,18 @@ classes:
         multivalued: true
         inlined_as_list: true
 
+      dose:
+        description: >-
+          The level or range of the subject intervention or driver that this
+          edge reports on, e.g. an initial planting density of 5 to 11
+          ramets/m2. Annotate one edge per reported level or range when the
+          source reports results separately by dose; the nodes stay the same
+          and only the dose differs. Leave empty when the source reports no
+          dose. Dose is a condition of the claim, not part of the node, so it
+          does not enter variable_key.
+        range: QuantityValue
+        inlined: true
+        slot_uri: camo:dose
 
       ## ---- Layer 2: Philosophical Account ----
       
@@ -2968,11 +3079,15 @@ classes:
         range: FeatureAssertionEnum
         ifabsent: string(not_addressed)
         slot_uri: camo:stability
-      token_or_type:
-        description: "Whether the claim concerns a specific causal instance or a general causal type."
-        range: TokenTypeEnum
-        ifabsent: string(not_addressed)
-        slot_uri: camo:token_or_type
+      scope:
+        description: >-
+          What the claim is about: one case (assertional), some cases under
+          stated conditions (contingent), typical cases (prototypical) or all
+          cases (universal). Use instead of token_or_type. Most findings
+          reported from a single study are assertional or contingent; general
+          statements in an author's own voice are prototypical or universal.
+        range: ScopeEnum
+        slot_uri: camo:scope
       determinism:
         description: "Whether the causal relationship frames the underlying process as deterministic or indeterministic, or uses probability only to express epistemic uncertainty."
         range: DeterminismEnum
@@ -3010,12 +3125,6 @@ classes:
         description: "Annotation of the evidence type and evidence object supporting the claim."
         range: EvidentialBasis
         inlined: true
-      
-      certainty_grade:
-        description: "GRADE-style certainty assessment for this individual causal claim. Controls downstream language in Rosetta Statement rendering."
-        range: CertaintyGradeEnum
-        ifabsent: string(not_assessed)
-
 
       ## ---- FCM / Causal Modeling support ----
 
@@ -3080,6 +3189,8 @@ classes:
       annotation_notes:
         description: "Free-text notes from the annotator about this edge."
         range: string
+  
+
 
   EvidenceBaseAssessmentEdge:
     description: >-
@@ -3358,15 +3469,38 @@ classes:
       quantitative_numeric:
         description: >-
           Numeric value extracted for computation (e.g., FCM weight derivation).
-          Use the primary effect size; specify the metric in quantitative_value.
+          Use the primary effect size; give its metric in effect_metric.
         range: float
+      effect_metric:
+        description: "Metric of quantitative_numeric."
+        range: EffectMetricEnum
+      interval_lower:
+        description: "Lower bound of the reported interval around quantitative_numeric."
+        range: float
+      interval_upper:
+        description: "Upper bound of the reported interval around quantitative_numeric."
+        range: float
+      interval_level:
+        description: "Coverage of the interval as a proportion, e.g. 0.95."
+        range: float
+        minimum_value: 0
+        maximum_value: 1
+      interval_type:
+        description: "Kind of interval reported."
+        range: IntervalTypeEnum
       qualitative_descriptor:
         description: "Qualitative descriptor of the causal relationship strength."
         range: StrengthQualitativeEnum
       dose_response:
-        description: "Is a dose-response or gradient relationship described?"
+        description: >-
+          Is a dose-response or gradient relationship described? Kept for
+          0.8.0 records; when dose_response_shape is given, this should be
+          true unless the shape is none (loom enforces this).
         range: boolean
         ifabsent: boolean(false)
+      dose_response_shape:
+        description: "Shape of the dose-response relationship, when one is described."
+        range: DoseResponseShapeEnum
 
   ContextAnnotation:
     description: "Scope conditions or enabling conditions for the causal relationship."
