@@ -2,7 +2,58 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
-## Unreleased
+## 0.9.0 > 0.10.0 — Seasons as an enum, statistical significance, life stage, dose levels
+
+CAMO 0.10.0 contains **one breaking change**, to `TemporalExtent.observation_seasons`. Everything else is additive. `helpers/migrate_0_9_0_to_0_10_0.py` applies the mechanical steps and reports the ones that need a human. The 0.9.0 schema is archived as `old versions/causal_mosaic_v0.9.0.yaml`.
+
+These changes came out of a schema test over three papers (`threepapers_test`), which measured where annotated findings lose information. Each entry below names the measurement that prompted it.
+
+### Breaking: `observation_seasons` is now `SeasonEnum`
+
+In 0.9.0 the slot was `range: string`. Three papers produced **twelve distinct spellings for five seasons** — `late spring` (11 uses), `early spring` (10), `autumn` (6), `spring` (4), `summer` (2), then `mid spring`, `early season`, `late season`, `fledging period` and two entries that are not seasons at all (`year 1 autumn to year 2 early spring`). Free text means `spring`, `late spring` and `late season` do not group in a query, and a reasoner has nothing to resolve.
+
+* **`SeasonEnum`**: ten values. The four cardinal seasons carry exact `meaning:` mappings to NCIT (`NCIT:C94730` winter through `NCIT:C94733` autumn), which defines them astronomically rather than clinically. The sub-seasons (`early_spring`, `mid_spring`, `late_spring`, `early_summer`) take their cardinal season as `broad_mappings`, since no ontology checked carries them as terms. `growing_season` and `dormant_season` are included because sources in strongly seasonal systems report by those instead.
+
+**Migration.** `migrate_0_9_0_to_0_10_0.py` converts the recognised spellings, ignoring case and hyphens, so `late spring`, `late-spring` and `Late Spring` all become `late_spring`. Entries that name no season are **left in place and reported**, because they cannot be moved mechanically: a window spanning seasons or years belongs in the new `time_since_intervention_text`, and a life-history period such as `fledging period` belongs in the new `life_stage_term`. Such a record will not validate until a human moves them, which is the intended behaviour — silently dropping them would lose the only record of when the measurement was taken.
+
+### Added: statistical significance, analysis method, variance explained
+
+Of 36 residue items labelled *statistical detail* across all three papers, 16 were dropped entirely — the highest drop count of any gap in the run. Twenty-five of 237 edges are `no_relationship` with `negated: true`, and with no significance field, "tested and found not significant" is indistinguishable from "never tested". That is the distinction an empty evidence-gap-map cell turns on, and the imprecision domain in GRADE.
+
+* **`SignificanceEnum`**: `significant` and `not_significant` map exactly to `STATO:0000734` and `STATO:0000735`. `marginal` is deliberately unmapped (STATO has the two verdicts but no term for a near miss) and exists because `tended to be (non-significant trend)` was dropped outright in the run, so a hedged near miss entered the graph as a clean null. `not_tested` and `not_reported` are informative values, not placeholders.
+* **`AnalysisMethodEnum`**: 11 values. `manova` maps to `STATO:0000454` and `mixed_model` to `STATO:0000189` (with `STATO:0000464`, linear mixed model, as a `narrow_mappings`). `anova` is unmapped pending verification of STATO's parent term for analysis of variance; its verified children are `STATO:0000044`, `:0000045` and `:0000048`. `ordination` is unmapped — no verified STATO equivalent.
+* **`StrengthAnnotation.significance`, `.p_value`, `.alpha`, `.analysis_method`**. `p_value` carries two `exact_mappings`, `STATO:0000700` and `OBI:0000175`; both are genuine exact matches in different ontologies, and the STATO–OBI equivalence belongs in an SSSOM crosswalk rather than being resolved here.
+* **`EffectMetricEnum.variance_explained`**, with `close_mappings: [STATO:0000564]` (coefficient of determination). Close and not exact, because an ordination axis's share of variance is not an R². The test report asked for this by name, having logged `effect_metric only 'other'; no 'variance explained' metric`.
+
+What is **not** added: ordination axis identity. `CCA axis 1 represented a gradient from high field-layer vegetation cover to high conifer cover` is a proposition about a synthetic variable. It stays in prose.
+
+### Added: life stage, out of `measured_attribute`
+
+*subgroup* was the largest gap by finding share — 34 items, all three papers, 28% of fitted findings — and most of it was one thing: the life stage being counted. With nowhere to put it, the fitting stage put `seedlings` and `year 2 rosettes` into `measured_attribute`, which is part of `variable_key`. So *number of A. petiolata seedlings* and *number of A. petiolata year-2 rosettes* received different variable keys for the wrong reason, nodes would not merge across papers, and the PATO grounding `measured_attribute` is meant to carry was corrupted — "seedlings" is not a quality.
+
+* **`LifeStageEnum`**: eight values, deliberately coarse. Developmental-stage vocabularies are kingdom-specific, and a graph like Cardinal 2012 annotates songbirds, deer and plants together, so one enum cannot ground them all. Values carry `close_mappings` and never `meaning:`, because each spans kingdoms while the source terms do not: `seed_or_seed_bank` to `PO:0001170`, `germinant_or_seedling` to `PO:0007131`, `reproductive_adult` to `UBERON:0018241`. `ramet_or_clonal_unit` is unmapped — PO has clonal structures but no clonal-unit stage.
+* **`CausalNode.life_stage` and `.life_stage_term`**, and the same pair on **`AppliedToEntity`**. The enum is the cross-taxon facet a query groups on; the term slot takes the precise CURIE (a PO development-stage term under `PO:0009012` for plants, a UBERON life-cycle-stage term under `UBERON:0000105` for animals) or the source's own wording for distinctions neither keeps, such as "year 1 rosette" against "year 2 rosette".
+
+Two slots rather than one `any_of: [uriorcurie, LifeStageEnum]`, because that shape enforces nothing: `uriorcurie` is a plain string in the generated JSON Schema, so every branch matches and a typo validates. Splitting them means the enum is actually checked. This mirrors how `entity_type` and `entity_term` already divide the same labour.
+
+**Watch the structure-versus-stage trap.** `PO:0008037` is *seedling*, a plant structure; `PO:0007131` is *seedling development stage*. The slot wants the stage. Getting it backwards is the same class of error the 0.8.0 ECO fix corrected.
+
+### Added: when the measurement was taken
+
+`TemporalExtent` recorded how long an effect lasted (`duration_months`) and how long it took to begin (`lag_months`), but not the one thing every paper states: at what point after the intervention a reading was taken. So `in year 2`, `by the second growing season` and `after only 4 years` all went to `duration_text`, which in the run was filled on 36 edges and carried **seven different gap types at once**, while `duration_months` was used five times and `lag_months` never.
+
+* **`TemporalExtent.time_since_intervention_months`**, with `close_mappings: [TIME:numericDuration]`. Close and not exact: OWL-Time pairs a numeric duration with a separate unit, whereas this slot fixes the unit to months in its own name.
+* **`TemporalExtent.time_since_intervention_text`**, for the epoch as the source states it.
+* **`duration_text` is now documented as effect duration only.** The measurement epoch, the observation seasons and the study's fieldwork dates each have their own slot.
+
+Without this, readings from one study cannot be ordered into a trajectory, so any dynamic or state-transition model built from the graph has unordered observations, and GRADE cannot rate follow-up adequacy: a 4-year null is a different claim from a 4-month null.
+
+### Added: the comparison arm's dose
+
+All 25 *comparison between treatments* items went to `comparator_description` as prose — `relative to lower initial densities`, `9 and 11 ramets/m2 tended to be the most effective (compared with 15 and 20 ramets/m2)`. The numbers are in the sentence and there was no number-shaped slot for them. Of 135 comparator entries in the run, 41 were typed `alternative_treatment`, which in a gradient experiment is wrong, and 51 were `not_reported`.
+
+* **`ComparatorAnnotation.comparator_dose`** (`QuantityValue`) and **`.comparator_dose_level`** (`DoseLevelEnum`). Grounding comes for free: `QuantityValue` already constrains `unit` to QUDT or UO by pattern and grounds `counted_entity` through `AppliedToEntity`, so "ramets of *Sanguinaria canadensis* per square metre" becomes a QUDT unit plus an NCBITaxon ID with no new vocabulary.
+* **`ComparatorTypeEnum.alternative_dose_level`**: a different level of the same treatment, rather than a different treatment, which `alternative_treatment` was conflating.
 
 ### Added: ordinal dose levels
 
@@ -25,11 +76,19 @@ Eight prefixes, none referenced yet, so that planned mappings pass `ci.py` check
 
 All 21 classes now declare `class_uri: causal_mosaic:<Name>`. That is the IRI each class already resolved to through `default_prefix`, so **no class IRI changes** — the value is pinned rather than inherited, which keeps generated OWL and JSON-LD stable if `default_prefix` is ever changed, and gives WARP a fixed target.
 
-This change is additive. Existing 0.9.0 records remain valid and need no migration.
+### Fixed: stale `schema_version` default
 
-**Note for loom:** regenerate models. `dose_level` is annotator-filled, not calculated. Loom should prefer `dose_level` over constructing a `QuantityValue` whose only populated field is `verbatim`.
+The `ifabsent` default on `CausalGraph.schema_version` and `ParameterOptionCatalog.schema_version` still said `0.8.0` — it was not bumped for the 0.9.0 release. Both now say `0.10.0`.
+
+**Note for loom:** regenerate models. `dose_level`, `life_stage`, `significance` and `analysis_method` are all annotator-filled, not calculated. Two behaviours to add: prefer `dose_level` over constructing a `QuantityValue` whose only populated field is `verbatim`; and decide whether `life_stage` joins `variable_key`. It arguably should, since two stages of one taxon are genuinely different variables in a stage-structured model — but that changes node identity, so it is left as a deliberate decision rather than taken as a side effect of this release.
+
+**Generator caveat worth knowing:** `gen-owl` ignores `slot_uri` on attribute-style (inline) slots — `camo:dose_level`, `camo:significance` and the sixteen Layer 3 feature slots all emit as `causal_mosaic:<name>` in the OWL output. `gen-jsonld-context` honours them correctly (`dose_level` maps to `camo:dose_level`). This is a generator limitation rather than a schema error, but it means OWL exports do not carry the `camo:` feature IRIs that `ci.py` check C6a enforces. Promoting those slots from `attributes:` to top-level `slots:` is the likely fix.
 
 **Generator caveat worth knowing:** `gen-owl` ignores `slot_uri` on attribute-style (inline) slots — `camo:dose_level` and the sixteen Layer 3 feature slots all emit as `causal_mosaic:<name>` in the OWL output. `gen-jsonld-context` honours them correctly (`dose_level` maps to `camo:dose_level`). This is a generator limitation, not a schema error, but it means OWL exports do not currently carry the `camo:` feature IRIs that `ci.py` check C6a enforces.
+
+## 0.8.0 > 0.9.0 — Parameter options
+
+Additive. Existing 0.8.0 records remain valid and need no migration. (This section was previously filed under "Unreleased"; it is the 0.9.0 release, as the `## CHANGELOG` header in `causalmosaic.yaml` records.)
 
 ### Added: parameter options
 

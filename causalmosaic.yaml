@@ -24,12 +24,49 @@
 ## state/change qualifier (whether or how it changed), following ELM's qualifier
 ## pattern.
 ##
-## Schema version: 0.9.0
+## Schema version: 0.10.0
 ## =============================================================================
 ## CHANGELOG
 ## =============================================================================
-## Unreleased
+## 0.10.0 (from 0.9.0)
+## Breaking:
+## - TemporalExtent.observation_seasons is now range SeasonEnum, not string.
+##   Three papers produced twelve spellings for five seasons ("late spring",
+##   "late-spring", "late season"), which do not group in a query and give a
+##   reasoner nothing to resolve. SeasonEnum maps the four cardinal seasons
+##   to NCIT (C94730-C94733) and gives the sub-seasons their cardinal season
+##   as a broad mapping. Migrate with
+##   helpers/migrate_0_9_0_to_0_10_0.py. Entries that name no season - a
+##   window spanning seasons or years, a life-history period - are reported
+##   for review rather than converted; move them to
+##   time_since_intervention_text or life_stage_term.
 ## Added:
+## - StrengthAnnotation.significance (SignificanceEnum),
+##   StrengthAnnotation.p_value, .alpha and .analysis_method
+##   (AnalysisMethodEnum). Without significance, "tested and not
+##   significant" cannot be told from "never tested", which is the
+##   distinction an empty evidence-gap-map cell and the GRADE imprecision
+##   domain both rest on. significant and not_significant map exactly to
+##   STATO:0000734 and STATO:0000735; p_value to STATO:0000700 and
+##   OBI:0000175.
+## - EffectMetricEnum.variance_explained, for R2, adjusted R2 and an
+##   ordination axis's share. close_mappings STATO:0000564.
+## - CausalNode.life_stage and .life_stage_term, and the same pair on
+##   AppliedToEntity, with LifeStageEnum. Stage previously landed in
+##   measured_attribute, which is part of variable_key, so "abundance of
+##   seedlings" and "abundance of year 2 rosettes" became different
+##   variables for the wrong reason. The enum is the cross-taxon facet; the
+##   term slot takes a PO development-stage term for plants or a UBERON
+##   life-cycle-stage term for animals.
+## - TemporalExtent.time_since_intervention_months and
+##   .time_since_intervention_text: when the measurement was taken, as
+##   distinct from how long the effect lasted (duration_months) and how long
+##   it took to begin (lag_months). Without it, readings from one study
+##   cannot be ordered into a trajectory.
+## - ComparatorAnnotation.comparator_dose and .comparator_dose_level, and
+##   ComparatorTypeEnum.alternative_dose_level. An edge's own level was
+##   recorded while the arm it was measured against stayed prose, so no
+##   dose-response curve could be fitted.
 ## - DoseLevelEnum and CausalEdge.dose_level: an ordinal level for drivers a
 ##   source names without quantifying ("heavy browsing pressure",
 ##   "intermediate densities"). QuantityValue requires a number, so such a
@@ -38,14 +75,22 @@
 ##   name and a quantity. Deliberately unmapped: no OBO ontology carries an
 ##   ordinal driver-intensity scale.
 ## - Prefixes STATO, OBI, IAO, SEPIO, PO, UBERON, NCIT and TIME (OWL-Time),
-##   so that planned statistics, epistemic-status, life-stage and season
-##   mappings pass ci.py check A2. None is referenced yet.
+##   for the mappings above and for planned epistemic-status mappings.
 ## Changed:
 ## - Every class now declares class_uri explicitly, as causal_mosaic:<Name>.
 ##   This is the value each class already resolved to through default_prefix,
 ##   so no class IRI changes; it is now pinned rather than inherited.
+## - TemporalExtent.duration_text is documented as effect duration only. The
+##   measurement epoch, the observation seasons and the study's fieldwork
+##   dates each have their own slot now.
+## Fixed:
+## - The schema_version ifabsent default on CausalGraph and
+##   ParameterOptionCatalog said 0.8.0; it was not bumped for 0.9.0. Both now
+##   say 0.10.0.
 ##
-## NOTE: additive. Existing 0.9.0 records remain valid and need no migration.
+## NOTE: 0.10.0 is breaking, on observation_seasons only. Migrate 0.9.0
+## records with helpers/migrate_0_9_0_to_0_10_0.py. The 0.9.0 schema is
+## archived as old versions/causal_mosaic_v0.9.0.yaml.
 ##
 ## 0.9.0
 ## Added:
@@ -152,7 +197,7 @@ description: >-
   indices and practitioner-oriented summaries of evidence.
 
 license: CC0
-version: 0.9.0
+version: 0.10.0
 
 see_also:
   - https://doi.org/10.1007/978-3-032-06136-2_33  # Alamenciak et al. 2025 ELM paper
@@ -524,8 +569,116 @@ enums:
         description: "Pearson, Spearman or similar correlation."
       regression_coefficient:
         description: "Slope or coefficient from a regression or mixed model, in the model's units."
+      variance_explained:
+        description: >-
+          Proportion of variance accounted for, e.g. R2, adjusted R2, or an
+          ordination axis's share of the explained variance.
+        close_mappings: [STATO:0000564]
+        annotations:
+          preferred_label: "coefficient of determination"
+          note: >-
+            close, not exact: an ordination axis's share of variance is not a
+            coefficient of determination.
       other:
         description: "Another metric; name it in quantitative_value."
+
+  SignificanceEnum:
+    description: >-
+      Whether the source reported this relationship as statistically
+      significant. Separate from causal_language, which records how strongly
+      the text commits causally, and from negated, which encodes a null
+      result: a finding can be non-significant without the authors asserting
+      that no relationship holds. The two non-verdict values matter as much
+      as the verdicts, because without them an evidence gap map cannot tell
+      "tested and not significant" from "never tested".
+    permissible_values:
+      significant:
+        description: >-
+          Below the threshold the source states or implies, usually p < 0.05.
+        meaning: STATO:0000734
+        annotations:
+          preferred_label: "statistically significant"
+          exemplars: "significantly reduced; P = 0.01"
+      not_significant:
+        description: "At or above the threshold the source states or implies."
+        meaning: STATO:0000735
+        annotations:
+          preferred_label: "not statistically significant"
+          exemplars: "no significant effect; P = 0.4"
+      marginal:
+        description: >-
+          Reported as a trend, or as marginally significant, without being
+          claimed as significant. Deliberately unmapped: STATO carries the
+          two verdicts but no term for a near miss.
+        annotations:
+          exemplars: "tended to be lower; marginally significant"
+      not_tested:
+        description: "Reported descriptively; no test was applied."
+      not_reported:
+        description: "A test was applied but its result is not given."
+
+  AnalysisMethodEnum:
+    description: >-
+      The analysis that produced the reported result. Not the study design,
+      which is EvidenceTypeEnum: a controlled browsing experiment analysed
+      with a mixed model is randomized_experiment there and mixed_model here.
+      Values carry a STATO mapping only where a verified equivalent exists;
+      the rest are left unmapped rather than attached to an approximate term.
+    permissible_values:
+      anova:
+        description: >-
+          Analysis of variance, including one-way, two-way, multiway and
+          repeated-measures forms.
+        annotations:
+          preferred_label: "analysis of variance"
+          exemplars: "within-year ANOVAs; repeated-measures ANOVA; MANOVAR"
+          note: >-
+            Unmapped pending verification of STATO's parent term for analysis
+            of variance. Verified children: STATO:0000044 (one-way),
+            STATO:0000045 (two-way), STATO:0000048 (multiway).
+      manova:
+        description: >-
+          Multivariate analysis of variance, with two or more dependent
+          variables compared together.
+        meaning: STATO:0000454
+        annotations:
+          preferred_label: "multivariate analysis of variance"
+      mixed_model:
+        description: >-
+          A model carrying both fixed and random effects, for repeated
+          measures on the same units or measurements on clustered units.
+        meaning: STATO:0000189
+        narrow_mappings: [STATO:0000464]
+        annotations:
+          preferred_label: "mixed effect model"
+          exemplars: "mixed-model ANOVA; linear mixed model"
+      regression:
+        description: >-
+          Linear, generalized or nonlinear regression outside a mixed-model
+          frame.
+      ordination:
+        description: >-
+          Ordination of a multivariate response, e.g. PCA, CCA or NMDS. A
+          result on an ordination axis describes a synthetic variable rather
+          than a measured one, so prefer a node for the measured variable
+          where the source gives one. Deliberately unmapped: no verified
+          STATO equivalent.
+        annotations:
+          exemplars: "canonical correspondence analysis; PCA axis 1"
+      multivariate_other:
+        description: "Another multivariate analysis; name it in quantitative_value."
+      nonparametric:
+        description: "A rank-based or otherwise distribution-free test."
+      bayesian:
+        description: >-
+          A Bayesian model, reported with credible intervals or posterior
+          summaries. Pairs with interval_type: credible.
+      descriptive_only:
+        description: >-
+          Means, counts or proportions reported with no inferential test.
+          Pairs with significance: not_tested.
+      not_reported:
+        description: "The source does not say how the result was analysed."
 
   IntervalTypeEnum:
     description: "The kind of uncertainty interval reported around an effect size."
@@ -687,6 +840,15 @@ enums:
         description: >-
           No comparator is stated or recoverable from the text. Informative:
           it downgrades certainty rather than leaving a silent gap.
+      alternative_dose_level:
+        description: >-
+          A different level of the same treatment, rather than a different
+          treatment. Distinguishes a contrast along one gradient from a
+          contrast between treatments, which alternative_treatment otherwise
+          conflates. Record the arm's level in comparator_dose or
+          comparator_dose_level.
+        annotations:
+          exemplars: "versus 15 and 20 ramets/m2; relative to lower initial densities"
       not_applicable:
         description: >-
           The claim is mechanistic, theoretical, or definitional and invokes
@@ -2200,6 +2362,114 @@ enums:
         description: "The authors' own assignment, without a cited source."
       not_reported:
         description: "The source groups taxa as native without saying how."
+
+  LifeStageEnum:
+    description: >-
+      The life stage of the organism a node measures, as a coarse facet that
+      cross-taxon queries can group on. Deliberately coarse: developmental
+      stage vocabularies are kingdom-specific, so the precise term belongs in
+      life_stage_term - a PO development-stage term for plants, a UBERON
+      life-cycle-stage term for animals - while this enum stays usable across
+      a graph that annotates plants, birds and mammals together. Values are
+      mapped close, never exact, because each spans kingdoms and the source
+      terms do not.
+    permissible_values:
+      seed_or_seed_bank:
+        description: "Seed, propagule, or the seed bank as a store."
+        close_mappings: [PO:0001170]
+        annotations:
+          preferred_label: "seed development stage"
+      germinant_or_seedling:
+        description: >-
+          Newly germinated through to establishment, before the juvenile
+          stage.
+        close_mappings: [PO:0007131]
+        annotations:
+          preferred_label: "seedling development stage"
+          exemplars: "late-spring seedlings; germinants"
+      juvenile:
+        description: >-
+          Established but not yet reproductive: a rosette, sapling, nestling
+          or fledgling.
+        annotations:
+          exemplars: "year 1 rosettes; year 2 rosettes; saplings"
+      ramet_or_clonal_unit:
+        description: >-
+          A clonal unit counted as the individual, e.g. transplanted ramets.
+          Deliberately unmapped: PO carries clonal structures but no
+          clonal-unit stage.
+        annotations:
+          exemplars: "ramets of Sanguinaria canadensis"
+      reproductive_adult:
+        description: "Flowering, fruiting or breeding individuals."
+        close_mappings: [UBERON:0018241]
+        annotations:
+          preferred_label: "prime adult stage"
+      senescent_or_dead:
+        description: "Senescing, standing dead, or recently dead individuals."
+      mixed_or_whole_population:
+        description: >-
+          All stages together, or a count the source does not break down by
+          stage. The usual value for an unstaged abundance or cover measure,
+          and the one to use rather than leaving the slot empty when the
+          source plainly counted everything.
+      not_specified:
+        description: "A stage is implied but the source does not name it."
+
+  SeasonEnum:
+    description: >-
+      A season during which an effect was observed or measured. The four
+      cardinal seasons map to NCIT, which defines them astronomically
+      (equinox to solstice); the sub-seasons take their cardinal season as a
+      broad mapping, because no ontology checked carries them as terms.
+      Growing and dormant season are included because sources in strongly
+      seasonal systems report by those rather than by calendar season. A
+      window spanning seasons or years is not a season: record it in
+      time_since_intervention_text or duration_text instead.
+    permissible_values:
+      early_spring:
+        description: "The first part of spring."
+        broad_mappings: [NCIT:C94731]
+        annotations:
+          exemplars: "early-spring rosettes"
+      mid_spring:
+        description: "The middle of spring."
+        broad_mappings: [NCIT:C94731]
+      late_spring:
+        description: "The latter part of spring."
+        broad_mappings: [NCIT:C94731]
+        annotations:
+          exemplars: "late-spring seedlings"
+      spring:
+        description: "Spring, without further subdivision."
+        meaning: NCIT:C94731
+        annotations:
+          preferred_label: "Spring"
+      early_summer:
+        description: "The first part of summer."
+        broad_mappings: [NCIT:C94732]
+      summer:
+        description: "Summer, without further subdivision."
+        meaning: NCIT:C94732
+        annotations:
+          preferred_label: "Summer"
+      autumn:
+        description: "Autumn."
+        meaning: NCIT:C94733
+        annotations:
+          preferred_label: "Autumn"
+          exemplars: "autumn seedlings; autumn rosettes"
+      winter:
+        description: "Winter."
+        meaning: NCIT:C94730
+        annotations:
+          preferred_label: "Winter"
+      growing_season:
+        description: >-
+          The growing season as the source defines it, where it reports by
+          that rather than by calendar season.
+      dormant_season:
+        description: "The non-growing or dormant season."
   # ---------------------------------------------------------------------------
   # Document section (for RAG retrieval)
   # ---------------------------------------------------------------------------
@@ -2258,7 +2528,7 @@ classes:
         description: "Schema version for compatibility tracking."
         range: string
         required: true
-        ifabsent: string(0.8.0)
+        ifabsent: string(0.10.0)
       provenance:
         description: "Provenance metadata for the graph."
         range: GraphProvenance
@@ -2572,6 +2842,31 @@ classes:
           For nodes whose applied_to names native or non-native species, how
           nativeness was assigned.
         range: NativenessBasisEnum
+      life_stage:
+        description: >-
+          The life stage of the organism this node measures, as a coarse
+          facet. Kept out of measured_attribute, which is for the measured
+          quality and is part of variable_key: a stage recorded there makes
+          "abundance of seedlings" and "abundance of year 2 rosettes" two
+          different variables for the wrong reason, and breaks the PATO
+          grounding measured_attribute carries. Give
+          mixed_or_whole_population for an unstaged count rather than leaving
+          this empty.
+        range: LifeStageEnum
+        slot_uri: camo:life_stage
+      life_stage_term:
+        description: >-
+          The stage as an ontology CURIE where one fits, otherwise as the
+          source's own wording. For plants use a PO development-stage term
+          under PO:0009012 - PO:0007131 (seedling development stage), not
+          PO:0008037 (seedling), which is a structure rather than a stage.
+          For animals use a UBERON life-cycle-stage term under
+          UBERON:0000105. Free text is for distinctions neither ontology nor
+          the enum keeps, e.g. "year 1 rosette" against "year 2 rosette".
+        any_of:
+          - range: uriorcurie
+          - range: string
+        broad_mappings: [PO:0009012, UBERON:0000105]
   # ---------------------------------------------------------------------------
   # Text grounding
   # ---------------------------------------------------------------------------
@@ -2602,6 +2897,22 @@ classes:
           - range: uriorcurie
           - range: string
         required: true
+      life_stage:
+        description: >-
+          The life stage of this target entity, where the node's measurement
+          is restricted to one, e.g. richness of tree seedlings rather than
+          of trees.
+        range: LifeStageEnum
+        slot_uri: camo:life_stage
+      life_stage_term:
+        description: >-
+          The stage as an ontology CURIE where one fits, otherwise as the
+          source's own wording. PO development-stage terms for plants,
+          UBERON life-cycle-stage terms for animals.
+        any_of:
+          - range: uriorcurie
+          - range: string
+        broad_mappings: [PO:0009012, UBERON:0000105]
   QuantityValue:
     class_uri: causal_mosaic:QuantityValue
     description: >-
@@ -2938,9 +3249,13 @@ classes:
         range: float
       duration_text:
         description: >-
-          Free-text description of the temporal extent as stated in the
-          source. E.g., "within three growing seasons", "over a 20-year
-          period", "immediately following treatment."
+          How long the effect lasted, as stated in the source. E.g., "within
+          three growing seasons", "over a 20-year period", "immediately
+          following treatment." This slot is about the effect's duration
+          only: when the measurement was taken belongs in
+          time_since_intervention_text, the seasons it was observed in belong
+          in observation_seasons, and the study's own fieldwork dates belong
+          in source_document.
         range: string
       lag_months:
         description: >-
@@ -2960,12 +3275,36 @@ classes:
           examples: "daily, weekly, monthly, seasonal, annual, decadal, centennial"
       observation_seasons:
         description: >-
-          Seasons during which the effect was observed, if seasonally
-          restricted. E.g., ["spring", "summer"] for a growing-season
-          study. Important for context-dependent effects that may not
-          hold year-round.
-        range: string
+          Seasons during which the effect was observed, where it is
+          seasonally restricted, e.g. [late_spring, summer]. Important for
+          context-dependent effects that may not hold year-round. A window
+          that spans seasons or years is not a season: record it in
+          time_since_intervention_text or duration_text.
+        range: SeasonEnum
         multivalued: true
+      time_since_intervention_months:
+        description: >-
+          Elapsed time between the intervention, or the onset of the driver,
+          and the measurement this edge reports, in months. "in year 2" is
+          24; "six years after establishing the experiment" is 72. Distinct
+          from duration_months, which is how long the effect lasted, and from
+          lag_months, which is how long it took to begin. Where a reading
+          spans a window, give its end. This is the slot that lets readings
+          from one study be ordered into a trajectory.
+        range: float
+        slot_uri: camo:time_since_intervention_months
+        close_mappings: [TIME:numericDuration]
+        annotations:
+          note: >-
+            close, not exact: OWL-Time pairs a numeric duration with a
+            separate unit, whereas this slot fixes the unit to months.
+      time_since_intervention_text:
+        description: >-
+          The measurement epoch as the source states it, e.g. "in year 2",
+          "by the second growing season", "results at year 3 of the
+          experiment". Use alongside time_since_intervention_months, and
+          alone where the source is too vague to convert.
+        range: string
 
   # ---------------------------------------------------------------------------
   # Edges — the core annotation unit
@@ -3602,6 +3941,41 @@ classes:
       dose_response_shape:
         description: "Shape of the dose-response relationship, when one is described."
         range: DoseResponseShapeEnum
+      significance:
+        description: >-
+          Whether the source reported this relationship as statistically
+          significant. Fill it even where no p-value is given: not_tested and
+          not_reported are informative, and without this slot an edge whose
+          causal_language is no_relationship cannot be told apart from a
+          relationship the study never tested.
+        range: SignificanceEnum
+        slot_uri: camo:significance
+      p_value:
+        description: >-
+          The reported p-value for the contrast this edge describes. Give the
+          value for this specific contrast, not an omnibus test spanning
+          several outcomes; where only an omnibus test is reported, leave this
+          empty and record the test in analysis_method.
+        range: float
+        minimum_value: 0.0
+        maximum_value: 1.0
+        slot_uri: camo:p_value
+        exact_mappings:
+          - STATO:0000700
+          - OBI:0000175
+      alpha:
+        description: >-
+          The significance threshold the source used, where it states one,
+          e.g. 0.05. Lets a significance verdict be re-derived from p_value.
+        range: float
+        minimum_value: 0.0
+        maximum_value: 1.0
+      analysis_method:
+        description: >-
+          The analysis that produced the reported result. Distinct from
+          evidential_basis.evidence_types, which records the study design.
+        range: AnalysisMethodEnum
+        slot_uri: camo:analysis_method
 
   ContextAnnotation:
     class_uri: causal_mosaic:ContextAnnotation
@@ -3669,6 +4043,24 @@ classes:
           a node. Expected when comparator_type is passive_management_arm or
           alternative_treatment; normally empty otherwise.
         range: uriorcurie
+      comparator_dose:
+        description: >-
+          The level or range of the subject driver in this comparison arm, so
+          that both ends of the contrast are recoverable. Pairs with
+          CausalEdge.dose, which gives this edge's own level: the two
+          together are what lets a dose-response curve be fitted and an
+          effect size be recomputed. Expected when comparator_type is
+          alternative_dose_level.
+        range: QuantityValue
+        inlined: true
+        slot_uri: camo:comparator_dose
+      comparator_dose_level:
+        description: >-
+          The arm's level on the ordinal scale, for sources that name it
+          without a number, e.g. "relative to lower initial densities". Use
+          alongside comparator_dose where the source gives both.
+        range: DoseLevelEnum
+        slot_uri: camo:comparator_dose_level
 
   # ---------------------------------------------------------------------------
   # Evidential Basis (Layer 4)
@@ -3727,7 +4119,7 @@ classes:
         description: "CAMO schema version the catalog conforms to."
         range: string
         required: true
-        ifabsent: string(0.8.0)
+        ifabsent: string(0.10.0)
       options:
         description: "The parameter options in this catalog."
         range: ParameterOption
