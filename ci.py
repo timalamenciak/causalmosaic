@@ -44,7 +44,7 @@ ANNOTATION_ONLY_ENUMS = {
 # slot_uri. See A4 and C6a.
 LAYER3_SLOTS = [
     "necessity", "sufficiency", "direction", "temporal_ordering", "mediation",
-    "moderation", "strength", "specificity", "stability", "token_or_type",
+    "moderation", "strength", "specificity", "stability", "scope",
     "determinism", "proximate_distal", "contributing_sole", "reversibility",
     "proportionality", "context_dependence",
 ]

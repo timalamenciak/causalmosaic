@@ -478,7 +478,7 @@ enums:
       not_specified:
         description: "Strength not characterized."
 
-    EffectMetricEnum:
+  EffectMetricEnum:
     description: "The metric of a reported effect size."
     permissible_values:
       raw_mean_difference:
