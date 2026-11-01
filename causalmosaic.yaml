@@ -30,6 +30,7 @@
 ## =============================================================================
 ## Unreleased
 ## Added:
+## - Added prefix for NCBITaxon (NCBI Taxonomy) to support taxon-linked variables.
 ## - Parameter options: a separate, shared ParameterOptionCatalog of the ways
 ##   nodes could be measured (sensor, survey, assay, record and model types),
 ##   for digital twins and causal-model building. New classes
@@ -44,6 +45,8 @@
 ##   QualifierFamilyEnum values.
 ##
 ## NOTE: additive. Existing 0.8.0 records remain valid.
+##
+##
 ##
 ## 0.8.0 (from 0.7.9)
 ## Breaking:
@@ -166,6 +169,7 @@ prefixes:
   nvs_l22: http://vocab.nerc.ac.uk/collection/L22/current/
   unit: http://qudt.org/vocab/unit/
   UO: http://purl.obolibrary.org/obo/UO_
+  NCBITaxon: http://purl.obolibrary.org/obo/NCBITaxon_
 
 
 default_prefix: causal_mosaic
@@ -2422,6 +2426,52 @@ classes:
           - range: uriorcurie
           - range: string
         required: true
+  QuantityValue:
+    description: >-
+      A reported quantity: a single value or a range, its unit, and the
+      entity being counted or measured. Used for intervention doses
+      (CausalEdge.dose), intervention components (CausalNode.components) and
+      sampling grain (CausalNode.spatial_grain). Give numeric_value for a
+      single value, or minimum_value and/or maximum_value for a range or
+      threshold ("5 or more" is minimum_value 5 with no maximum).
+    attributes:
+      numeric_value:
+        description: "A single reported value."
+        range: float
+      minimum_value:
+        description: "Lower bound of a reported range or threshold, inclusive."
+        range: float
+      maximum_value:
+        description: "Upper bound of a reported range, inclusive."
+        range: float
+      unit:
+        description: >-
+          Unit of the value, as a QUDT unit (preferred) or UO term, matching
+          ParameterOption.unit. For counts per area give the area unit (e.g.
+          per square metre) and name what is counted in counted_entity.
+          Leave empty for unitless counts.
+        range: uriorcurie
+        pattern: '^(unit|UO):\S+$'
+      counted_entity:
+        description: >-
+          What is counted or measured, when the unit alone does not say, e.g.
+          ramets of Sanguinaria canadensis in "9 ramets/m2".
+        range: AppliedToEntity
+        inlined: true
+      verbatim:
+        description: "The quantity as the source states it, e.g. '9 and 11 ramets/m2'."
+        range: string
+    any_of:
+      - slot_conditions:
+          numeric_value:
+            required: true
+      - slot_conditions:
+          minimum_value:
+            required: true
+      - slot_conditions:
+          maximum_value:
+            required: true
+
 
   TextSpan:
     description: "A span of text in the source document, for provenance and RAG."
