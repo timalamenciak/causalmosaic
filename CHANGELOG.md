@@ -4,6 +4,33 @@ All notable changes to the active LinkML schema and its supporting governance fi
 
 ## Unreleased
 
+### Added: ordinal dose levels
+
+`QuantityValue` requires one of `numeric_value`, `minimum_value` or `maximum_value`. Sources routinely name a driver level without quantifying it — "under heavy *Odocoileus virginianus* browsing pressure", "at intermediate densities", "higher densities" — and the only place to put those was `dose.verbatim`, producing a `QuantityValue` with no number. Those records do not validate. In a three-paper schema test they were the largest single cause of a 82% validation rate.
+
+* **`DoseLevelEnum`**: eight values. Five ordinal (`absent`, `low`, `intermediate`, `high`, `very_high`), two relative for sources that compare against an arm they do not state (`higher_than_comparator`, `lower_than_comparator`), and `not_specified`.
+* **`CausalEdge.dose_level`**: the subject driver's level on that scale. Use alongside `dose` where the source gives both a name and a quantity, and alone where it gives only the name. Like `dose` it is a condition of the claim rather than part of the node, so it does not enter `variable_key`.
+
+`QuantityValue` is **unchanged**: a quantity with only `verbatim` still fails validation, and that is intentional. `QuantityValue` is also used by `CausalNode.components` and `spatial_grain`, where a missing number is a defect rather than a faithful record. A named level belongs in `dose_level`.
+
+The enum is deliberately unmapped. No OBO ontology carries an ordinal driver-intensity scale, and PATO magnitude qualities describe an *outcome* rather than a *driver's* level, so mapping to them would assert something false.
+
+### Added: prefixes for planned ontology grounding
+
+Eight prefixes, none referenced yet, so that planned mappings pass `ci.py` check A2 (which fails on any CURIE whose prefix is undeclared, since it would not expand in the JSON-LD context):
+
+`STATO` (statistics), `OBI`, `IAO` (information artifacts), `SEPIO` (evidence and assertions), `PO` (plant development stages), `UBERON` (animal life-cycle stages), `NCIT` (seasons) and `TIME` (OWL-Time). `TIME` rather than `time` because `linkml lint` enforces the canonical prefix.
+
+### Changed: explicit `class_uri` on every class
+
+All 21 classes now declare `class_uri: causal_mosaic:<Name>`. That is the IRI each class already resolved to through `default_prefix`, so **no class IRI changes** — the value is pinned rather than inherited, which keeps generated OWL and JSON-LD stable if `default_prefix` is ever changed, and gives WARP a fixed target.
+
+This change is additive. Existing 0.9.0 records remain valid and need no migration.
+
+**Note for loom:** regenerate models. `dose_level` is annotator-filled, not calculated. Loom should prefer `dose_level` over constructing a `QuantityValue` whose only populated field is `verbatim`.
+
+**Generator caveat worth knowing:** `gen-owl` ignores `slot_uri` on attribute-style (inline) slots — `camo:dose_level` and the sixteen Layer 3 feature slots all emit as `causal_mosaic:<name>` in the OWL output. `gen-jsonld-context` honours them correctly (`dose_level` maps to `camo:dose_level`). This is a generator limitation, not a schema error, but it means OWL exports do not currently carry the `camo:` feature IRIs that `ci.py` check C6a enforces.
+
 ### Added: parameter options
 
 A node describes a change in the world. To use CAMO graphs with digital twins (e.g. SMOL) and to build causal models, you also need to know how each node could be measured. Parameter options record that: the sensor, survey, assay, record and model types that could supply a value for a node.

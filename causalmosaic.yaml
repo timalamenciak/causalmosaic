@@ -28,6 +28,25 @@
 ## =============================================================================
 ## CHANGELOG
 ## =============================================================================
+## Unreleased
+## Added:
+## - DoseLevelEnum and CausalEdge.dose_level: an ordinal level for drivers a
+##   source names without quantifying ("heavy browsing pressure",
+##   "intermediate densities"). QuantityValue requires a number, so such a
+##   level previously had nowhere to go but dose.verbatim, which does not
+##   validate. Annotate dose_level instead; use both where the source gives a
+##   name and a quantity. Deliberately unmapped: no OBO ontology carries an
+##   ordinal driver-intensity scale.
+## - Prefixes STATO, OBI, IAO, SEPIO, PO, UBERON, NCIT and TIME (OWL-Time),
+##   so that planned statistics, epistemic-status, life-stage and season
+##   mappings pass ci.py check A2. None is referenced yet.
+## Changed:
+## - Every class now declares class_uri explicitly, as causal_mosaic:<Name>.
+##   This is the value each class already resolved to through default_prefix,
+##   so no class IRI changes; it is now pinned rather than inherited.
+##
+## NOTE: additive. Existing 0.9.0 records remain valid and need no migration.
+##
 ## 0.9.0
 ## Added:
 ## - Added prefix for NCBITaxon (NCBI Taxonomy) to support taxon-linked variables.
@@ -171,6 +190,14 @@ prefixes:
   unit: http://qudt.org/vocab/unit/
   UO: http://purl.obolibrary.org/obo/UO_
   NCBITaxon: http://purl.obolibrary.org/obo/NCBITaxon_
+  STATO: http://purl.obolibrary.org/obo/STATO_
+  OBI: http://purl.obolibrary.org/obo/OBI_
+  IAO: http://purl.obolibrary.org/obo/IAO_
+  SEPIO: http://purl.obolibrary.org/obo/SEPIO_
+  PO: http://purl.obolibrary.org/obo/PO_
+  UBERON: http://purl.obolibrary.org/obo/UBERON_
+  NCIT: http://purl.obolibrary.org/obo/NCIT_
+  TIME: http://www.w3.org/2006/time#
 
 
 default_prefix: causal_mosaic
@@ -527,6 +554,52 @@ enums:
         description: "Several doses were tested and the effect did not change with dose."
       not_reported:
         description: "A dose-response is described but its shape is not stated."
+
+  DoseLevelEnum:
+    description: >-
+      A driver or intervention level that the source names without
+      quantifying, e.g. "heavy browsing pressure" or "intermediate
+      densities". The first five values are ordinal, running from absent to
+      very_high along one scale; the two relative values are for sources that
+      compare with an arm they do not state. Use CausalEdge.dose for a
+      reported quantity and CausalEdge.dose_level for a named level; a source
+      giving both takes both. These values are deliberately unmapped: no OBO
+      ontology carries an ordinal driver-intensity scale, and PATO magnitude
+      qualities describe an outcome rather than a driver's level, so mapping
+      to them would assert something false.
+    permissible_values:
+      absent:
+        description: "The driver was absent, or the intervention was not applied."
+        annotations:
+          exemplars: "no deer; unseeded; 0 ramets/m2"
+      low:
+        description: "The lowest of the levels named, or one the source calls low."
+        annotations:
+          exemplars: "low deer density; sparse cover"
+      intermediate:
+        description: "A middle level, named as intermediate or moderate."
+        annotations:
+          exemplars: "intermediate densities; moderate browsing"
+      high:
+        description: "A high level, short of the highest the source names."
+        annotations:
+          exemplars: "high deer densities; heavy browsing pressure"
+      very_high:
+        description: "The highest level named, or one the source calls very high or extreme."
+      higher_than_comparator:
+        description: >-
+          Higher than the arm it is compared with, where the source does not
+          say what that arm was. Prefer an ordinal value where the source
+          names one.
+        annotations:
+          exemplars: "higher densities; still high densities of A. petiolata"
+      lower_than_comparator:
+        description: >-
+          Lower than the arm it is compared with, where that arm is unstated.
+      not_specified:
+        description: >-
+          A level is implied but the source gives neither a quantity nor a
+          name for it.
 
   # ---------------------------------------------------------------------------
   # Claim Strength (Layer 1)
@@ -2163,6 +2236,7 @@ classes:
   # ---------------------------------------------------------------------------
 
   CausalGraph:
+    class_uri: causal_mosaic:CausalGraph
     description: >-
       A labeled property graph of causal claims extracted from scientific
       literature. The top-level container for nodes and edges.
@@ -2215,6 +2289,7 @@ classes:
         inlined: true
 
   GraphProvenance:
+    class_uri: causal_mosaic:GraphProvenance
     description: "Provenance and metadata for a causal graph."
     attributes:
       ontology_framework:
@@ -2261,6 +2336,7 @@ classes:
   # ---------------------------------------------------------------------------
 
   CausalNode:
+    class_uri: causal_mosaic:CausalNode
     description: >-
       A node in the labeled property graph representing a causally active
       ecological entity — specifically, a state or change in state of an
@@ -2505,6 +2581,7 @@ classes:
   # ---------------------------------------------------------------------------
 
   AppliedToEntity:
+    class_uri: causal_mosaic:AppliedToEntity
     description: >-
       A structured entity reference used by the CausalNode.applied_to slot.
       On environmental_variable nodes it identifies a taxon or ecological
@@ -2526,6 +2603,7 @@ classes:
           - range: string
         required: true
   QuantityValue:
+    class_uri: causal_mosaic:QuantityValue
     description: >-
       A reported quantity: a single value or a range, its unit, and the
       entity being counted or measured. Used for intervention doses
@@ -2573,6 +2651,7 @@ classes:
 
 
   TextSpan:
+    class_uri: causal_mosaic:TextSpan
     description: "A span of text in the source document, for provenance and RAG."
     attributes:
       text:
@@ -2611,6 +2690,7 @@ classes:
   # ---------------------------------------------------------------------------
 
   SourceDocument:
+    class_uri: causal_mosaic:SourceDocument
     description: >-
       Bibliographic metadata and study-level context for the source document.
       Supports RAG retrieval, evidence gap map construction, and spatiotemporal
@@ -2757,6 +2837,7 @@ classes:
           - tdwgeco:isSamplingEffortReported
 
   StudyCoordinates:
+    class_uri: causal_mosaic:StudyCoordinates
     description: >-
       Structured coordinate representation for a study location. At minimum,
       provide latitude and longitude as a centroid when coordinates are
@@ -2836,6 +2917,7 @@ classes:
           - dwc:geodeticDatum
 
   TemporalExtent:
+    class_uri: causal_mosaic:TemporalExtent
     description: >-
       The temporal window over which a causal effect was observed or
       measured. Distinct from the study period (when was fieldwork done):
@@ -2890,6 +2972,7 @@ classes:
   # ---------------------------------------------------------------------------
 
   CausalEdge:
+    class_uri: causal_mosaic:CausalEdge
     description: >-
       An edge in the labeled property graph representing a causal relationship.
       Carries all four annotation layers as properties:
@@ -3021,6 +3104,19 @@ classes:
         range: QuantityValue
         inlined: true
         slot_uri: camo:dose
+
+      dose_level:
+        description: >-
+          The subject driver's level on an ordinal scale, for sources that
+          name a level without quantifying it, e.g. "under heavy browsing
+          pressure" or "at intermediate densities". Use alongside dose where
+          the source gives both a name and a quantity, and alone where it
+          gives only the name; a named level is the reason a QuantityValue
+          with no number should never be built. Like dose, it is a condition
+          of the claim rather than part of the node, so it does not enter
+          variable_key.
+        range: DoseLevelEnum
+        slot_uri: camo:dose_level
 
       ## ---- Layer 2: Philosophical Account ----
       
@@ -3193,6 +3289,7 @@ classes:
 
 
   EvidenceBaseAssessmentEdge:
+    class_uri: causal_mosaic:EvidenceBaseAssessmentEdge
     description: >-
       A derived evidence-base-level assessment for a causal relationship,
       computed or curated from multiple article-level CausalEdge records that
@@ -3414,6 +3511,7 @@ classes:
   # ---------------------------------------------------------------------------
 
   DirectionAnnotation:
+    class_uri: causal_mosaic:DirectionAnnotation
     description: "Direction and asymmetry of the causal relationship."
     attributes:
       status:
@@ -3425,6 +3523,7 @@ classes:
         range: DirectionEvidenceEnum
 
   MediationAnnotation:
+    class_uri: causal_mosaic:MediationAnnotation
     description: "Whether a mediating pathway is identified between cause and effect."
     attributes:
       status:
@@ -3442,6 +3541,7 @@ classes:
         range: string
 
   ModerationAnnotation:
+    class_uri: causal_mosaic:ModerationAnnotation
     description: "Whether effect modification by a third variable is noted."
     attributes:
       status:
@@ -3457,6 +3557,7 @@ classes:
         range: InteractionTypeEnum
 
   StrengthAnnotation:
+    class_uri: causal_mosaic:StrengthAnnotation
     description: "Effect size, magnitude, or dose-response characterization."
     attributes:
       status:
@@ -3503,6 +3604,7 @@ classes:
         range: DoseResponseShapeEnum
 
   ContextAnnotation:
+    class_uri: causal_mosaic:ContextAnnotation
     description: "Scope conditions or enabling conditions for the causal relationship."
     attributes:
       status:
@@ -3528,6 +3630,7 @@ classes:
         range: EcosystemFunctionalGroupEnum
 
   ComparatorAnnotation:
+    class_uri: causal_mosaic:ComparatorAnnotation
     description: >-
       One comparison arm of a causal edge; an edge lists one per arm (see
       CausalEdge.comparator). Controls are recorded here rather
@@ -3572,6 +3675,7 @@ classes:
   # ---------------------------------------------------------------------------
 
   EvidentialBasis:
+    class_uri: causal_mosaic:EvidentialBasis
     description: >-
       Operationalizes Illari's type/object distinction and the Russo-Williamson
       Thesis at the article-annotation level. Tracks what kinds of evidence an
@@ -3598,6 +3702,7 @@ classes:
   #   linkml-validate -s causalmosaic.yaml -C ParameterOptionCatalog <file>
 
   ParameterOptionCatalog:
+    class_uri: causal_mosaic:ParameterOptionCatalog
     description: >-
       A versioned registry of parameter options: the sensor, survey, assay,
       record and model types that can measure or supply CAMO nodes. Kept in
@@ -3631,6 +3736,7 @@ classes:
         required: true
 
   ParameterOption:
+    class_uri: causal_mosaic:ParameterOption
     description: >-
       One way of measuring or supplying a value for a node: a type of sensor,
       survey, assay, record or model, described independently of any study.
@@ -3748,6 +3854,7 @@ classes:
         inlined: true
 
   ApplicabilityScope:
+    class_uri: causal_mosaic:ApplicabilityScope
     description: >-
       Describes which nodes a parameter option can apply to. A node is in
       scope when it matches at least one value in every slot that is filled
