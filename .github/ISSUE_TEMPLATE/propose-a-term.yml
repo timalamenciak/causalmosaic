@@ -1,0 +1,68 @@
+name: Propose a vocabulary term
+description: Suggest a term for the EcoSKOS stopgap vocabulary, for a concept no ontology defines yet.
+title: "[Term] "
+labels: ["term-proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        EcoSKOS holds stopgap terms for concepts that annotators need in `entity_term` but that no ontology defines yet. Each one is also a request we may file upstream.
+
+        **Please search the ontologies first.** The guide explains where to look and how: [Adding a term to EcoSKOS](https://github.com/timalamenciak/causalmosaic/blob/main/docs/adding-a-term.md). Taxa never belong here; use NCBITaxon or Wikidata.
+
+        A maintainer will check your proposal and add it to the vocabulary. You do not need to use git.
+  - type: checkboxes
+    id: searched
+    attributes:
+      label: Search first
+      options:
+        - label: I searched for the term, its synonyms and its broader concept in the ontologies listed in the guide, and found no term that fits.
+          required: true
+  - type: input
+    id: label
+    attributes:
+      label: Preferred label
+      description: Lowercase unless a proper noun, as an ontology would write it.
+      placeholder: plant translocation
+    validations:
+      required: true
+  - type: input
+    id: synonyms
+    attributes:
+      label: Synonyms
+      description: Other names or spellings you have seen, separated by a vertical bar. Synonyms are how people find the term.
+      placeholder: transplanting | plant translocation process
+  - type: textarea
+    id: definition
+    attributes:
+      label: Definition
+      description: One or two sentences. Say what kind of thing it is, then what sets it apart.
+    validations:
+      required: true
+  - type: input
+    id: broader
+    attributes:
+      label: Proposed parent term
+      description: The ontology ID of an existing term this is a kind of. Open the ID and check its label first. Leave blank if you are unsure; a maintainer will help.
+      placeholder: ENVO:01000253
+  - type: textarea
+    id: searched_notes
+    attributes:
+      label: What you searched, and what you found
+      description: Which ontologies you searched, which near matches you found, and why they do not fit.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Where you need it
+      description: The paper or claim set, and the annotation that needs the term. Quote the source's wording.
+    validations:
+      required: true
+  - type: input
+    id: proposed_by
+    attributes:
+      label: Your name or ORCID
+      description: Recorded as the proposer.
+    validations:
+      required: true

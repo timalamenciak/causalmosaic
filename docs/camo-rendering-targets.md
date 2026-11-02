@@ -284,7 +284,7 @@ than simulation.
 
 1. **Nodes** — label via the Rosetta node rendering (§1, step 1). Shape or
    colour by `entity_type`: `management_intervention`, `environmental_variable`,
-   `environmental_process`, `taxon`.
+   `composite_variable`, `environmental_process`, `taxon`.
 
 2. **Edges** — colour by predicate `sign` (positive / negative / unspecified),
    style by `direction.status`: `asserted` solid, `uncertain` dashed,
@@ -345,7 +345,7 @@ Render at realm level for an overview, drill to Level 3 on demand. Use
 
 ### Row rollup does not
 
-`EntityTypeEnum` has four values; "seeding" is not one of them, it is an
+`EntityTypeEnum` has five values; "seeding" is not one of them, it is an
 `entity_term`. One row per distinct term is unreadable, so rows must roll up
 through ELMO's subsumption hierarchy at query time. This requires:
 

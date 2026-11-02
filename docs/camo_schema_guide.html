@@ -1120,7 +1120,7 @@ edges:
               <tr>
                 <td><code>entity_type</code></td>
                 <td><code>EntityTypeEnum</code></td>
-                <td>Broad kind of entity: variable, process, intervention, or taxon.</td>
+                <td>Broad kind of entity: variable, composite variable, process, intervention, or taxon.</td>
               </tr>
               <tr>
                 <td><code>entity_term</code></td>
@@ -1138,14 +1138,14 @@ edges:
                 <td>The state or direction: increased, decreased, present, introduced, removed, and related values.</td>
               </tr>
               <tr>
-                <td><code>taxonomic_scope</code></td>
-                <td><code>uriorcurie</code> or <code>string</code>, multivalued</td>
-                <td>Scopes an <code>environmental_variable</code> node to a set of taxa or an ecological guild. Accepts Wikidata QIDs or free text for guilds with no QID (e.g. "native species"). Do not use on <code>taxon</code> nodes.</td>
-              </tr>
-              <tr>
                 <td><code>applied_to</code></td>
                 <td><code>AppliedToEntity</code>, multivalued</td>
-                <td>The entity that a process or management intervention is directed at (e.g. "herbivory on Sphagnum", "invasive species removal of <i>Alliaria petiolata</i>"). Use only on <code>environmental_process</code> and <code>management_intervention</code> nodes; use <code>taxonomic_scope</code> for <code>environmental_variable</code> nodes instead.</td>
+                <td>Two roles. On <code>composite_variable</code> nodes: the taxa or ecological guilds the measurement is aggregated over (NCBITaxon IDs, or free text for guilds with no ID, e.g. "native species"). On <code>environmental_process</code> and <code>management_intervention</code> nodes: the entity the process or intervention is directed at (e.g. "herbivory on Sphagnum", "invasive species removal of <i>Alliaria petiolata</i>"). Do not use on <code>taxon</code> nodes.</td>
+              </tr>
+              <tr>
+                <td><code>composition</code></td>
+                <td><code>CompositionAnnotation</code></td>
+                <td>The observed makeup of an assemblage: its members and how much of the whole each accounts for. Only on <code>composite_variable</code> nodes. See Assemblage Composition below.</td>
               </tr>
               <tr>
                 <td><code>source_spans</code></td>
@@ -1170,6 +1170,16 @@ edges:
               </p>
             </article>
             <article class="mini-card">
+              <h4><code>composite_variable</code></h4>
+              <p>
+                A measurable aspect of ecosystem state whose entity is an aggregate of
+                several members: an assemblage, community or guild. The cladoceran
+                assemblage, the boreal predator assemblage, native forbs. List the
+                members in <code>applied_to</code>; record how much each accounts for in
+                <code>composition</code>.
+              </p>
+            </article>
+            <article class="mini-card">
               <h4><code>environmental_process</code></h4>
               <p>
                 A process that changes ecosystem state over time: deposition,
@@ -1190,7 +1200,7 @@ edges:
                 QID as <code>entity_term</code> and the measured property as
                 <code>measured_attribute</code>. The node participates directly in causal
                 edges. For multi-taxon aggregates or ecological guilds, use
-                <code>environmental_variable</code> with <code>taxonomic_scope</code>
+                <code>composite_variable</code> with <code>applied_to</code>
                 instead.
               </p>
             </article>
@@ -1201,7 +1211,9 @@ edges:
             CAMO represents taxon-specific measurements in two ways to keep all graph
             edges purely causal. Single-taxon measurements use a <code>taxon</code>
             node; multi-taxon aggregates and ecological guilds use
-            <code>environmental_variable</code> with <code>taxonomic_scope</code>.
+            <code>composite_variable</code> with <code>applied_to</code>.
+            Earlier annotations may label such an aggregate
+            <code>environmental_variable</code>; they remain valid.
           </p>
           <table>
             <thead>
@@ -1219,8 +1231,8 @@ edges:
               </tr>
               <tr>
                 <td>Multi-taxon aggregate or ecological guild</td>
-                <td><code>entity_type: environmental_variable</code> plus <code>taxonomic_scope</code></td>
-                <td><code>entity_term: re-establishment</code> with <code>taxonomic_scope: [native forest understory species]</code></td>
+                <td><code>entity_type: composite_variable</code> plus <code>applied_to</code></td>
+                <td><code>entity_term: re-establishment</code> with <code>applied_to: [native forest understory species]</code></td>
               </tr>
               <tr>
                 <td>Process or intervention directed at an entity</td>
@@ -1229,6 +1241,53 @@ edges:
               </tr>
             </tbody>
           </table>
+
+          <h3>Assemblage Composition</h3>
+          <p>
+            A <code>composite_variable</code> node can carry a <code>composition</code>
+            when the source says what the assemblage is made of and how much each
+            member accounts for. A <code>CompositionAnnotation</code> has a required
+            <code>basis</code> (what the shares measure: relative abundance, cover,
+            biomass, density, detection frequency, frequency of occurrence, or other)
+            and a required list of <code>members</code>. Each
+            <code>CompositionMember</code> is grounded like any other entity reference
+            and must carry at least one of three amounts:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Member slot</th>
+                <th>Use when the source</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>share</code></td>
+                <td>gives a number (a value or a range)</td>
+                <td>"averaged 77% relative abundance"</td>
+              </tr>
+              <tr>
+                <td><code>dominance</code></td>
+                <td>ranks members without a number</td>
+                <td>"dominated by <i>Elymus trachycaulus</i>" is <code>dominant</code>; "several rare taxa" is <code>rare</code></td>
+              </tr>
+              <tr>
+                <td><code>rank</code></td>
+                <td>states an explicit ordering</td>
+                <td>"detected most frequently, followed by coyotes and lynx"</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            A bare list of members with no share, dominance or rank is not a
+            composition. List them in <code>applied_to</code> and carry presence or
+            disappearance in <code>state_or_change_qualifier</code>. Composition
+            records what was <em>observed</em>; <code>components</code> records what a
+            management intervention <em>applied</em> (a seed mix and its rates).
+            A composition rides on a node that already takes part in an edge, so a
+            composition-only finding is not a record.
+          </p>
 
           <h3>State and Change Qualifiers</h3>
           <ul class="tag-list" aria-label="State and change qualifier examples">
@@ -1712,7 +1771,7 @@ edges:
           <ul class="checklist">
             <li>Every node is a state or change, not just a bare species, process, or place.</li>
             <li>Every node has a useful <code>name</code>, <code>entity_term</code>, and, where applicable, <code>measured_attribute</code>.</li>
-            <li>Single-taxon measurements use <code>entity_type: taxon</code>; multi-taxon or guild measurements use <code>taxonomic_scope</code>.</li>
+            <li>Single-taxon measurements use <code>entity_type: taxon</code>; multi-taxon or guild measurements use <code>composite_variable</code> with <code>applied_to</code>.</li>
             <li>Every edge has <code>subject</code>, <code>predicate</code>, <code>object</code>, <code>causal_language</code>, and <code>philosophical_accounts</code>.</li>
             <li>Null results are represented with <code>causal_language: no_relationship</code> and <code>negated: true</code>, always together; never with an <code>unchanged</code> object node.</li>
             <li>Feature statuses distinguish explicit claims from assumptions and from silence.</li>

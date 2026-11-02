@@ -28,6 +28,48 @@
 ## =============================================================================
 ## CHANGELOG
 ## =============================================================================
+## Unreleased (after 0.10.0)
+## Added:
+## - QuantityValue.unit_text (string): the unit as the source words it, for
+##   use only when no QUDT or UO term exists. A nine-paper schema test lost
+##   19 records on the unit pattern (14 on ramets/m2, 2 on deer/km2, 3 whole
+##   QuantityValues), because ecological density units often have no UO term.
+##   Chosen over widening the unit pattern so that unit stays an identifier
+##   and the free-text fallback is visible in the data.
+## - EntityTypeEnum.composite_variable (BFO:0000019, as environmental_variable):
+##   a measurable aspect of ecosystem state whose entity is an aggregate -
+##   an assemblage, community or guild. The two-path model under
+##   EntityTypeEnum.taxon told annotators to label a multi-taxon aggregate
+##   environmental_variable, the same value used for soil pH, so nothing in
+##   the data distinguished an assemblage from a scalar. A nine-paper schema
+##   test found assemblage-level claims in 8 of 9 papers.
+## - Assemblage composition: CausalNode.composition (CompositionAnnotation),
+##   CompositionMember (is_a the new abstract EntityReference, which
+##   AppliedToEntity now also extends; adds share, dominance, rank),
+##   CompositionBasisEnum and DominanceEnum. A CausalNode carried one
+##   entity_term, so the shares of an observed assemblage had nowhere to go:
+##   28 of 366 findings in 8 of 9 papers state a composition, and four of
+##   the seven findings no slot could hold were composition statements.
+##   CompositionMember requires at least one of share, dominance or rank
+##   (16 of the 28 rank members with no number), and a rule on CausalNode
+##   restricts composition to entity_type composite_variable. A bare list of
+##   members with no amount is not a composition: use applied_to. Not
+##   a replacement for CausalNode.components, which records what an
+##   intervention applied rather than what was observed. CausalGraph.edges
+##   stays required, so a composition-only finding is not a record.
+## Changed (documentation only):
+## - Path (2) of the two-path model, in EntityTypeEnum.taxon and the
+##   CausalNode description, now says composite_variable where it said
+##   environmental_variable. The applied_to and AppliedToEntity descriptions
+##   follow. No value, slot or range changed.
+##
+## NOTE: additive. Existing 0.10.0 records remain valid and need no
+## migration; nothing was renamed or removed. New public names for loom:
+## EntityTypeEnum.composite_variable, CausalNode.composition,
+## CompositionAnnotation and CompositionMember (plus CompositionBasisEnum,
+## DominanceEnum and QuantityValue.unit_text). See CHANGELOG.md, "Note for
+## loom".
+##
 ## 0.10.0 (from 0.9.0)
 ## Breaking:
 ## - TemporalExtent.observation_seasons is now range SeasonEnum, not string.
@@ -1317,6 +1359,19 @@ enums:
           phylogenetic diversity. Corresponds to "state variables" in
           ecological modeling (Jørgensen and Fath 2011; Palmeri et al. 2013).
         meaning: BFO:0000019
+      composite_variable:
+        description: >-
+          A measurable aspect of ecosystem state whose entity is an aggregate
+          of several members: an assemblage, a community or an ecological
+          guild. Still a state variable, but an aggregated one, so it shares
+          environmental_variable's BFO quality grounding. Use it where the
+          measured thing is the group rather than one member or a scalar
+          environmental property. Examples: the cladoceran assemblage, the
+          boreal predator assemblage, native forbs, browse-tolerant
+          field-layer plants. The members, where the source names them, go in
+          applied_to; where it also reports how much each accounts for, in
+          composition, which only this node type may carry.
+        meaning: BFO:0000019
       environmental_process:
         description: >-
           A process that changes the state of an ecosystem over time. Examples:
@@ -1346,7 +1401,7 @@ enums:
           participates directly in causal edges.
 
           (2) Multi-taxon aggregate or ecological guild — use
-          entity_type: environmental_variable with applied_to listing
+          entity_type: composite_variable with applied_to listing
           the relevant NCBITaxon IDs or free-text guild names. Reserve this
           for cases where the measurement spans multiple taxa
           ("richness of liverworts, Sphagnum, and true mosses") or refers to
@@ -2494,7 +2549,51 @@ enums:
       supplementary:
         description: "Supplementary materials."
 
- 
+
+  # ---------------------------------------------------------------------------
+  # Assemblage composition
+  # ---------------------------------------------------------------------------
+
+  CompositionBasisEnum:
+    description: >-
+      What a reported membership share measures. An assemblage share is only
+      interpretable against its basis: 90% of individuals is not 90% of cover
+      and not 90% of detections.
+    permissible_values:
+      relative_abundance:
+        description: "Share of counted individuals in the assemblage."
+      cover:
+        description: "Share of ground or canopy area occupied."
+      biomass:
+        description: "Share of total mass."
+      density:
+        description: "Members reported as counts per unit area or volume."
+      detection_frequency:
+        description: >-
+          Share of sampling occasions or units on which the member was
+          detected, e.g. camera-trap or point-count detections.
+      frequency_of_occurrence:
+        description: "Share of plots or quadrats in which the member occurs."
+      other:
+        description: "Another basis; name it in CompositionAnnotation.verbatim."
+
+  DominanceEnum:
+    description: >-
+      A member's standing in the assemblage where the source ranks members
+      without giving a number, e.g. "dominated by Elymus trachycaulus".
+      Ordinal only: do not infer a share from it.
+    permissible_values:
+      dominant:
+        description: "The most abundant member, or named as dominating the assemblage."
+      codominant:
+        description: "One of two or more members named as jointly dominating."
+      subdominant:
+        description: "Abundant but ranked below the dominant member."
+      minor:
+        description: "Present in low amount, without being called rare."
+      rare:
+        description: "Explicitly described as rare or infrequent."
+
 ## =============================================================================
 ## CLASSES
 ## =============================================================================
@@ -2635,10 +2734,23 @@ classes:
       entity_term and the measured property in measured_attribute — the taxon
       node is both organism and measurement and participates directly in
       causal edges. Multi-taxon aggregates and ecological guilds ("native
-      species", "shade-tolerant species") use entity_type: environmental_variable
+      species", "shade-tolerant species") use entity_type: composite_variable
       with one or more NCBITaxon IDs or free-text guild names in applied_to.
       Causal edges are never used for taxon-to-measurement links; applied_to
       is a queryable annotation field only.
+    rules:
+      - description: >-
+          A composition describes an aggregate of several members, so only a
+          composite_variable node may carry one. A single-taxon or
+          single-variable node that needs a member list wants applied_to.
+        preconditions:
+          slot_conditions:
+            composition:
+              required: true
+        postconditions:
+          slot_conditions:
+            entity_type:
+              equals_string: composite_variable
     attributes:
       id:
         description: >-
@@ -2725,7 +2837,8 @@ classes:
           whose scope the measurement spans. Covers two roles depending on
           node type:
 
-          (1) Scope role (environmental_variable): one or more taxa or
+          (1) Scope role (composite_variable; earlier annotations may use
+          environmental_variable): one or more taxa or
           ecological guilds whose measurements are aggregated or grouped —
           for example, "richness of liverworts, Sphagnum, and true mosses"
           (list the NCBITaxon ID for each group) or "abundance of native
@@ -2753,7 +2866,7 @@ classes:
         inlined_as_list: true
         annotations:
           note: >-
-            For environmental_variable nodes: list the taxa or guilds whose
+            For composite_variable nodes: list the taxa or guilds whose
             measurements are aggregated. For process and intervention nodes:
             name the directional target entity. Leave empty for processes
             with no directional target and for variables with no taxonomic
@@ -2826,6 +2939,8 @@ classes:
           seed mix of ten species with seeding rates). Defines what the
           intervention was; do not annotate components as separate nodes or
           edges unless the source reports results for them separately.
+          This records what was applied. What was observed in an assemblage
+          goes in composition on a composite_variable node.
         range: QuantityValue
         multivalued: true
         inlined_as_list: true
@@ -2836,6 +2951,26 @@ classes:
           area-dependent attributes such as species richness. Not part of
           variable_key.
         range: QuantityValue
+        inlined: true
+      composition:
+        description: >-
+          For composite_variable nodes, the reported composition of the
+          assemblage: its members and how much of the whole each accounts for.
+          Requires entity_type: composite_variable. Not part of variable_key.
+
+          Which slot to use. Where the source gives each member's share, or
+          ranks the members, record a composition: a number goes in
+          member.share, a ranking with no number in member.dominance or
+          member.rank. Where the source only names the members, with no share
+          and no ranking, there is no composition to record: list them in
+          applied_to and put presence or disappearance in
+          state_or_change_qualifier, which is what those slots are for. Every
+          composition member must carry an amount in one of the three forms,
+          so a bare membership list will be rejected here by design.
+
+          Use components, not composition, for what a management intervention
+          applied, such as a seed mix and its rates.
+        range: CompositionAnnotation
         inlined: true
       nativeness_basis:
         description: >-
@@ -2875,15 +3010,15 @@ classes:
   # Text grounding
   # ---------------------------------------------------------------------------
 
-  AppliedToEntity:
-    class_uri: causal_mosaic:AppliedToEntity
+  EntityReference:
+    class_uri: causal_mosaic:EntityReference
+    abstract: true
     description: >-
-      A structured entity reference used by the CausalNode.applied_to slot.
-      On environmental_variable nodes it identifies a taxon or ecological
-      guild whose measurements are aggregated (scope role). On
-      environmental_process and management_intervention nodes it identifies
-      the directional target of the process or intervention (target role).
-      Uses the same entity_type / entity_term decomposition as CausalNode.
+      The entity_type / entity_term / life_stage decomposition shared by the
+      structured entity references: AppliedToEntity (applied_to entries) and
+      CompositionMember (members of an observed assemblage). Abstract, so that
+      the two stay separate range types: a CompositionMember is not accepted
+      where an AppliedToEntity is expected, and the other way round.
     attributes:
       entity_type:
         description: "High-level category of the target entity."
@@ -2913,6 +3048,101 @@ classes:
           - range: uriorcurie
           - range: string
         broad_mappings: [PO:0009012, UBERON:0000105]
+
+  AppliedToEntity:
+    class_uri: causal_mosaic:AppliedToEntity
+    is_a: EntityReference
+    description: >-
+      A structured entity reference used by the CausalNode.applied_to slot.
+      On composite_variable nodes it identifies a taxon or ecological
+      guild whose measurements are aggregated (scope role). On
+      environmental_process and management_intervention nodes it identifies
+      the directional target of the process or intervention (target role).
+      Uses the same entity_type / entity_term decomposition as CausalNode.
+      Amounts (share, dominance, rank) do not belong here: they go on
+      CompositionMember, in CausalNode.composition.
+
+  CompositionMember:
+    class_uri: causal_mosaic:CompositionMember
+    is_a: EntityReference
+    description: >-
+      One member of an observed assemblage, with how much of the whole it
+      accounts for. Inherits the entity_type / entity_term / life_stage
+      decomposition from EntityReference, so a member is grounded the same way
+      as an applied_to entry, and adds the member's amount. Give share
+      when the source reports a number, dominance when it ranks members
+      without one, and rank to preserve an explicit ordering.
+    attributes:
+      share:
+        description: >-
+          How much of the whole this member accounts for, in the units named
+          by CompositionAnnotation.basis. Use the QuantityValue range fields
+          for a reported range, e.g. "2-6% relative abundance" is
+          minimum_value 2 and maximum_value 6.
+        range: QuantityValue
+        inlined: true
+      dominance:
+        description: >-
+          The member's ordinal standing where the source gives no number.
+          Leave empty when share is given and the source adds no ranking.
+        range: DominanceEnum
+      rank:
+        description: >-
+          The member's position in an ordering the source states explicitly,
+          1 for the first named, e.g. "detected most frequently, followed by
+          coyotes and lynx". Independent of list order.
+        range: integer
+        minimum_value: 1
+    any_of:
+      - slot_conditions:
+          share:
+            required: true
+      - slot_conditions:
+          dominance:
+            required: true
+      - slot_conditions:
+          rank:
+            required: true
+
+  CompositionAnnotation:
+    class_uri: causal_mosaic:CompositionAnnotation
+    description: >-
+      The reported composition of an observed assemblage: which members make
+      it up and how much of it each accounts for. Attaches to a CausalNode
+      whose entity is a composite_variable, and describes that node's
+      entity rather than a causal relationship. Distinct from
+      CausalNode.components, which records what a management intervention
+      applied (a seed mix and its rates); this records what was observed.
+      Members are usually taxa but need not be: a fraction of particulate
+      organic matter by biomass is a member too. Not modelled: a ratio between
+      two groups ("forb-to-grass ratio 3.5:1"), and nesting of groups within
+      groups (list the leaf members and let the flat list stand).
+    attributes:
+      basis:
+        description: >-
+          What the member shares measure. Required, because a share without
+          its basis cannot be compared across studies.
+        range: CompositionBasisEnum
+        required: true
+      members:
+        description: "The members of the assemblage, one entry each."
+        range: CompositionMember
+        multivalued: true
+        minimum_cardinality: 1
+        inlined_as_list: true
+        required: true
+      total_share:
+        description: >-
+          The share of the whole that the listed members jointly account for,
+          where the source states it, e.g. "comprised more than 87% of the
+          cladoceran assemblage" is minimum_value 87. Records that the list is
+          partial without forcing an invented remainder.
+        range: QuantityValue
+        inlined: true
+      verbatim:
+        description: "The composition as the source states it."
+        range: string
+
   QuantityValue:
     class_uri: causal_mosaic:QuantityValue
     description: >-
@@ -2937,9 +3167,20 @@ classes:
           Unit of the value, as a QUDT unit (preferred) or UO term, matching
           ParameterOption.unit. For counts per area give the area unit (e.g.
           per square metre) and name what is counted in counted_entity.
-          Leave empty for unitless counts.
+          Leave empty for unitless counts, and when no QUDT or UO term fits
+          (ecological density units such as ramets/m2 or deer/km2 often have
+          none): put the source's own wording in unit_text instead.
         range: uriorcurie
         pattern: '^(unit|UO):\S+$'
+      unit_text:
+        description: >-
+          The unit as the source words it, for use only when no QUDT or UO
+          term exists for it, e.g. "ramets/m2" or "deer/km2". unit stays an
+          identifier; this slot makes the fallback explicit so a consumer can
+          tell a resolvable unit from a free-text one. Do not fill it when
+          unit is set. Differs from verbatim, which is the whole quantity
+          (value and unit), not the unit alone.
+        range: string
       counted_entity:
         description: >-
           What is counted or measured, when the unit alone does not say, e.g.

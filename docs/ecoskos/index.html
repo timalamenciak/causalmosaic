@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoSKOS vocabulary</title>
+<style>
+:root {
+  --forest:#243F32; --sage:#8BAD8C; --mint:#8FBF9F; --cream:#E8DDD0;
+  --tan:#D4C4A0; --charcoal:#373535; --burgundy:#7A2D3A;
+  --bg:#F6F1EA; --card:#FFFFFF; --text:#373535; --muted:#6B6663;
+  --line:#D9CFC1; --link:#243F32; --accent:#243F32;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#1B2B23; --card:#243F32; --text:#E8DDD0; --muted:#A9B9AC;
+    --line:#3A5A49; --link:#8FBF9F; --accent:#8FBF9F;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#1B2B23; --card:#243F32; --text:#E8DDD0; --muted:#A9B9AC;
+  --line:#3A5A49; --link:#8FBF9F; --accent:#8FBF9F;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:860px;margin:0 auto;padding:2rem 16px 4rem}
+h1{font-size:1.7rem;margin:0 0 .25rem}
+a{color:var(--link)}
+.lede{color:var(--muted);margin:0 0 1.5rem}
+.meta{font-size:.9rem;color:var(--muted);margin:0 0 1.5rem}
+.legend{display:grid;gap:.4rem;margin:0 0 1.5rem;padding:0;list-style:none;font-size:.9rem}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
+input,select{font:inherit;padding:.45rem .6rem;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text)}
+input{flex:1 1 220px}
+.count{color:var(--muted);font-size:.9rem;margin:0 0 .75rem}
+article{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem 1.1rem;margin:0 0 .75rem}
+article h2{font-size:1.1rem;margin:0 0 .15rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline}
+article.deprecated h2 .label{text-decoration:line-through}
+.id{font:.8rem ui-monospace,Consolas,monospace;color:var(--muted)}
+.badge{font-size:.72rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:.1rem .45rem;border-radius:99px;border:1px solid currentColor}
+.badge.proposed{color:#8A6D1F}.badge.requested{color:#2F6B8F}.badge.mapped{color:#2E7D4F}.badge.deprecated{color:var(--burgundy)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .badge.proposed{color:#E0C264}:root:not([data-theme="light"]) .badge.requested{color:#7DB8DB}:root:not([data-theme="light"]) .badge.mapped{color:#8FD1A8}:root:not([data-theme="light"]) .badge.deprecated{color:#E59AA6}}
+.syn{color:var(--muted);font-size:.9rem;margin:0 0 .5rem}
+.def{margin:.5rem 0}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:.2rem .9rem;margin:.5rem 0 0;font-size:.9rem}
+dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
+footer{margin-top:2rem;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<h1>EcoSKOS</h1>
+<p class="lede">Stopgap terms for ecological evidence annotation, for use where no ontology term exists yet.</p>
+<p class="meta">Scheme <code>https://w3id.org/ecoskos/</code> &middot; 0 terms &middot; <a href="ecoskos.ttl">Turtle</a> &middot; CC0 &middot; part of the <a href="https://github.com/timalamenciak/causalmosaic">Causal Mosaic schema</a></p>
+<p>Use <code>entity_term: ecoskos:NNNNNNN</code> when you cannot find the concept in an ontology. Each term records where an ontology editor would place it (its broader term) and is mapped to the ontology term once one exists.</p>
+<ul class="legend">
+<li><span class="badge proposed">proposed</span> Needed, but no upstream request has been filed yet. (0)</li>
+<li><span class="badge requested">requested</span> An upstream request is open. (0)</li>
+<li><span class="badge mapped">mapped</span> An ontology term now exists; use that instead. (0)</li>
+<li><span class="badge deprecated">deprecated</span> Withdrawn. Kept so existing annotations still resolve. (0)</li>
+</ul>
+<div class="controls">
+<input id="q" type="search" placeholder="Search labels, synonyms, definitions" aria-label="Search terms">
+<select id="s" aria-label="Filter by status"><option value="">All statuses</option><option value="proposed">proposed</option><option value="requested">requested</option><option value="mapped">mapped</option><option value="deprecated">deprecated</option></select>
+</div>
+<p class="count" id="count"></p>
+<section id="terms">
+<p class="count">No terms yet.</p>
+</section>
+<footer>Generated from <code>vocab/ecoskos_terms.tsv</code> by <code>vocab/build_vocab.py</code>. Do not edit by hand.</footer>
+</main>
+<script>
+(function () {
+  var q = document.getElementById('q'), s = document.getElementById('s');
+  var items = Array.prototype.slice.call(document.querySelectorAll('#terms article'));
+  var count = document.getElementById('count');
+  function apply() {
+    var needle = q.value.trim().toLowerCase(), status = s.value, shown = 0;
+    items.forEach(function (el) {
+      var ok = (!status || el.dataset.status === status) &&
+               (!needle || el.dataset.text.indexOf(needle) !== -1);
+      el.hidden = !ok;
+      if (ok) shown++;
+    });
+    count.textContent = shown + ' of ' + items.length + ' terms shown';
+  }
+  q.addEventListener('input', apply);
+  s.addEventListener('change', apply);
+  apply();
+})();
+</script>
+</body>
+</html>

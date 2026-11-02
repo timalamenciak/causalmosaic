@@ -185,7 +185,7 @@ dl.glossary dd{margin-left:1.5rem;font-size:.88rem;color:var(--charcoal)}
     <li class="section-head"><a>Step 2 · Nodes</a></li>
     <li><a href="#nodes-intro">What is a node?</a></li>
     <li class="sub"><a href="#elmo">The ELMO decomposition</a></li>
-    <li class="sub"><a href="#entity-types">4 entity types</a></li>
+    <li class="sub"><a href="#entity-types">5 entity types</a></li>
     <li class="sub"><a href="#node-fields">Node fields</a></li>
     <li class="sub"><a href="#pids">Permanent identifiers</a></li>
     <li class="sub"><a href="#parameter-options">Parameter options</a></li>
@@ -396,8 +396,8 @@ is_sampling_effort_reported: true</pre>
 
 <p>In Loom, these three parts correspond to three fields: <code>entity_term</code>, <code>measured_attribute</code>, and <code>state_or_change_qualifier</code>. The <code>name</code> field is a human-readable composed form of all three.</p>
 
-<h3 id="entity-types">The four entity types</h3>
-<p>Every node has an <code>entity_type</code> — the broad category of the thing at the heart of the node. There are four types in CAMO 0.8.0:</p>
+<h3 id="entity-types">The five entity types</h3>
+<p>Every node has an <code>entity_type</code> — the broad category of the thing at the heart of the node. There are five types in the current schema:</p>
 
 <div class="entity-card">
   <div class="entity-badge et-taxon">🌿</div>
@@ -415,9 +415,20 @@ is_sampling_effort_reported: true</pre>
   <div>
     <h4>environmental_variable</h4>
     <p>A measurable aspect of ecosystem state at a point in time — a "snapshot" of a condition. Examples: soil pH, canopy height, light availability, native species richness, bare soil cover.</p>
-    <p><strong>Use for:</strong> abiotic conditions, multi-taxon aggregates (listing the taxa in <code>applied_to</code>), or ecosystem state variables.</p>
-    <p><strong>Murphy examples:</strong> Resource availability to <em>A. petiolata</em>; reestablishment of native understory species (with <code>applied_to</code> set to the free-text guild "native forest understory species").</p>
+    <p><strong>Use for:</strong> abiotic conditions and other single ecosystem state variables. If the thing measured is an aggregate of several members (an assemblage, community, or guild), use <code>composite_variable</code> instead.</p>
+    <p><strong>Murphy example:</strong> Resource availability to <em>A. petiolata</em>.</p>
     <p><strong>Grounding:</strong> There is not a single source for environmental variables. Some will be grounded in <a href="https://bioportal.bioontology.org/ontologies/ENVO">ENVO</a> or <a href="https://obofoundry.org/ontology/pato.html">PATO</a>. We have added many to <a href="https://timalamenciak.github.io/elmo/elmo.html">ELMO</a>.</p>
+  </div>
+</div>
+
+<div class="entity-card">
+  <div class="entity-badge et-env-var">🧩</div>
+  <div>
+    <h4>composite_variable</h4>
+    <p>A measurable aspect of ecosystem state whose entity is an aggregate of several members: an assemblage, a community, or an ecological guild. It is still a state variable, but an aggregated one. Examples: the cladoceran assemblage, the boreal predator assemblage, native forbs, browse-tolerant field-layer plants.</p>
+    <p><strong>Use for:</strong> multi-taxon aggregates. List the members in <code>applied_to</code>. If the paper also says how much each member accounts for, record that in <code>composition</code> (see below).</p>
+    <p><strong>Murphy example:</strong> Reestablishment of native understory species (with <code>applied_to</code> set to the free-text guild "native forest understory species").</p>
+    <p><strong>Grounding:</strong> As for <code>environmental_variable</code>; the members in <code>applied_to</code> are grounded as taxa are.</p>
   </div>
 </div>
 
@@ -444,8 +455,20 @@ is_sampling_effort_reported: true</pre>
 </div>
 
 <div class="callout tip">
-  <strong class="label">Taxon vs. environmental_variable for multi-species measurements</strong>
-  If the paper reports a measurement on a <em>single species</em>, use <code>entity_type: taxon</code>. If it reports on a group of species (e.g., "native species richness", "invasive plant cover"), use <code>entity_type: environmental_variable</code> and list the taxa or guild in <code>applied_to</code>.
+  <strong class="label">Taxon vs. composite_variable for multi-species measurements</strong>
+  If the paper reports a measurement on a <em>single species</em>, use <code>entity_type: taxon</code>. If it reports on a group of species (e.g., "native species richness", "invasive plant cover"), use <code>entity_type: composite_variable</code> and list the taxa or guild in <code>applied_to</code>. Older annotations may use <code>environmental_variable</code> for these; they remain valid.
+</div>
+
+<h3 id="composition">Recording the makeup of an assemblage</h3>
+<p>Sometimes the paper tells you what an assemblage is made of: "<em>Bosmina</em> spp. and <em>Chydorus brevilabris</em> averaged 77% and 3% relative abundance", "dominated by <em>Elymus trachycaulus</em>", "detected most frequently, followed by coyotes and lynx". On a <code>composite_variable</code> node this goes in <code>composition</code>, which takes:</p>
+<ul>
+<li><strong>basis</strong> (required): what the shares measure, such as relative abundance, cover, biomass, density, detection frequency or frequency of occurrence. Ninety per cent of individuals is not ninety per cent of cover.</li>
+<li><strong>members</strong> (required): one entry per member. Each needs at least one of <code>share</code> (a number or range), <code>dominance</code> (dominant, codominant, subdominant, minor, rare: use when the paper ranks members without a number) or <code>rank</code> (an explicit ordering, 1 for the first named).</li>
+<li><strong>total_share</strong> (optional): the share the listed members account for together, when the paper says so ("more than 87%").</li>
+</ul>
+<div class="callout tip">
+  <strong class="label">Names only is not a composition</strong>
+  If the paper only names members, with no share, no ranking and no dominance, do not use <code>composition</code>. List them in <code>applied_to</code> and put presence or disappearance in <code>state_or_change_qualifier</code>. Composition describes what was <em>observed</em>; <code>components</code> on a management intervention describes what was <em>applied</em> (a seed mix and its rates).
 </div>
 
 <h3 id="node-fields">Node fields walkthrough</h3>
@@ -456,11 +479,12 @@ is_sampling_effort_reported: true</pre>
 <tbody>
 <tr><td><code>id</code></td><td>Permanent unique identifier. Auto-generated by Loom.</td><td>Auto</td></tr>
 <tr><td><code>name</code></td><td>Human-readable composed label: "Decreased population performance of Alliaria petiolata"</td><td>Yes</td></tr>
-<tr><td><code>entity_type</code></td><td>One of the 4 entity types above</td><td>Yes</td></tr>
+<tr><td><code>entity_type</code></td><td>One of the 5 entity types above</td><td>Yes</td></tr>
 <tr><td><code>entity_term</code></td><td>Ontology CURIE for the entity — ideally a Wikidata QID for taxa, ENVO term for environments, GO term for processes. Can be free text as a fallback.</td><td>Yes</td></tr>
 <tr><td><code>measured_attribute</code></td><td>What property of the entity is being measured. Ideally a PATO term (e.g., PATO:0000070 = abundance).</td><td>Strongly recommended</td></tr>
 <tr><td><code>state_or_change_qualifier</code></td><td>What happened to the attribute. Directional change: <code>increased</code>, <code>decreased</code>, <code>unchanged</code>. Presence: <code>present</code>, <code>absent</code>. Membership change: <code>introduced</code>, <code>removed</code>. Process phase: <code>occurred</code>, <code>initiated</code>, <code>terminated</code>, <code>ongoing</code>, <code>interrupted</code>, <code>aborted</code>. <code>unchanged</code> means the paper reports a stable state as a finding — never use it for a null result.</td><td>Yes</td></tr>
-<tr><td><code>applied_to</code></td><td>Two roles. On <code>environmental_variable</code> nodes: the taxa or guilds whose measurements are aggregated (Wikidata QIDs, or free text such as "native species"). On <code>environmental_process</code> and <code>management_intervention</code> nodes: the entity the process or intervention acts on. Not used on single-taxon nodes.</td><td>When applicable</td></tr>
+<tr><td><code>applied_to</code></td><td>Two roles. On <code>composite_variable</code> nodes: the taxa or guilds whose measurements are aggregated (Wikidata QIDs, or free text such as "native species"). On <code>environmental_process</code> and <code>management_intervention</code> nodes: the entity the process or intervention acts on. Not used on single-taxon nodes.</td><td>When applicable</td></tr>
+<tr><td><code>composition</code></td><td>The makeup of an assemblage: basis, members, and each member's share, dominance or rank. Only on <code>composite_variable</code> nodes, and only when the paper gives an amount for the members. See <a href="#composition">Recording the makeup of an assemblage</a>.</td><td>When applicable</td></tr>
 <tr><td><code>source_spans</code></td><td>Verbatim text quotes from the paper that ground this node</td><td>Yes</td></tr>
 <tr><td><code>parameter_options</code></td><td>Ways this node could be measured, as ids from the parameter option catalog. Filled from the catalog, not by you — see <a href="#parameter-options">Parameter options</a>.</td><td>Auto</td></tr>
 </tbody>
@@ -478,7 +502,7 @@ is_sampling_effort_reported: true</pre>
   <div class="icon">📸</div>
   <div>
     <img src="./screenshots/node_bottomhalf.jpg" alt="Node form bottom half showing the applied to field" style="width:100%;height:auto;">
-    <p>The bottom half of the node form. Applied to lists the taxa or guild on <code>environmental_variable</code> nodes spanning multiple taxa, and the target entity on <code>management_intervention</code> and <code>environmental_process</code> nodes.</p>
+    <p>The bottom half of the node form. Applied to lists the taxa or guild on <code>composite_variable</code> nodes spanning multiple taxa, and the target entity on <code>management_intervention</code> and <code>environmental_process</code> nodes.</p>
   </div>
 </div>
 
@@ -640,7 +664,7 @@ parameter_options:
 <tr><td>4</td><td>Decreased resource availability to A. petiolata</td><td>environmental_variable</td><td>resource availability</td><td>—</td><td>decreased</td></tr>
 <tr><td>5</td><td>Persistent A. petiolata seed bank</td><td>taxon</td><td>wd:Q30055</td><td>seed bank persistence</td><td>present</td></tr>
 <tr><td>6</td><td>Unchanged seasonal seedling emergence</td><td>taxon</td><td>wd:Q30055</td><td>seasonal seedling emergence</td><td>unchanged</td></tr>
-<tr><td>7</td><td>Reestablishment of native understory species</td><td>environmental_variable</td><td>re-establishment</td><td>—</td><td>increased (negated at edge)</td></tr>
+<tr><td>7</td><td>Reestablishment of native understory species</td><td>composite_variable</td><td>re-establishment</td><td>—</td><td>increased (negated at edge)</td></tr>
 </tbody>
 </table>
 
@@ -1321,7 +1345,7 @@ annotation_confidence: 0.86</pre>
   <dd>A directed causal claim connecting two nodes. Carries all four annotation layers.</dd>
 
   <dt>entity_type</dt>
-  <dd>The broad category of the entity at the core of a node: taxon, environmental_variable, environmental_process, or management_intervention.</dd>
+  <dd>The broad category of the entity at the core of a node: taxon, environmental_variable, composite_variable, environmental_process, or management_intervention.</dd>
 
   <dt>entity_term</dt>
   <dd>The ontology CURIE (or free-text fallback) identifying the specific entity. For taxa, use Wikidata QIDs (wd:Q…).</dd>

@@ -108,7 +108,8 @@ The main structured components are:
 * `entity_term` — ontology identifier or, when necessary, free text;
 * `measured_attribute` — the property being measured;
 * `state_or_change_qualifier` — e.g. `increased`, `decreased`, `present`, or `absent`;
-* `applied_to` — structured information about the entity to which a variable, process, or intervention applies; and
+* `applied_to` — structured information about the entity to which a variable, process, or intervention applies;
+* `composition` — on a `composite_variable` node, the observed makeup of an assemblage (its members and each one's share, dominance or rank); and
 * `source_spans` — text grounding the node in the source literature.
 
 This decomposition lets CAMO distinguish, for example, *wolf abundance* from *wolf presence*, while still allowing searches across all claims involving wolves.
@@ -117,7 +118,7 @@ This decomposition lets CAMO distinguish, for example, *wolf abundance* from *wo
 
 `applied_to` provides additional structured context without folding that context into the node label.
 
-For an `environmental_variable`, it can describe the taxa or ecological guilds over which a measurement is aggregated:
+For a `composite_variable` (an assemblage, community or guild), it can describe the taxa or ecological guilds over which a measurement is aggregated:
 
 > increased richness **of native plants**
 
@@ -416,6 +417,19 @@ Instead, CAMO makes the **claims, evidence, assumptions, context, and synthesis 
 
 ---
 
+## Terms missing from ontologies (EcoSKOS)
+
+`entity_term` should be an ontology CURIE, but sometimes no ontology has the concept yet. **EcoSKOS** is a stopgap SKOS vocabulary for those cases: each term gets a permanent ID (`ecoskos:0000001`), a definition, and a note of where an ontology editor would put it, so it can be used now and mapped to the ontology term when one exists. It doubles as a worklist of terms to request upstream.
+
+* The source is `vocab/ecoskos_terms.tsv`. `make vocab` validates it and regenerates `docs/ecoskos/ecoskos.ttl` and a readable page, `docs/ecoskos/index.html`. Do not edit the generated files.
+* `make terms-report` counts terms by status and lists requests that have waited too long; `make term-request ID=ecoskos:0000001` prints one term as a ready-to-paste ontology term request.
+* To propose a term without using git, open a *Propose a vocabulary term* issue.
+* IDs are permanent: a term that an ontology adopts is mapped, never deleted or renumbered.
+
+Check the ontologies first. [Adding a term to EcoSKOS](docs/adding-a-term.md) explains how, and covers the fields, the status lifecycle, and mapping a term once it lands upstream.
+
+---
+
 ## Repository contents
 
 | File / folder                     | Purpose                                             |
@@ -424,6 +438,10 @@ Instead, CAMO makes the **claims, evidence, assumptions, context, and synthesis 
 | `CHANGELOG.md`                    | Schema change history and migration notes           |
 | `docs/camo_annotation_guide.html` | Guide to annotating scholarly literature using CAMO |
 | `docs/camo_schema_guide.html`     | Plain-language guide to the schema                  |
+| `docs/adding-a-term.md`           | How to add and manage EcoSKOS vocabulary terms      |
+| `vocab/`                          | EcoSKOS term source (TSV) and its build scripts     |
+| `docs/ecoskos/`                   | Generated EcoSKOS Turtle and HTML (do not edit)     |
+| `Makefile`                        | Optional shortcuts for the checks and vocabulary    |
 | `old versions/`                   | Archived prior schema versions                      |
 
 ---

@@ -2,6 +2,71 @@
 
 All notable changes to the active LinkML schema and its supporting governance files are recorded here.
 
+## Unreleased (after 0.10.0)
+
+Three additive changes, from a nine-paper schema test run against 0.10.0: a `unit_text` fallback on `QuantityValue`, an `EntityTypeEnum.composite_variable` value, and assemblage composition (`CausalNode.composition`). Nothing was renamed or removed, so existing 0.10.0 records remain valid and **no data migration is required**. The version is not bumped; the only line removed from the schema is one sentence of documentation (see the note for loom at the end of this section).
+
+### Added: `QuantityValue.unit_text`
+
+A nine-paper schema test against 0.10.0 lost **19 records** to the `QuantityValue.unit` pattern (`^(unit|UO):\S+$`): 14 on `ramets/m2`, 2 on `deer/km2`, and 3 where the whole `QuantityValue` failed because the unit could not be set. Ecological density units frequently have no QUDT or UO term, so an annotator who read the unit correctly had nowhere to put it.
+
+* **`unit_text`** (string): the unit as the source words it, used only when no CURIE exists. `unit` keeps its pattern and stays an identifier.
+
+Why a sibling slot rather than a wider pattern: widening `unit` to admit literal strings would make one slot hold two kinds of thing (a resolvable identifier and free text), and a consumer would have to sniff which. With `unit_text` the fallback is visible in the data, so a downstream query can count how many quantities lack a resolvable unit and a later release can map the common ones to terms.
+
+### Added: `EntityTypeEnum.composite_variable`
+
+The two-path model under `EntityTypeEnum.taxon` said a multi-taxon aggregate or guild should use `environmental_variable` with `applied_to` listing the members, so the schema described a composite variable in prose and then labelled it with the value used for soil pH. Assemblage-level claims appeared in 8 of 9 papers in the nine-paper test, and `taxon list` rose to third by volume among gap types (267 words, 50 items, 6 papers).
+
+* **`composite_variable`**: a measurable aspect of ecosystem state whose entity is an aggregate of several members (assemblage, community, guild). `meaning: BFO:0000019` (quality), the same as `environmental_variable`, since it is still a state variable, only an aggregated one.
+* **Changed, documentation only**: path (2) of the two-path model now says `composite_variable`, in `EntityTypeEnum.taxon` and the `CausalNode` description; the `applied_to` and `AppliedToEntity` descriptions follow. No value, slot or range changed.
+
+Existing annotations that labelled an assemblage `environmental_variable` stay valid but now disagree with the documentation; see the migration note for loom.
+
+### Added: assemblage composition
+
+A `CausalNode` carries one `entity_term`, so an observed assemblage of several taxa with a share each had nowhere to go. In the nine-paper test, 28 of 366 findings (8 of 9 papers, four systems: lake zooplankton, prairie plants, forest understory, boreal mammals) state a composition, and 4 of the 7 findings CAMO could not represent at all (fit grade `none`) were composition statements. Members were being concatenated into a node label or dropped. Sixteen of the 28 rank members without giving any number, so a design carrying only numeric shares would miss the majority.
+
+* **`CausalNode.composition`** (`CompositionAnnotation`), restricted by a rule to `entity_type: composite_variable` nodes. The rule tests an enum value, not a boolean.
+* **`CompositionAnnotation`**: required `basis` and `members` (at least one member); optional `total_share` and `verbatim`.
+* **`CompositionMember`**, `is_a: EntityReference`: adds `share` (`QuantityValue`), `dominance` and `rank`, with an `any_of` requiring at least one of the three.
+* **`CompositionBasisEnum`**: `relative_abundance`, `cover`, `biomass`, `density`, `detection_frequency`, `frequency_of_occurrence`, `other`.
+* **`DominanceEnum`**: `dominant`, `codominant`, `subdominant`, `minor`, `rare`. Ordinal only.
+
+A bare membership list with no share, ranking or dominance is **not** a composition: list the members in `applied_to` and carry presence or disappearance in `state_or_change_qualifier`. `CausalNode.components` is unchanged and still records what a management intervention applied; `composition` records what was observed.
+
+Not changed, by decision: `CausalGraph.edges` stays required, so a composition-only finding is not a record and the four `none` fits above stay outside the graph. Composition rides along on a node that already participates in an edge, which covers the other 24 findings.
+
+Known limits of this design, documented rather than solved: a group-to-group ratio ("forb-to-grass species ratios 3.5:1 vs 5.4:1") has no home (2 findings in 2 papers, below the bar for action); nested groups ("dominated by exotic ruderals including A, B, C, as well as early-seral natives D, E") flatten to one member list; and members are not always taxa (one real case is a fraction of particulate organic matter by biomass), though the descriptions lean taxon-centric.
+
+### Changed: documentation
+
+* The `docs/` guides now describe `composite_variable`, `composition` and the revised two-path model. `docs/camo_schema_guide.html` still named a `taxonomic_scope` slot that no longer exists in the schema; it now says `applied_to`.
+* Entity-type counts in the guides and in `docs/camo-rendering-targets.md` now say five.
+
+### Note for loom
+
+Nothing was renamed or removed, so no migration script is needed and existing data stays valid. Four new public names enter the contract; regenerate models to pick them up:
+
+| Name | Kind | Notes |
+| --- | --- | --- |
+| `EntityTypeEnum.composite_variable` | enum value | `meaning: BFO:0000019`, shared with `environmental_variable` |
+| `CausalNode.composition` | slot | range `CompositionAnnotation`, inlined |
+| `CompositionAnnotation` | class | required `basis`, required `members` |
+| `CompositionMember` | class | `is_a EntityReference`; at least one of `share`, `dominance`, `rank` |
+| `EntityReference` | class | abstract; holds `entity_type`, `entity_term`, `life_stage`, `life_stage_term`. `AppliedToEntity` now extends it |
+
+Also new, but not slots on existing classes: `CompositionBasisEnum`, `DominanceEnum`, and the optional `QuantityValue.unit_text`.
+
+Things loom should know:
+
+* `AppliedToEntity` is now `is_a: EntityReference` (its slots are unchanged, only inherited). This keeps `CompositionMember` out of `applied_to`: with `CompositionMember is_a AppliedToEntity`, an `applied_to` entry carrying `share` validated. Generated models gain one abstract parent class; no field of `AppliedToEntity` moved or changed.
+
+* A rule on `CausalNode` makes `composition` valid only when `entity_type` is `composite_variable`. It tests an enum, so it compiles correctly to JSON Schema.
+* Two permissible values of `EntityTypeEnum` now share one `meaning` (`BFO:0000019`). Code that inverts `meaning` back to a value will find two; key on the value name.
+* Annotations that labelled an assemblage `environmental_variable` are still valid but now disagree with the documentation, so the corpus will hold two conventions until they are re-typed. Re-typing is a data decision, not a schema one, and this release does not require it. The candidates are `environmental_variable` nodes with `applied_to` set (the scope role); each needs a human look, because a scalar variable can legitimately carry a taxon scope.
+* `unit_text` is free text. Do not feed it to a unit converter; treat a quantity with `unit_text` and no `unit` as having an unresolved unit.
+
 ## 0.9.0 > 0.10.0 — Seasons as an enum, statistical significance, life stage, dose levels
 
 CAMO 0.10.0 contains **one breaking change**, to `TemporalExtent.observation_seasons`. Everything else is additive. `helpers/migrate_0_9_0_to_0_10_0.py` applies the mechanical steps and reports the ones that need a human. The 0.9.0 schema is archived as `old versions/causal_mosaic_v0.9.0.yaml`.
