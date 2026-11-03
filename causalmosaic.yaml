@@ -57,6 +57,10 @@
 ##   a replacement for CausalNode.components, which records what an
 ##   intervention applied rather than what was observed. CausalGraph.edges
 ##   stays required, so a composition-only finding is not a record.
+## - CausalEdge.certainty_grade (CertaintyGradeEnum, default not_assessed):
+##   restored, unchanged from its 0.10.0 definition (removed in an earlier rework,
+##   reinstated because a per-claim certainty grade gives the claim context
+##   that the aggregate_certainty_grade on the evidence base does not).
 ## Changed (documentation only):
 ## - Path (2) of the two-path model, in EntityTypeEnum.taxon and the
 ##   CausalNode description, now says composite_variable where it said
@@ -2567,7 +2571,7 @@ enums:
       biomass:
         description: "Share of total mass."
       density:
-        description: "Members reported as counts per unit area or volume."
+        description: "Members reported as counts per unit area or volume. Reported as absolute counts rather than share."
       detection_frequency:
         description: >-
           Share of sampling occasions or units on which the member was
@@ -2576,6 +2580,8 @@ enums:
         description: "Share of plots or quadrats in which the member occurs."
       other:
         description: "Another basis; name it in CompositionAnnotation.verbatim."
+      not_stated:
+        description: "The source does not say what the share is of."
 
   DominanceEnum:
     description: >-
@@ -3801,6 +3807,11 @@ classes:
         description: "Annotation of the evidence type and evidence object supporting the claim."
         range: EvidentialBasis
         inlined: true
+
+      certainty_grade:
+        description: "GRADE-style certainty assessment for this individual causal claim. Controls downstream language in Rosetta Statement rendering."
+        range: CertaintyGradeEnum
+        ifabsent: string(not_assessed)
 
       ## ---- FCM / Causal Modeling support ----
 

@@ -4,7 +4,7 @@ All notable changes to the active LinkML schema and its supporting governance fi
 
 ## Unreleased (after 0.10.0)
 
-Three additive changes, from a nine-paper schema test run against 0.10.0: a `unit_text` fallback on `QuantityValue`, an `EntityTypeEnum.composite_variable` value, and assemblage composition (`CausalNode.composition`). Nothing was renamed or removed, so existing 0.10.0 records remain valid and **no data migration is required**. The version is not bumped; the only line removed from the schema is one sentence of documentation (see the note for loom at the end of this section).
+Four additive changes, from a nine-paper schema test run against 0.10.0: a `unit_text` fallback on `QuantityValue`, an `EntityTypeEnum.composite_variable` value, assemblage composition (`CausalNode.composition`), and the restored `CausalEdge.certainty_grade`. Nothing was renamed or removed, so existing 0.10.0 records remain valid and **no data migration is required**. The version is not bumped; the only line removed from the schema is one sentence of documentation (see the note for loom at the end of this section).
 
 ### Added: `QuantityValue.unit_text`
 
@@ -38,6 +38,10 @@ A bare membership list with no share, ranking or dominance is **not** a composit
 Not changed, by decision: `CausalGraph.edges` stays required, so a composition-only finding is not a record and the four `none` fits above stay outside the graph. Composition rides along on a node that already participates in an edge, which covers the other 24 findings.
 
 Known limits of this design, documented rather than solved: a group-to-group ratio ("forb-to-grass species ratios 3.5:1 vs 5.4:1") has no home (2 findings in 2 papers, below the bar for action); nested groups ("dominated by exotic ruderals including A, B, C, as well as early-seral natives D, E") flatten to one member list; and members are not always taxa (one real case is a fraction of particulate organic matter by biomass), though the descriptions lean taxon-centric.
+
+### Added: `CausalEdge.certainty_grade` (restored)
+
+`CausalEdge.certainty_grade` (`CertaintyGradeEnum`, default `not_assessed`) is back with its earlier definition unchanged. It was removed in an earlier rework, but a per-claim GRADE-style certainty gives each individual claim context that the evidence-base-level `aggregate_certainty_grade` does not. Additive; records written without it validate and default to `not_assessed`.
 
 ### Changed: documentation
 
