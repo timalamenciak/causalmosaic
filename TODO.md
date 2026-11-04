@@ -26,7 +26,7 @@ Left open after the nine-paper schema-test update (`unit_text`, `composite_varia
 
 ## Housekeeping
 
-- **Release decision:** the three changes plus `EntityReference` sit under "Unreleased" in `causalmosaic.yaml` and `CHANGELOG.md`. Decide when to cut a release and what version number. They are additive, but the `EntityReference` parent class changes the generated class hierarchy, so loom should regenerate either way.
+- **Release decision (resolved):** the composite-variable, composition, `unit_text` and `certainty_grade` changes, plus `EntityReference`, are folded into 0.10.0 (never tagged). Loom should regenerate, because the `EntityReference` parent class changes the generated class hierarchy. Tag `v0.10.0` once committed.
 - **Stale `## Unreleased` section** near line 787 of `CHANGELOG.md` (the `CoordinateLocationBasisEnum` entry) predates the 0.10.0 changelog and looks like leftover from an earlier release. Check whether it belongs under a released version.
 - **Pre-existing non-cp1252 characters** in `causalmosaic.yaml` (an arrow and em dashes in older descriptions) crash generators on Windows consoles, per `AGENTS.md`. Not introduced by this work; worth a separate cleanup.
 - **Docs are hand-maintained and were already stale in places** (the schema guide named a `taxonomic_scope` slot that no longer exists; fixed). Worth a read-through of `docs/` against the schema for other drift.

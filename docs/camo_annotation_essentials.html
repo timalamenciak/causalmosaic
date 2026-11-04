@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAMO Annotation Essentials — Causal Mosaic (0.10.0)</title>
+<style>
+:root {
+  --forest:   #243F32;
+  --charcoal: #373535;
+  --sage:     #8BAD8C;
+  --mint:     #8FBF9F;
+  --rose:     #C98D84;
+  --burgundy: #7A2D3A;
+  --cream:    #E8DDD0;
+  --tan:      #D4C4A0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.7;color:var(--charcoal);background:var(--cream)}
+a{color:var(--forest);text-decoration:underline}
+a:hover{color:var(--burgundy)}
+.hero a{color:var(--mint)}
+.hero a:hover{color:var(--cream)}
+h1,h2,h3,h4{font-weight:700;line-height:1.3}
+h2{font-size:1.7rem;color:var(--forest);border-bottom:3px solid var(--sage);padding-bottom:.4rem;margin:2.5rem 0 1rem}
+h3{font-size:1.25rem;color:var(--forest);margin:1.8rem 0 .6rem}
+h4{font-size:1rem;color:var(--burgundy);margin:1.2rem 0 .4rem}
+p{margin:.75rem 0}
+ul,ol{margin:.75rem 0 .75rem 1.5rem}
+li{margin:.3rem 0}
+code{font-family:Consolas,Monaco,monospace;font-size:.88em;background:var(--tan);padding:.1em .35em;border-radius:3px;color:var(--charcoal)}
+
+/* Layout */
+.wrapper{display:flex;min-height:100vh}
+nav.sidebar{width:280px;flex-shrink:0;background:var(--forest);color:var(--cream);position:sticky;top:0;height:100vh;overflow-y:auto;padding:1.5rem 0}
+nav.sidebar a{color:var(--mint)}
+nav .logo{padding:.5rem 1.5rem 1rem;border-bottom:1px solid rgba(232,221,208,.2);margin-bottom:.5rem}
+nav .logo h1{font-size:1.1rem;color:var(--cream)}
+nav .logo p{font-size:.75rem;color:var(--sage);margin:.2rem 0 0}
+nav ul{list-style:none;padding:0;margin:0}
+nav li a{display:block;padding:.45rem 1.5rem;color:rgba(232,221,208,.85);text-decoration:none;font-size:.85rem;border-left:3px solid transparent;transition:all .15s}
+nav li a:hover,nav li a.active{background:rgba(232,221,208,.1);color:var(--cream);border-left-color:var(--mint)}
+nav li.section-head a{font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--sage);padding-top:1rem;cursor:default}
+nav li.section-head a:hover{background:none;border-left-color:transparent}
+nav li.sub a{padding-left:2.2rem;font-size:.8rem}
+main{flex:1;max-width:860px;padding:2rem 3rem 4rem;overflow-x:hidden}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;padding:.2rem .7rem;border-radius:20px;background:var(--forest);color:var(--cream);font-weight:700;font-size:.85rem;margin-right:.5rem;flex-shrink:0;white-space:nowrap}
+.step-header{display:flex;align-items:center;margin-bottom:-.5rem}
+
+/* Hero */
+.hero{background:var(--forest);color:var(--cream);padding:2.5rem;border-radius:8px;margin-bottom:2rem}
+.hero h1{font-size:2rem;color:var(--cream)}
+.hero .subtitle{color:var(--mint);font-size:1.05rem;margin:.4rem 0 1rem}
+.hero .lead{color:rgba(232,221,208,.9);font-size:.95rem;margin:0}
+.workflow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1.5rem}
+.workflow-step{background:rgba(232,221,208,.1);border:1px solid rgba(139,173,140,.4);border-radius:6px;padding:.9rem;text-align:center}
+.workflow-step .num{display:inline-block;background:var(--mint);color:var(--forest);font-size:.85rem;font-weight:700;padding:.2rem .7rem;border-radius:20px;white-space:nowrap}
+.workflow-step .label{font-size:.8rem;color:var(--cream);margin-top:.6rem}
+
+/* Callout boxes */
+.callout{padding:1rem 1.2rem;border-radius:6px;margin:1.2rem 0;border-left:4px solid}
+.callout.example{background:#f0f7f1;border-color:var(--mint)}
+.callout.example strong.label{color:var(--forest)}
+.callout.tip{background:#f5f0e8;border-color:var(--sage)}
+.callout.tip strong.label{color:var(--forest)}
+.callout.warning{background:#f9f0ee;border-color:var(--rose)}
+.callout.warning strong.label{color:var(--burgundy)}
+.callout.important{background:var(--burgundy);color:var(--cream);border-color:#5a1f29}
+.callout.important strong.label{color:var(--mint)}
+.callout.important code{background:rgba(232,221,208,.2);color:var(--cream)}
+.callout .label{display:block;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.35rem}
+
+/* YAML code block */
+.yaml-block{margin:1.2rem 0;border-radius:6px;overflow:hidden;border:1px solid var(--sage)}
+.yaml-header{background:var(--forest);color:var(--mint);font-size:.78rem;padding:.45rem 1rem;font-family:Consolas,Monaco,monospace;letter-spacing:.03em}
+.yaml-block pre{background:var(--charcoal);color:var(--cream);padding:1.2rem;overflow-x:auto;margin:0;font-size:.82rem;line-height:1.6}
+.yaml-block pre .comment{color:var(--sage)}
+.yaml-block pre .key{color:var(--mint)}
+.yaml-block pre .val{color:var(--tan)}
+.yaml-block pre .str{color:var(--rose)}
+
+/* Source quote */
+.source-quote{background:#faf9f7;border-left:3px solid var(--burgundy);padding:.7rem 1rem;margin:1rem 0;font-style:italic;font-size:.92rem;border-radius:0 4px 4px 0}
+.source-quote .ref{display:block;font-style:normal;font-size:.75rem;color:var(--burgundy);margin-top:.3rem;letter-spacing:.03em}
+
+/* Tier cards */
+.tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.2rem 0}
+.tier{border-radius:6px;padding:1rem 1.1rem;font-size:.85rem}
+.tier h4{margin:0 0 .3rem;font-size:.95rem}
+.tier p{margin:.2rem 0 .5rem;font-size:.82rem}
+.tier ul{margin:.3rem 0 0 1.1rem}
+.tier li{margin:.15rem 0}
+.tier-1{background:var(--forest);color:var(--cream)}
+.tier-1 h4{color:var(--mint)}
+.tier-1 code{background:rgba(232,221,208,.2);color:var(--cream)}
+.tier-2{background:var(--sage);color:var(--charcoal)}
+.tier-2 h4{color:var(--forest)}
+.tier-2 code{background:rgba(232,221,208,.5)}
+.tier-3{background:#faf9f7;border:1px solid var(--tan)}
+.tier-3 h4{color:var(--charcoal)}
+
+/* Feature entries */
+.feature-grid{display:grid;gap:1rem;margin:1rem 0}
+.feature-entry{background:#faf9f7;border:1px solid var(--tan);border-radius:6px;padding:1rem 1.1rem}
+.feature-entry h4{margin:0 0 .4rem;color:var(--burgundy)}
+.feature-entry .q{font-size:.85rem;font-style:italic;color:var(--forest);margin:.2rem 0 .5rem}
+.feature-entry .values{font-size:.82rem;background:var(--tan);border-radius:4px;padding:.5rem .8rem;margin:.5rem 0}
+.feature-entry .murphy-eg{font-size:.83rem;color:var(--charcoal);border-top:1px solid var(--tan);margin-top:.6rem;padding-top:.6rem}
+.feature-entry .murphy-eg strong{color:var(--forest)}
+
+/* Entity type cards */
+.entity-card{display:grid;grid-template-columns:auto 1fr;gap:.8rem;background:#faf9f7;border:1px solid var(--tan);border-radius:6px;padding:1rem;margin:.8rem 0}
+.entity-badge{width:3rem;height:3rem;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.et-taxon{background:var(--mint)}
+.et-env-var{background:var(--sage)}
+.et-composite{background:#b9cdb3}
+.et-env-proc{background:var(--tan)}
+.et-mgmt{background:var(--rose)}
+.entity-card h4{margin:0 0 .3rem;color:var(--forest)}
+.entity-card p{margin:.2rem 0;font-size:.88rem}
+
+/* Tables */
+table.nodes{width:100%;border-collapse:collapse;font-size:.85rem;margin:1rem 0}
+table.nodes th{background:var(--forest);color:var(--cream);padding:.5rem .8rem;text-align:left;font-size:.8rem}
+table.nodes td{padding:.5rem .8rem;border-bottom:1px solid var(--tan);vertical-align:top}
+table.nodes tr:nth-child(even) td{background:#f5f3ef}
+table.nodes code{background:rgba(139,173,140,.25)}
+
+/* Node decomp diagram */
+.decomp{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.8rem 0;padding:.8rem;background:var(--tan);border-radius:6px;font-size:.9rem}
+.decomp-box{background:var(--forest);color:var(--cream);padding:.3rem .8rem;border-radius:4px;font-weight:600}
+.decomp-plus{color:var(--forest);font-weight:700;font-size:1.1rem}
+.decomp-arrow{color:var(--forest);font-size:1.2rem}
+.decomp-result{background:var(--burgundy);color:var(--cream);padding:.3rem .9rem;border-radius:4px;font-weight:600}
+.decomp-cap{display:block;font-size:.7rem;font-weight:400;opacity:.8}
+
+/* Edge sentence diagram */
+.edge-line{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.8rem 0;padding:.8rem;background:#faf9f7;border:1px solid var(--tan);border-radius:6px;font-size:.88rem}
+.edge-node{background:var(--forest);color:var(--cream);padding:.3rem .8rem;border-radius:4px;font-weight:600}
+.edge-pred{background:var(--mint);color:var(--forest);padding:.25rem .7rem;border-radius:20px;font-weight:700;font-family:Consolas,Monaco,monospace;font-size:.82rem}
+
+/* Causal language ladder */
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin:.8rem 0}
+.rung{padding:.7rem .6rem;border-radius:4px;font-size:.78rem}
+.rung .name{font-weight:700;display:block;margin-bottom:.25rem;font-family:Consolas,Monaco,monospace;font-size:.78rem}
+.rung em{display:block;margin-top:.35rem;font-size:.76rem}
+.r0{background:#f5f3ef;border:1px solid var(--tan)}
+.r1{background:var(--tan)}
+.r2{background:var(--sage)}
+.r3{background:var(--forest);color:var(--cream)}
+
+
+/* Checklist */
+.checklist{list-style:none;padding:0;margin-left:0}
+.checklist li{padding:.4rem 0;padding-left:2rem;position:relative;border-bottom:1px solid var(--tan)}
+.checklist li::before{content:"☐";position:absolute;left:0;color:var(--sage);font-size:1.1rem}
+
+/* Reading list */
+.reading-item{border-left:3px solid var(--sage);padding:.6rem 1rem;margin:.8rem 0;background:#faf9f7;border-radius:0 4px 4px 0}
+.reading-item .citation{font-weight:600;font-size:.9rem;color:var(--forest)}
+.reading-item p{margin:.3rem 0 0;font-size:.85rem}
+
+/* Responsive */
+@media(max-width:768px){.wrapper{flex-direction:column}nav.sidebar{width:100%;height:auto;position:relative}.workflow-steps,.ladder{grid-template-columns:repeat(2,1fr)}.tier-grid{grid-template-columns:1fr}main{padding:1.5rem}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ======= SIDEBAR ======= -->
+<nav class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>CAMO Annotation Essentials</h1>
+    <p><a href="https://github.com/timalamenciak/causalmosaic">Causal Mosaic (0.10.0)</a> · <a href="index.html">All docs</a></p>
+  </div>
+  <ul>
+    <li class="section-head"><a>Overview</a></li>
+    <li><a href="#intro">About this guide</a></li>
+    <li><a href="#tiers">Three tiers of fields</a></li>
+    <li><a href="#minimum">The smallest valid record</a></li>
+
+    <li class="section-head"><a>Step 1 · Finding</a></li>
+    <li><a href="#findings">Pick one finding</a></li>
+
+    <li class="section-head"><a>Step 2 · Nodes</a></li>
+    <li><a href="#nodes">Five fields per node</a></li>
+    <li class="sub"><a href="#entity-types">Entity types</a></li>
+    <li class="sub"><a href="#terms">Ontology terms</a></li>
+    <li class="sub"><a href="#life-stage">Life stage &amp; applied_to</a></li>
+
+    <li class="section-head"><a>Step 3 · Edge</a></li>
+    <li><a href="#edge">The core edge</a></li>
+    <li class="sub"><a href="#predicate">Predicate</a></li>
+    <li class="sub"><a href="#causal-language">Causal language</a></li>
+    <li class="sub"><a href="#accounts">Philosophical accounts</a></li>
+    <li class="sub"><a href="#nulls">Null results</a></li>
+
+    <li class="section-head"><a>Step 4 · Context</a></li>
+    <li><a href="#context">Only what the paper says</a></li>
+    <li class="sub"><a href="#dose">Dose &amp; comparator</a></li>
+    <li class="sub"><a href="#strength">Strength &amp; direction</a></li>
+    <li class="sub"><a href="#when-where">Time, scope &amp; evidence</a></li>
+    <li class="sub"><a href="#mediation">Mediation</a></li>
+    <li class="sub"><a href="#full-example">Full worked example</a></li>
+
+    <li class="section-head"><a>Wrap-up</a></li>
+    <li><a href="#leave-alone">What to leave alone</a></li>
+    <li><a href="#mistakes">Common mistakes</a></li>
+    <li><a href="#checklist">Checklist</a></li>
+    <li><a href="#reference">Quick reference</a></li>
+    <li><a href="#reading">Further reading</a></li>
+  </ul>
+</nav>
+
+<!-- ======= MAIN CONTENT ======= -->
+<main>
+
+<!-- ======= INTRO ======= -->
+<section id="intro">
+<div class="hero">
+  <h1>CAMO Annotation Essentials</h1>
+  <p class="subtitle">The short path through Causal Mosaic 0.10.0</p>
+  <p class="lead">The schema has over a hundred slots. A typical finding needs ten of them, plus a handful more when the paper gives the detail. This guide covers only those, in the order you fill them in, using <a href="https://doi.org/10.1111/j.1526-100X.2005.00075.x">Murphy (2005)</a> as the running example. Murphy transplanted bloodroot (<em>Sanguinaria canadensis</em>) at several densities to suppress garlic mustard (<em>Alliaria petiolata</em>) in an Ontario woodlot.</p>
+  <div class="workflow-steps">
+    <div class="workflow-step"><div class="num">Step 1</div><div class="label">Pick one finding</div></div>
+    <div class="workflow-step"><div class="num">Step 2</div><div class="label">Build the nodes</div></div>
+    <div class="workflow-step"><div class="num">Step 3</div><div class="label">Draw the edge</div></div>
+    <div class="workflow-step"><div class="num">Step 4</div><div class="label">Add what the paper says</div></div>
+  </div>
+</div>
+
+<h2 style="border:none;margin-top:0">About this guide</h2>
+
+<p>CAMO records <strong>what a paper claims causes what</strong>. Every claim becomes a small graph. Each node is a state or change in some ecological thing. The edge between two nodes carries how strongly the authors make the claim, what kind of causation it is, and what evidence it rests on.</p>
+
+<p>This page leaves out most of the schema on purpose. Annotate everything it covers and you have a complete, useful record. The full <a href="camo_annotation_guide.html">Annotation Guide</a> and the <a href="camo_schema_guide.html">Schema Guide</a> cover the rest: the 16 causal features in depth, fuzzy cognitive map weights, evidence-base assessments and parameter options. Go to them when a paper needs something this page doesn't cover.</p>
+
+<div class="callout tip">
+  <strong class="label">About the examples</strong>
+  The YAML snippets come from a gold-set extraction of Murphy (2005), trimmed to the fields under discussion. Where the extraction made a mistake this guide warns against, the snippet shows the corrected form. The <a href="#mistakes">Common mistakes</a> section shows the originals. Together the snippets validate against <code>causalmosaic.yaml</code> 0.10.0 with <code>linkml-validate</code>.
+</div>
+
+</section>
+
+<!-- ======= TIERS ======= -->
+<section id="tiers">
+<h2>Three tiers of fields</h2>
+
+<p>The quickest way to simplify CAMO is to sort its fields by how often you touch them.</p>
+
+<div class="tier-grid">
+  <div class="tier tier-1">
+    <h4>Tier 1 · Always</h4>
+    <p>Every node and edge. Validation fails without the starred ones.</p>
+    <ul>
+      <li>Node: <code>name</code>*, <code>entity_type</code>, <code>entity_term</code>*, <code>measured_attribute</code>, <code>state_or_change_qualifier</code></li>
+      <li>Edge: <code>subject</code>*, <code>predicate</code>*, <code>object</code>*, <code>causal_language</code>*, <code>philosophical_accounts</code>*</li>
+      <li><code>negated: true</code> for null results</li>
+    </ul>
+  </div>
+  <div class="tier tier-2">
+    <h4>Tier 2 · When the paper says so</h4>
+    <p>Fill these in when the text states them. Otherwise leave them out.</p>
+    <ul>
+      <li><code>life_stage</code>, <code>applied_to</code></li>
+      <li><code>dose</code> / <code>dose_level</code>, <code>comparator</code></li>
+      <li><code>strength</code>, <code>direction</code>, <code>scope</code></li>
+      <li><code>temporal_extent</code>, <code>evidential_basis</code></li>
+      <li><code>mediation</code>, <code>context_dependence</code></li>
+    </ul>
+  </div>
+  <div class="tier tier-3">
+    <h4>Tier 3 · Leave alone</h4>
+    <p>Filled in by Loom, defaulted, or for specialist passes.</p>
+    <ul>
+      <li><code>id</code>, <code>variable_key</code>, <code>provenance</code>, <code>schema_version</code></li>
+      <li>The other features: <code>necessity</code>, <code>sufficiency</code>, <code>stability</code> …</li>
+      <li><code>fcm_weight</code>, <code>certainty_grade</code>, <code>parameter_options</code>, <code>composition</code></li>
+    </ul>
+  </div>
+</div>
+
+<p>Tier 2 has one rule: <strong>annotate what the paper says, and nothing it doesn't</strong>. An empty field means "not addressed", and an omitted field is read that way, so you never have to type <code>not_addressed</code>.</p>
+</section>
+
+<!-- ======= MINIMUM ======= -->
+<section id="minimum">
+<h2>The smallest valid record</h2>
+
+<p>Here is Murphy's headline result with Tier 1 fields only. Loom fills in the graph wrapper (<code>graph_id</code>, <code>schema_version</code>, <code>provenance</code>) and the ids. What you write is the two nodes and the edge.</p>
+
+<div class="source-quote">Initial <em>Sanguinaria canadensis</em> densities of as little as 5 ramets/m² suppressed <em>Alliaria petiolata</em>.<span class="ref">Murphy 2005 · finding f1</span></div>
+
+<div class="yaml-block">
+  <div class="yaml-header">Murphy f1 · Tier 1 only</div>
+<pre>nodes:
+- id: causal_mosaic:bloodroot_initial_density      # set by Loom
+  name: Increased initial Sanguinaria canadensis ramet density
+  entity_type: taxon
+  entity_term: NCBITaxon:3472                       # Sanguinaria canadensis
+  measured_attribute: initial planting density
+  state_or_change_qualifier: increased
+- id: causal_mosaic:garlic_mustard_performance
+  name: Decreased Alliaria petiolata performance
+  entity_type: taxon
+  entity_term: NCBITaxon:126270                     # Alliaria petiolata
+  measured_attribute: performance
+  state_or_change_qualifier: decreased
+edges:
+- id: murphy-f1
+  subject: causal_mosaic:bloodroot_initial_density
+  predicate: causes
+  object: causal_mosaic:garlic_mustard_performance
+  causal_language: direct_causal                    # "suppressed": unhedged
+  philosophical_accounts: [interventionist, counterfactual]</pre>
+</div>
+
+<p>Read it aloud: <em>increased initial bloodroot density <strong>causes</strong> decreased garlic mustard performance</em>, stated without hedging, as an intervention result. Everything after this point adds detail to that sentence.</p>
+</section>
+
+<!-- ======= STEP 1 ======= -->
+<section id="findings">
+<div class="step-header"><div class="step-badge">Step 1</div><h2 style="border:none;margin:0">Pick One Finding</h2></div>
+<p style="margin-top:.5rem">A <strong>finding</strong> is one sentence in which the authors claim that something affects something else. Annotate one finding at a time. Each finding gets its own small graph: the Murphy extraction has 25 findings and 72 edges.</p>
+
+<h3>What counts as a finding</h3>
+
+<table class="nodes">
+<thead><tr><th>Murphy sentence</th><th>Finding?</th></tr></thead>
+<tbody>
+<tr><td>"Initial <em>S. canadensis</em> densities of 9 and 11 ramets/m² resulted in the lowest numbers of late-spring <em>A. petiolata</em> seedlings…"</td><td>✅ Yes. A driver ("densities") changes an outcome ("numbers of seedlings").</td></tr>
+<tr><td>"It appears that intermediate and higher densities … deprived <em>A. petiolata</em> of sufficient resources…"</td><td>✅ Yes, hedged. Record the hedge in <code>causal_language</code> rather than skipping the sentence.</td></tr>
+<tr><td>"[Outcomes] … were not affected by initial <em>S. canadensis</em> density."</td><td>✅ Yes, a null result. <a href="#nulls">Annotate it</a>; don't drop it.</td></tr>
+<tr><td>"Leafing phenologies of year 2 <em>A. petiolata</em> and ramets of <em>S. canadensis</em> overlapped."</td><td>⚠️ Borderline. On its own this is description, not a causal claim. Annotate it only if the authors use it as a cause elsewhere. Murphy does in f16, where bloodroot's leafing timing becomes the mediator.</td></tr>
+<tr><td>A methods sentence saying how and when the ramets were transplanted.</td><td>❌ No. Methods. This belongs in the source document and edge context, not in a finding of its own.</td></tr>
+</tbody>
+</table>
+
+<h3>Make the sentence stand alone</h3>
+<p>Before you annotate, rewrite the finding so it makes sense on its own. Pull the site, the date and the starting conditions in from the surrounding text. Murphy's f1, as extracted:</p>
+
+<div class="source-quote">In a field additive-series experiment in a degraded woodlot near Waterloo, Ontario, as of 2000 (transplanted 1997, with initial <em>Alliaria petiolata</em> densities of 128 seedlings/m² and 31 rosettes/m²), initial <em>Sanguinaria canadensis</em> densities of as little as 5 ramets/m² suppressed <em>Alliaria petiolata</em>, as shown by multivariate repeated-measures ANOVA and simple ANOVAs.<span class="ref">Murphy 2005 · finding f1 (standalone form)</span></div>
+
+<p>Every phrase in that sentence maps to a field you will meet in Step 4: <em>near Waterloo</em> to <code>context_dependence.geographic_scope</code>, <em>as of 2000 (transplanted 1997)</em> to <code>temporal_extent</code>, <em>as little as 5 ramets/m²</em> to <code>dose</code>, <em>ANOVA</em> to <code>strength.analysis_method</code>. A good standalone sentence makes Step 4 a matter of copying.</p>
+
+<div class="callout important">
+  <strong class="label">Stay at the claim level</strong>
+  Encode what the authors argue, not their data tables. Murphy tested many densities. You do <em>not</em> make one node per density. Make one driver node ("initial bloodroot density") and record the level on the edge, in <code>dose</code>.
+</div>
+</section>
+
+<!-- ======= STEP 2 ======= -->
+<section id="nodes">
+<div class="step-header"><div class="step-badge">Step 2</div><h2 style="border:none;margin:0">Build the Nodes</h2></div>
+<p style="margin-top:.5rem">A node is never just a thing. Bloodroot doesn't cause anything by being bloodroot. A <em>change in some property</em> of bloodroot does. So every node takes the same three parts:</p>
+
+<div class="decomp">
+  <span class="decomp-box">entity_term<span class="decomp-cap">what thing</span></span>
+  <span class="decomp-plus">+</span>
+  <span class="decomp-box">measured_attribute<span class="decomp-cap">what property</span></span>
+  <span class="decomp-plus">+</span>
+  <span class="decomp-box">state_or_change_qualifier<span class="decomp-cap">what happened to it</span></span>
+  <span class="decomp-arrow">→</span>
+  <span class="decomp-result">"Decreased <em>A. petiolata</em> seedling number"</span>
+</div>
+
+<p>Add an <code>entity_type</code> and a readable <code>name</code> and you have the five fields every node needs:</p>
+
+<table class="nodes">
+<thead><tr><th>Field</th><th>What to put</th><th>Murphy example</th></tr></thead>
+<tbody>
+<tr><td><code>name</code></td><td>A readable label that combines the three parts. This is what appears in rendered sentences and diagrams.</td><td>Decreased Alliaria petiolata seedling number</td></tr>
+<tr><td><code>entity_type</code></td><td>One of five values (<a href="#entity-types">below</a>).</td><td><code>taxon</code></td></tr>
+<tr><td><code>entity_term</code></td><td>The thing, as an ontology CURIE if one exists, otherwise free text.</td><td><code>NCBITaxon:126270</code></td></tr>
+<tr><td><code>measured_attribute</code></td><td>The property that changed. A CURIE (PATO and similar) or free text.</td><td>number of individuals</td></tr>
+<tr><td><code>state_or_change_qualifier</code></td><td>What happened: <code>increased</code>, <code>decreased</code>, <code>present</code>, <code>absent</code>, <code>introduced</code>, <code>removed</code>, <code>occurred</code> … (<a href="#reference">full list</a>).</td><td><code>decreased</code></td></tr>
+</tbody>
+</table>
+
+<div class="callout tip">
+  <strong class="label">One node per measured outcome</strong>
+  Murphy's f2 lists nine outcomes from one driver: seedling numbers, rosette numbers and sizes, stem-leaf numbers and areas, flowering individuals, flowers, siliques, and height. That is <strong>one subject node, nine object nodes and nine edges</strong>. Don't merge them into a single "garlic mustard performance" node when the paper reports them separately. Reuse a node when the same variable appears again in the same finding.
+</div>
+
+<h3 id="entity-types">The five entity types</h3>
+
+<div class="entity-card">
+  <div class="entity-badge et-taxon">🌿</div>
+  <div>
+    <h4><code>taxon</code></h4>
+    <p>A property of a single taxon: its density, cover, height, mortality. Put the NCBITaxon CURIE in <code>entity_term</code>.</p>
+    <p><strong>Murphy:</strong> almost every node. <em>A. petiolata</em> seedling number, rosette size, height at flowering; <em>S. canadensis</em> initial density.</p>
+  </div>
+</div>
+
+<div class="entity-card">
+  <div class="entity-badge et-env-var">🌡️</div>
+  <div>
+    <h4><code>environmental_variable</code></h4>
+    <p>A measurable state of the environment that is not a property of one taxon: soil pH, light, available resources.</p>
+    <p><strong>Murphy:</strong> "resources available to <em>A. petiolata</em>" (f21), with <code>applied_to</code> naming garlic mustard.</p>
+  </div>
+</div>
+
+<div class="entity-card">
+  <div class="entity-badge et-composite">🧩</div>
+  <div>
+    <h4><code>composite_variable</code></h4>
+    <p>A state of an aggregate: an assemblage, community or guild. List the members in <code>applied_to</code>.</p>
+    <p><strong>Murphy:</strong> "other native species" in f30, which reports no regeneration of other natives in any density treatment.</p>
+  </div>
+</div>
+
+<div class="entity-card">
+  <div class="entity-badge et-env-proc">🔄</div>
+  <div>
+    <h4><code>environmental_process</code></h4>
+    <p>Something that happens over time: competition, leafing, invasion, decomposition. Processes usually take <code>occurred</code>, <code>initiated</code>, <code>increased</code> or <code>decreased</code>.</p>
+    <p><strong>Murphy:</strong> <em>S. canadensis</em> leafing (f16); competition between the two species (f6); invasion by <em>A. petiolata</em> (f23).</p>
+  </div>
+</div>
+
+<div class="entity-card">
+  <div class="entity-badge et-mgmt">🛠️</div>
+  <div>
+    <h4><code>management_intervention</code></h4>
+    <p>A deliberate human action. <code>entity_term</code> names the <em>action</em> (planting, burning, removal). What it was done to goes in <code>applied_to</code>.</p>
+    <p><strong>Murphy:</strong> "planting of <em>S. canadensis</em>" (f23): <code>entity_term: planting</code>, <code>applied_to</code> NCBITaxon:3472.</p>
+  </div>
+</div>
+
+<div class="callout tip">
+  <strong class="label">Taxon or intervention?</strong>
+  Murphy's driver can be read two ways. When the paper compares <em>densities</em>, the variable is a property of bloodroot: <code>taxon</code>, with <code>measured_attribute: initial planting density</code>. When it talks about the <em>act</em> ("planting intermediate densities … is a good strategy"), it is a <code>management_intervention</code>. Choose by what varies in the claim, and keep the choice consistent within a finding.
+</div>
+
+<h3 id="terms">Ontology terms, simply</h3>
+<ol>
+  <li><strong>Taxa:</strong> always use NCBITaxon. Bloodroot is <code>NCBITaxon:3472</code>, garlic mustard <code>NCBITaxon:126270</code>.</li>
+  <li><strong>Other entities and attributes:</strong> use a CURIE when you find a good one (ENVO, PATO, GO, CHEBI, PO). Use only the prefixes declared in the schema. An undeclared prefix doesn't resolve.</li>
+  <li><strong>No good term?</strong> Write free text ("leafing", "initial planting density"). Free text is valid and gets curated later. A wrong CURIE is worse than honest free text.</li>
+</ol>
+
+<h3 id="life-stage">Life stage and <code>applied_to</code></h3>
+
+<p><strong>Keep life stage out of <code>measured_attribute</code>.</strong> If you write "number of seedlings" for one node and "number of year 2 rosettes" for another, they look like different variables when they are the same variable, number of individuals, at different stages. Put the stage in its own pair of fields:</p>
+
+<ul>
+  <li><code>life_stage</code>: one of <code>seed_or_seed_bank</code>, <code>germinant_or_seedling</code>, <code>juvenile</code>, <code>ramet_or_clonal_unit</code>, <code>reproductive_adult</code>, <code>senescent_or_dead</code>, <code>mixed_or_whole_population</code>.</li>
+  <li><code>life_stage_term</code>: optional detail. A PO development-stage CURIE for plants, or the paper's own words when no term draws the distinction ("year 1 rosette").</li>
+</ul>
+
+<div class="yaml-block">
+  <div class="yaml-header">Murphy f2 · one of the nine outcome nodes</div>
+<pre>- name: Decreased Alliaria petiolata rosette number
+  entity_type: taxon
+  entity_term: NCBITaxon:126270
+  measured_attribute: number of individuals    # not "number of rosettes"
+  state_or_change_qualifier: decreased
+  life_stage: juvenile
+  life_stage_term: year 1 and 2 rosettes       # Murphy's own distinction</pre>
+</div>
+
+<p><code>applied_to</code> names what a node acts on or is measured on, as a list of entity references. Use it for an intervention's target, an aggregate's members, or the organism a process belongs to:</p>
+
+<div class="yaml-block">
+  <div class="yaml-header">Murphy f16 · a process attached to a taxon</div>
+<pre>- name: Sanguinaria canadensis leafing
+  entity_type: environmental_process
+  entity_term: leafing
+  measured_attribute: timing
+  state_or_change_qualifier: occurred
+  applied_to:
+  - entity_type: taxon
+    entity_term: NCBITaxon:3472</pre>
+</div>
+</section>
+
+<!-- ======= STEP 3 ======= -->
+<section id="edge">
+<div class="step-header"><div class="step-badge">Step 3</div><h2 style="border:none;margin:0">Draw the Edge</h2></div>
+<p style="margin-top:.5rem">An edge links a subject node to an object node through a predicate. Five fields make a valid edge: <code>subject</code>, <code>predicate</code>, <code>object</code>, <code>causal_language</code> and <code>philosophical_accounts</code>.</p>
+
+<div class="edge-line">
+  <span class="edge-node">Increased initial bloodroot density</span>
+  <span class="edge-pred">causes</span>
+  <span class="edge-node">Decreased garlic mustard seedling number</span>
+</div>
+
+<h3 id="predicate">Predicate: start with four</h3>
+<p>CAMO has eleven predicates. Most findings need one of these four:</p>
+
+<table class="nodes">
+<thead><tr><th>Predicate</th><th>Use when</th><th>Murphy</th></tr></thead>
+<tbody>
+<tr><td><code>causes</code></td><td>The authors present the subject as bringing about the change in the object.</td><td>Density → seedling number (f2)</td></tr>
+<tr><td><code>contributes_to</code></td><td>The subject is one factor among several. Often the honest choice in ecology.</td><td>Local plantings that "may help" mitigate spread across many locales (f33)</td></tr>
+<tr><td><code>prevents</code></td><td>The subject blocks or holds back the object.</td><td>Planting bloodroot → spread of garlic mustard (f23)</td></tr>
+<tr><td><code>associated_with</code></td><td>A co-occurrence with no causal claim.</td><td>Low density with weak competitive ability (f10)</td></tr>
+</tbody>
+</table>
+
+<p>The other seven are <code>enables</code>, <code>disrupts</code>, <code>regulates</code>, <code>mediates</code>, <code>moderates</code>, <code>correlated_with</code> (only when a correlation statistic is reported) and <code>precedes</code>. The <a href="camo_annotation_guide.html#layer1">full guide</a> explains when to use each.</p>
+
+<div class="callout warning">
+  <strong class="label">Read it aloud: no double negatives</strong>
+  The node says which way things moved. The predicate says how the subject bears on it. "Planting <strong>prevents</strong> <em>decreased</em> invasion" says the opposite of what Murphy means. Use either <code>prevents</code> → "invasion by <em>A. petiolata</em>" or <code>causes</code> → "decreased invasion by <em>A. petiolata</em>", not both.
+</div>
+
+<h3 id="causal-language">Causal language: how firmly is it claimed?</h3>
+<p><code>causal_language</code> records the authors' wording, not your opinion of the evidence. Pick a value from the verb and any hedges around it:</p>
+
+<div class="ladder">
+  <div class="rung r0"><span class="name">no_relationship</span>Explicitly no effect. Always with <code>negated: true</code>.<em>"were not affected by" (f7)</em></div>
+  <div class="rung r1"><span class="name">associational</span>Co-occurrence, no causal verb.<em>"usually could not compete" at low density (f10)</em></div>
+  <div class="rung r2"><span class="name">uncertain_causal</span>Causal verb, hedged.<em>"It appears that … deprived" (f21); "results suggest" (f23)</em></div>
+  <div class="rung r3"><span class="name">direct_causal</span>Causal verb, unhedged.<em>"suppressed" (f1); "resulted in" (f2)</em></div>
+</div>
+
+<div class="callout warning">
+  <strong class="label">Two pairing rules (validation enforces them)</strong>
+  <code>associated_with</code>, <code>correlated_with</code> and <code>precedes</code> take only <code>associational</code> or <code>no_relationship</code>. <code>causes</code> never takes <code>associational</code>.
+</div>
+
+<h3 id="accounts">Philosophical accounts: what kind of causation?</h3>
+<p><code>philosophical_accounts</code> is a list of the ideas of causation the claim relies on. Select every one that fits. Two or three is normal. In restoration papers, five cover nearly everything:</p>
+
+<table class="nodes">
+<thead><tr><th>Account</th><th>The cue in the text</th><th>Murphy</th></tr></thead>
+<tbody>
+<tr><td><code>interventionist</code></td><td>Someone manipulated the cause and the effect changed.</td><td>Density treatments in a planted experiment (most edges)</td></tr>
+<tr><td><code>counterfactual</code></td><td>A comparison: with versus without, more versus less.</td><td>"densities above 7 ramets/m² … killed significantly more seedlings" (f16)</td></tr>
+<tr><td><code>mechanistic</code></td><td>A how: a pathway, a process, an organized activity.</td><td>Leafing early enough to kill seedlings (f16); resource deprivation (f21)</td></tr>
+<tr><td><code>probabilistic</code></td><td>"usually", "tends to", raised or lowered chances.</td><td>"usually could not compete" (f10)</td></tr>
+<tr><td><code>agency</code></td><td>Framed as a means a manager can use to get a result.</td><td>"a good strategy for managing invasions" (f23)</td></tr>
+</tbody>
+</table>
+
+<p><code>transmission</code>, <code>regularity</code> and <code>inus_component</code> are rarer. See <a href="camo_causal_conceptions.html">Conceptions of Causation</a>.</p>
+
+<h3 id="nulls">Null results</h3>
+<p>A finding that something had <em>no</em> effect is evidence. Annotate it. CAMO has exactly one way to encode it:</p>
+
+<div class="source-quote"><em>Alliaria petiolata</em> number of seedlings in early spring … [was] not affected by initial <em>Sanguinaria canadensis</em> density.<span class="ref">Murphy 2005 · finding f7</span></div>
+
+<div class="yaml-block">
+  <div class="yaml-header">Murphy f7 · null result</div>
+<pre>nodes:
+- name: Alliaria petiolata seedling number
+  entity_type: taxon
+  entity_term: NCBITaxon:126270
+  measured_attribute: number of individuals
+  life_stage: germinant_or_seedling
+  # no qualifier: the object stays as a positive finding would leave it,
+  # and is never "unchanged"
+edges:
+- subject: causal_mosaic:bloodroot_initial_density
+  predicate: causes                 # the relationship that was tested
+  object: causal_mosaic:garlic_mustard_early_spring_seedlings
+  negated: true                     # always together ...
+  causal_language: no_relationship  # ... with this
+  philosophical_accounts: [interventionist]
+  strength:
+    status: explicitly_asserted
+    significance: not_significant
+  temporal_extent:
+    observation_seasons: [early_spring]</pre>
+</div>
+
+<div class="callout important">
+  <strong class="label">The null-result rule</strong>
+  <code>negated: true</code> if and only if <code>causal_language: no_relationship</code>. Keep the predicate a positive finding would have used. Never encode "no effect" by giving the object node <code>state_or_change_qualifier: unchanged</code>. That qualifier means the paper <em>reports</em> a stable state as a result.
+</div>
+</section>
+
+<!-- ======= STEP 4 ======= -->
+<section id="context">
+<div class="step-header"><div class="step-badge">Step 4</div><h2 style="border:none;margin:0">Add What the Paper Says</h2></div>
+<p style="margin-top:.5rem">Everything in this step is optional and comes from the text. Work back through your standalone sentence and fill in a field for each phrase that carries context. Skip a field when the paper is silent on it.</p>
+
+<h3 id="dose">Dose and comparator</h3>
+<div class="feature-grid">
+  <div class="feature-entry">
+    <h4><code>dose</code> and <code>dose_level</code></h4>
+    <p class="q">How much of the driver?</p>
+    <p>Use <code>dose</code> for a number: <code>numeric_value</code> or <code>minimum_value</code>/<code>maximum_value</code>, a <code>unit</code> CURIE, and the phrase in <code>verbatim</code>. Where there's no unit CURIE (most density units), use <code>unit_text</code>. Use <code>dose_level</code> for a named level with no number: <code>low</code>, <code>intermediate</code>, <code>high</code>.</p>
+    <div class="murphy-eg"><strong>Murphy f1:</strong> "as little as 5 ramets/m²" gives <code>minimum_value: 5</code>, <code>unit_text: ramets/m2</code>. <strong>f23:</strong> "intermediate densities" gives <code>dose_level: intermediate</code>.</div>
+  </div>
+  <div class="feature-entry">
+    <h4><code>comparator</code></h4>
+    <p class="q">Compared with what?</p>
+    <p>A list with one entry per comparison arm. The common <code>comparator_type</code> values are <code>untreated_control</code>, <code>pre_treatment_baseline</code>, <code>reference_undisturbed</code>, <code>alternative_treatment</code> and <code>alternative_dose_level</code>. Set <code>status</code> to <code>explicitly_asserted</code> if the paper names the comparison, or <code>implicitly_assumed</code> if the design implies it.</p>
+    <div class="murphy-eg"><strong>Murphy:</strong> densities are compared with other densities, so <code>comparator_type: alternative_dose_level</code>. In f16 the arm is "7 ramets/m² or fewer", recorded in <code>comparator_dose</code>.</div>
+  </div>
+</div>
+
+<h3 id="strength">Strength and direction</h3>
+<div class="feature-grid">
+  <div class="feature-entry">
+    <h4><code>strength</code></h4>
+    <p class="q">How big, and was it tested?</p>
+    <p>At minimum, record <code>significance</code> (<code>significant</code>, <code>not_significant</code>, <code>marginal</code>, <code>not_tested</code>, <code>not_reported</code>) and <code>analysis_method</code> (<code>anova</code>, <code>manova</code>, <code>regression</code>, <code>mixed_model</code> …). Add an effect size, <code>p_value</code>, or <code>dose_response: true</code> with a <code>dose_response_shape</code> when given.</p>
+    <div class="murphy-eg"><strong>Murphy f1:</strong> "multivariate repeated-measures ANOVA" gives <code>significance: significant</code>, <code>analysis_method: manova</code>. <strong>f16:</strong> an effect only "above 7 ramets/m²" gives <code>dose_response_shape: threshold</code>.</div>
+  </div>
+  <div class="feature-entry">
+    <h4><code>direction</code></h4>
+    <p class="q">Is it clear which way the arrow points, and why?</p>
+    <p><code>status: asserted</code> plus <code>evidence_for_direction</code>. In an experiment, the manipulation sets the direction, so <code>experimental</code>.</p>
+    <div class="murphy-eg"><strong>Murphy:</strong> density was set by the experimenter, so <code>status: asserted</code>, <code>evidence_for_direction: experimental</code> on every experimental edge.</div>
+  </div>
+</div>
+
+<h3 id="when-where">Time, scope and evidence</h3>
+<div class="feature-grid">
+  <div class="feature-entry">
+    <h4><code>temporal_extent</code></h4>
+    <p class="q">When was the effect measured?</p>
+    <p><code>observation_seasons</code> takes enum values in 0.10.0 (<code>early_spring</code>, <code>late_spring</code>, <code>summer</code>, <code>autumn</code>, <code>growing_season</code> …). <code>time_since_intervention_months</code> and <code>_text</code> record when after the treatment the measurement was taken.</p>
+    <div class="murphy-eg"><strong>Murphy f1:</strong> "as of 2000 (transplanted 1997)" gives <code>time_since_intervention_months: 36</code>. <strong>f2:</strong> "late-spring seedlings" gives <code>observation_seasons: [late_spring]</code>.</div>
+  </div>
+  <div class="feature-entry">
+    <h4><code>scope</code> and <code>context_dependence</code></h4>
+    <p class="q">How far does the claim reach?</p>
+    <p><code>scope</code>: <code>assertional</code> (this study), <code>contingent</code> (under stated conditions), <code>prototypical</code> (usually) or <code>universal</code>. When conditions are stated, add <code>context_dependence</code> with <code>geographic_scope</code>, <code>temporal_scope</code> and <code>scope_conditions</code>.</p>
+    <div class="murphy-eg"><strong>Murphy f1</strong> is about these plots, so <code>assertional</code>, with <code>geographic_scope: degraded woodlot near Waterloo, Ontario</code>. <strong>f23</strong> generalizes to "ecological restoration", so <code>contingent</code>.</div>
+  </div>
+  <div class="feature-entry">
+    <h4><code>evidential_basis</code></h4>
+    <p class="q">What evidence backs this edge?</p>
+    <p><code>evidence_types</code> (the design: <code>randomized_experiment</code>, <code>observational_cross_sectional</code>, <code>expert_judgment</code> …) and <code>evidence_objects</code>: does it show a <code>correlation</code>, a <code>mechanism</code>, or <code>both</code>?</p>
+    <div class="murphy-eg"><strong>Murphy f1:</strong> <code>evidence_types: [randomized_experiment]</code>, <code>evidence_objects: [correlation]</code>. The difference-making is shown, but not how it happens.</div>
+  </div>
+</div>
+
+<h3 id="mediation">Mediation: when the paper gives a "how"</h3>
+<p>When the authors name the pathway (A affects C <em>through</em> B), make B a node, add the edges that pass through it, and list B in the parent edge's <code>mediation</code>.</p>
+
+<div class="source-quote">Leafing at initial <em>Sanguinaria canadensis</em> densities above 7 ramets/m² was early enough to kill significantly more <em>Alliaria petiolata</em> seedlings before they matured.<span class="ref">Murphy 2005 · finding f16</span></div>
+
+<div class="edge-line">
+  <span class="edge-node">Increased initial bloodroot density</span>
+  <span class="edge-pred">causes</span>
+  <span class="edge-node">Bloodroot leafing</span>
+  <span class="edge-pred">causes</span>
+  <span class="edge-node">Increased garlic mustard seedling mortality</span>
+</div>
+
+<p>The parent edge (density → mortality) carries <code>mediation.mediator_node_ids: [leafing node]</code> and a one-line <code>pathway_description</code>. The worked example below shows it in full.</p>
+
+<h3 id="full-example">Full worked example: Murphy f16</h3>
+<p>Here is a single edge with every Tier 2 field the sentence supports. Nothing has been added that the text doesn't state.</p>
+
+<div class="yaml-block">
+  <div class="yaml-header">Murphy f16 · density → seedling mortality</div>
+<pre>- subject: causal_mosaic:bloodroot_initial_density
+  predicate: causes
+  object: causal_mosaic:garlic_mustard_seedling_mortality
+  causal_language: direct_causal                  # "was early enough to kill"
+  philosophical_accounts: [counterfactual, mechanistic]
+  original_sentence: Leafing at initial Sanguinaria canadensis densities
+    above 7 ramets/m2 was early enough to kill significantly more
+    Alliaria petiolata seedlings before they matured
+  dose:
+    minimum_value: 7
+    unit_text: ramets/m2                          # no UO term for ramets/m2
+    verbatim: above 7 ramets/m2
+  comparator:
+  - status: implicitly_assumed
+    comparator_type: alternative_dose_level
+    comparator_dose:
+      maximum_value: 7
+      unit_text: ramets/m2
+  mediation:
+    status: explicitly_asserted
+    mediator_node_ids: [causal_mosaic:bloodroot_leafing]
+    pathway_description: leafing was early enough to kill seedlings
+      before they matured
+  strength:
+    status: explicitly_asserted
+    significance: significant                     # "significantly more"
+    dose_response: true
+    dose_response_shape: threshold                # "above 7"
+  direction:
+    status: asserted
+    evidence_for_direction: experimental
+  evidential_basis:
+    evidence_types: [randomized_experiment]
+    evidence_objects: [both]                      # difference AND mechanism</pre>
+</div>
+</section>
+
+<!-- ======= LEAVE ALONE ======= -->
+<section id="leave-alone">
+<h2>What to leave alone</h2>
+<p>You can safely skip these on an ordinary pass. Most are filled automatically or have a sensible default.</p>
+
+<table class="nodes">
+<thead><tr><th>Fields</th><th>Why you can skip them</th></tr></thead>
+<tbody>
+<tr><td><code>id</code>, <code>variable_key</code>, <code>graph_id</code>, <code>schema_version</code>, <code>provenance</code></td><td>Loom generates them.</td></tr>
+<tr><td><code>necessity</code>, <code>sufficiency</code>, <code>temporal_ordering</code>, <code>specificity</code>, <code>stability</code>, <code>determinism</code>, <code>proximate_distal</code>, <code>contributing_sole</code>, <code>reversibility</code>, <code>proportionality</code></td><td>They default to <code>not_addressed</code>. Fill one in only when the paper says something explicit, such as "is sufficient on its own" or "effects reversed after removal".</td></tr>
+<tr><td><code>certainty_grade</code></td><td>Defaults to <code>not_assessed</code>. It is set in a separate appraisal pass, not during extraction.</td></tr>
+<tr><td><code>fcm_weight</code>, <code>fcm_weight_source</code></td><td>Used for fuzzy cognitive maps. Set when the graph is rendered, not when a paper is annotated.</td></tr>
+<tr><td><code>parameter_options</code>, <code>embedding_text</code>, <code>embedding_vector</code></td><td>Populated from the parameter catalog and the indexing pipeline.</td></tr>
+<tr><td><code>composition</code></td><td>Only for <code>composite_variable</code> nodes where the paper gives member shares, ranks or dominance. Murphy has none.</td></tr>
+<tr><td><code>moderation</code></td><td>Use it only when a third variable changes the strength of an effect without lying on its path. It is rare in a single-study paper.</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ======= MISTAKES ======= -->
+<section id="mistakes">
+<h2>Common mistakes</h2>
+<p>Every one of these turned up in the Murphy extraction. Each was corrected in the snippets above.</p>
+
+<table class="nodes">
+<thead><tr><th>As extracted</th><th>Problem</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>f7 object nodes with <code>state_or_change_qualifier: unchanged</code> on a negated edge</td><td>Encodes "no effect" twice and contradicts the canonical null-result rule.</td><td>Leave the object node as a positive finding would have it. <code>negated: true</code> plus <code>no_relationship</code> carries the null.</td></tr>
+<tr><td>f23: <code>prevents</code> → "invasion (<code>decreased</code>)"</td><td>A double negative: read aloud, it says planting prevents a decrease.</td><td>Use <code>prevents</code> → invasion, or <code>causes</code> → decreased invasion.</td></tr>
+<tr><td><code>life_stage_term: PO:0008037</code></td><td>PO:0008037 is the seedling <em>structure</em>, not a development stage.</td><td>Use a stage term under PO:0009012, or leave <code>life_stage: germinant_or_seedling</code> alone.</td></tr>
+<tr><td>f10: <code>entity_type: environmental_variable</code> with <code>entity_term: NCBITaxon:3472</code></td><td>A single-taxon property is a <code>taxon</code> node.</td><td><code>entity_type: taxon</code>.</td></tr>
+<tr><td>f2: <code>entity_type: management_intervention</code> with a taxon CURIE in <code>entity_term</code></td><td>An intervention's <code>entity_term</code> names the action, not the organism.</td><td><code>entity_term: planting</code>, with the taxon in <code>applied_to</code>. Or treat density as a <code>taxon</code> property.</td></tr>
+<tr><td>"number of seedlings" and "number of rosettes" as separate attributes</td><td>Stage hidden in <code>measured_attribute</code> splits one variable into two.</td><td><code>measured_attribute: number of individuals</code>, with <code>life_stage</code> set.</td></tr>
+<tr><td>One edge per density treatment</td><td>Data level, not claim level.</td><td>One driver node. Put the level in <code>dose</code> or <code>dose_level</code>.</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ======= CHECKLIST ======= -->
+<section id="checklist">
+<h2>Checklist</h2>
+<ul class="checklist">
+  <li>Each finding is one standalone sentence, with its context pulled in</li>
+  <li>Each node reads as "qualifier + attribute + entity" and has a sensible <code>entity_type</code></li>
+  <li>Taxa use NCBITaxon CURIEs. Other terms are a declared-prefix CURIE or honest free text.</li>
+  <li>Life stage is in <code>life_stage</code>, not in <code>measured_attribute</code></li>
+  <li>One object node and one edge per outcome the paper reports separately</li>
+  <li>Each edge reads correctly aloud, with no double negatives</li>
+  <li><code>causal_language</code> matches the authors' wording and obeys the predicate pairing rules</li>
+  <li>At least one philosophical account per edge, and every one that fits</li>
+  <li>Null results are annotated, using <code>negated: true</code> + <code>no_relationship</code></li>
+  <li>Tier 2 fields are filled in only where the text supports them</li>
+  <li>Mediator nodes appear both as nodes and in <code>mediation.mediator_node_ids</code></li>
+</ul>
+</section>
+
+<!-- ======= REFERENCE ======= -->
+<section id="reference">
+<h2>Quick reference</h2>
+<p>The controlled values for the fields on this page, as of 0.10.0.</p>
+
+<table class="nodes">
+<thead><tr><th>Field</th><th>Values</th></tr></thead>
+<tbody>
+<tr><td><code>entity_type</code></td><td><code>taxon</code>, <code>environmental_variable</code>, <code>composite_variable</code>, <code>environmental_process</code>, <code>management_intervention</code></td></tr>
+<tr><td><code>state_or_change_qualifier</code></td><td><code>increased</code>, <code>decreased</code>, <code>present</code>, <code>absent</code>, <code>introduced</code>, <code>removed</code>, <code>unchanged</code>, <code>occurred</code>, <code>initiated</code>, <code>terminated</code>, <code>ongoing</code>, <code>interrupted</code>, <code>aborted</code></td></tr>
+<tr><td><code>life_stage</code></td><td><code>seed_or_seed_bank</code>, <code>germinant_or_seedling</code>, <code>juvenile</code>, <code>ramet_or_clonal_unit</code>, <code>reproductive_adult</code>, <code>senescent_or_dead</code>, <code>mixed_or_whole_population</code>, <code>not_specified</code></td></tr>
+<tr><td><code>predicate</code></td><td><code>causes</code>, <code>contributes_to</code>, <code>prevents</code>, <code>enables</code>, <code>disrupts</code>, <code>regulates</code>, <code>mediates</code>, <code>moderates</code>, <code>associated_with</code>, <code>correlated_with</code>, <code>precedes</code></td></tr>
+<tr><td><code>causal_language</code></td><td><code>direct_causal</code>, <code>uncertain_causal</code>, <code>associational</code>, <code>no_relationship</code></td></tr>
+<tr><td><code>philosophical_accounts</code></td><td><code>interventionist</code>, <code>counterfactual</code>, <code>mechanistic</code>, <code>probabilistic</code>, <code>agency</code>, <code>transmission</code>, <code>regularity</code>, <code>inus_component</code></td></tr>
+<tr><td><code>dose_level</code></td><td><code>absent</code>, <code>low</code>, <code>intermediate</code>, <code>high</code>, <code>very_high</code>, <code>higher_than_comparator</code>, <code>lower_than_comparator</code>, <code>not_specified</code></td></tr>
+<tr><td><code>comparator_type</code></td><td><code>untreated_control</code>, <code>reference_undisturbed</code>, <code>pre_treatment_baseline</code>, <code>alternative_treatment</code>, <code>alternative_dose_level</code>, <code>passive_management_arm</code>, <code>spatial_or_temporal_control</code>, <code>not_reported</code>, <code>not_applicable</code></td></tr>
+<tr><td><code>significance</code></td><td><code>significant</code>, <code>not_significant</code>, <code>marginal</code>, <code>not_tested</code>, <code>not_reported</code></td></tr>
+<tr><td><code>analysis_method</code></td><td><code>anova</code>, <code>manova</code>, <code>mixed_model</code>, <code>regression</code>, <code>ordination</code>, <code>multivariate_other</code>, <code>nonparametric</code>, <code>bayesian</code>, <code>descriptive_only</code>, <code>not_reported</code></td></tr>
+<tr><td><code>observation_seasons</code></td><td><code>early_spring</code>, <code>mid_spring</code>, <code>late_spring</code>, <code>spring</code>, <code>early_summer</code>, <code>summer</code>, <code>autumn</code>, <code>winter</code>, <code>growing_season</code>, <code>dormant_season</code></td></tr>
+<tr><td><code>scope</code></td><td><code>assertional</code>, <code>contingent</code>, <code>prototypical</code>, <code>universal</code>, <code>unclear</code></td></tr>
+<tr><td><code>evidence_types</code></td><td><code>randomized_experiment</code>, <code>natural_experiment</code>, <code>quasi_experiment</code>, <code>observational_longitudinal</code>, <code>observational_cross_sectional</code>, <code>mechanistic_study</code>, <code>structural_equation_model</code>, <code>meta_analysis</code>, <code>systematic_review</code>, <code>modeling_simulation</code>, <code>expert_judgment</code>, <code>case_study</code>, <code>theoretical</code>, <code>indigenous_knowledge</code>, <code>practitioner_experience</code></td></tr>
+<tr><td><code>evidence_objects</code></td><td><code>correlation</code>, <code>mechanism</code>, <code>both</code></td></tr>
+<tr><td><code>status</code> (feature fields)</td><td><code>explicitly_asserted</code>, <code>implicitly_assumed</code>, <code>explicitly_denied</code>, <code>not_addressed</code></td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ======= READING ======= -->
+<section id="reading">
+<h2>Further reading</h2>
+
+<div class="reading-item">
+  <div class="citation">Murphy, S. D. (2005). Concurrent management of an exotic species and initial restoration efforts in forests. <em>Restoration Ecology, 13</em>(3), 462–471. <a href="https://doi.org/10.1111/j.1526-100X.2005.00075.x">doi:10.1111/j.1526-100X.2005.00075.x</a></div>
+  <p>The running example. It is short and clearly written, a good first paper to annotate end to end.</p>
+</div>
+
+<div class="reading-item">
+  <div class="citation"><a href="camo_annotation_guide.html">CAMO Annotation Guide</a></div>
+  <p>The full handbook: all 16 causal features, the complete predicate selection procedure, source-document fields, permanent identifiers and parameter options.</p>
+</div>
+
+<div class="reading-item">
+  <div class="citation"><a href="camo_schema_guide.html">CAMO Schema Guide</a></div>
+  <p>A reference for every class, slot and enum in the data model.</p>
+</div>
+
+<div class="reading-item">
+  <div class="citation"><a href="camo_causal_conceptions.html">Conceptions of Causation</a></div>
+  <p>How the predicates pair with the eight philosophical accounts.</p>
+</div>
+
+<div class="reading-item">
+  <div class="citation">Illari, P. &amp; Russo, F. (2014). <em>Causality: Philosophical Theory Meets Scientific Practice.</em> Oxford University Press.</div>
+  <p>The causal mosaic framework that CAMO's edge annotations are built on.</p>
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+// Light YAML highlighting for .yaml-block pre (keys, values, comments)
+document.querySelectorAll('.yaml-block pre').forEach(pre => {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  pre.innerHTML = pre.textContent.split('\n').map(line => {
+    let code = line, comment = '';
+    const i = line.indexOf(' #');
+    if (line.trim().startsWith('#')) { code = ''; comment = line; }
+    else if (i >= 0) { code = line.slice(0, i); comment = line.slice(i); }
+    const m = code.match(/^(\s*-?\s*)([A-Za-z_][\w]*)(:)(.*)$/);
+    let out = m
+      ? esc(m[1]) + '<span class="key">' + esc(m[2]) + '</span>' + m[3] + (m[4] ? '<span class="val">' + esc(m[4]) + '</span>' : '')
+      : (code.trim() ? '<span class="val">' + esc(code) + '</span>' : esc(code));
+    if (comment) out += '<span class="comment">' + esc(comment) + '</span>';
+    return out;
+  }).join('\n');
+});
+
+// Sidebar active-link tracking
+const sections = document.querySelectorAll('section[id], h2[id], h3[id]');
+const navLinks = document.querySelectorAll('nav a[href^="#"]');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

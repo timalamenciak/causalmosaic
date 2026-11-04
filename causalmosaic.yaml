@@ -28,52 +28,6 @@
 ## =============================================================================
 ## CHANGELOG
 ## =============================================================================
-## Unreleased (after 0.10.0)
-## Added:
-## - QuantityValue.unit_text (string): the unit as the source words it, for
-##   use only when no QUDT or UO term exists. A nine-paper schema test lost
-##   19 records on the unit pattern (14 on ramets/m2, 2 on deer/km2, 3 whole
-##   QuantityValues), because ecological density units often have no UO term.
-##   Chosen over widening the unit pattern so that unit stays an identifier
-##   and the free-text fallback is visible in the data.
-## - EntityTypeEnum.composite_variable (BFO:0000019, as environmental_variable):
-##   a measurable aspect of ecosystem state whose entity is an aggregate -
-##   an assemblage, community or guild. The two-path model under
-##   EntityTypeEnum.taxon told annotators to label a multi-taxon aggregate
-##   environmental_variable, the same value used for soil pH, so nothing in
-##   the data distinguished an assemblage from a scalar. A nine-paper schema
-##   test found assemblage-level claims in 8 of 9 papers.
-## - Assemblage composition: CausalNode.composition (CompositionAnnotation),
-##   CompositionMember (is_a the new abstract EntityReference, which
-##   AppliedToEntity now also extends; adds share, dominance, rank),
-##   CompositionBasisEnum and DominanceEnum. A CausalNode carried one
-##   entity_term, so the shares of an observed assemblage had nowhere to go:
-##   28 of 366 findings in 8 of 9 papers state a composition, and four of
-##   the seven findings no slot could hold were composition statements.
-##   CompositionMember requires at least one of share, dominance or rank
-##   (16 of the 28 rank members with no number), and a rule on CausalNode
-##   restricts composition to entity_type composite_variable. A bare list of
-##   members with no amount is not a composition: use applied_to. Not
-##   a replacement for CausalNode.components, which records what an
-##   intervention applied rather than what was observed. CausalGraph.edges
-##   stays required, so a composition-only finding is not a record.
-## - CausalEdge.certainty_grade (CertaintyGradeEnum, default not_assessed):
-##   restored, unchanged from its 0.10.0 definition (removed in an earlier rework,
-##   reinstated because a per-claim certainty grade gives the claim context
-##   that the aggregate_certainty_grade on the evidence base does not).
-## Changed (documentation only):
-## - Path (2) of the two-path model, in EntityTypeEnum.taxon and the
-##   CausalNode description, now says composite_variable where it said
-##   environmental_variable. The applied_to and AppliedToEntity descriptions
-##   follow. No value, slot or range changed.
-##
-## NOTE: additive. Existing 0.10.0 records remain valid and need no
-## migration; nothing was renamed or removed. New public names for loom:
-## EntityTypeEnum.composite_variable, CausalNode.composition,
-## CompositionAnnotation and CompositionMember (plus CompositionBasisEnum,
-## DominanceEnum and QuantityValue.unit_text). See CHANGELOG.md, "Note for
-## loom".
-##
 ## 0.10.0 (from 0.9.0)
 ## Breaking:
 ## - TemporalExtent.observation_seasons is now range SeasonEnum, not string.
@@ -122,6 +76,37 @@
 ##   ordinal driver-intensity scale.
 ## - Prefixes STATO, OBI, IAO, SEPIO, PO, UBERON, NCIT and TIME (OWL-Time),
 ##   for the mappings above and for planned epistemic-status mappings.
+## - QuantityValue.unit_text (string): the unit as the source words it, for
+##   use only when no QUDT or UO term exists. A nine-paper schema test lost
+##   19 records on the unit pattern (14 on ramets/m2, 2 on deer/km2, 3 whole
+##   QuantityValues), because ecological density units often have no UO term.
+##   Chosen over widening the unit pattern so that unit stays an identifier
+##   and the free-text fallback is visible in the data.
+## - EntityTypeEnum.composite_variable (BFO:0000019, as environmental_variable):
+##   a measurable aspect of ecosystem state whose entity is an aggregate -
+##   an assemblage, community or guild. The two-path model under
+##   EntityTypeEnum.taxon told annotators to label a multi-taxon aggregate
+##   environmental_variable, the same value used for soil pH, so nothing in
+##   the data distinguished an assemblage from a scalar. A nine-paper schema
+##   test found assemblage-level claims in 8 of 9 papers.
+## - Assemblage composition: CausalNode.composition (CompositionAnnotation),
+##   CompositionMember (is_a the new abstract EntityReference, which
+##   AppliedToEntity now also extends; adds share, dominance, rank),
+##   CompositionBasisEnum and DominanceEnum. A CausalNode carried one
+##   entity_term, so the shares of an observed assemblage had nowhere to go:
+##   28 of 366 findings in 8 of 9 papers state a composition, and four of
+##   the seven findings no slot could hold were composition statements.
+##   CompositionMember requires at least one of share, dominance or rank
+##   (16 of the 28 rank members with no number), and a rule on CausalNode
+##   restricts composition to entity_type composite_variable. A bare list of
+##   members with no amount is not a composition: use applied_to. Not
+##   a replacement for CausalNode.components, which records what an
+##   intervention applied rather than what was observed. CausalGraph.edges
+##   stays required, so a composition-only finding is not a record.
+## - CausalEdge.certainty_grade (CertaintyGradeEnum, default not_assessed):
+##   restored, unchanged from its earlier definition (removed in an earlier rework,
+##   reinstated because a per-claim certainty grade gives the claim context
+##   that the aggregate_certainty_grade on the evidence base does not).
 ## Changed:
 ## - Every class now declares class_uri explicitly, as causal_mosaic:<Name>.
 ##   This is the value each class already resolved to through default_prefix,
@@ -129,6 +114,10 @@
 ## - TemporalExtent.duration_text is documented as effect duration only. The
 ##   measurement epoch, the observation seasons and the study's fieldwork
 ##   dates each have their own slot now.
+## - Documentation only: path (2) of the two-path model, in EntityTypeEnum.taxon and the
+##   CausalNode description, now says composite_variable where it said
+##   environmental_variable. The applied_to and AppliedToEntity descriptions
+##   follow. No value, slot or range changed.
 ## Fixed:
 ## - The schema_version ifabsent default on CausalGraph and
 ##   ParameterOptionCatalog said 0.8.0; it was not bumped for 0.9.0. Both now
@@ -137,6 +126,11 @@
 ## NOTE: 0.10.0 is breaking, on observation_seasons only. Migrate 0.9.0
 ## records with helpers/migrate_0_9_0_to_0_10_0.py. The 0.9.0 schema is
 ## archived as old versions/causal_mosaic_v0.9.0.yaml.
+## The other additions are additive. New public names for loom:
+## EntityTypeEnum.composite_variable, CausalNode.composition,
+## CompositionAnnotation, CompositionMember and the abstract
+## EntityReference (plus CompositionBasisEnum, DominanceEnum and
+## QuantityValue.unit_text). See CHANGELOG.md, "Note for loom".
 ##
 ## 0.9.0
 ## Added:

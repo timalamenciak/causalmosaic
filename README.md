@@ -437,6 +437,7 @@ Check the ontologies first. [Adding a term to EcoSKOS](docs/adding-a-term.md) ex
 | `causalmosaic.yaml`               | Current versioned LinkML schema                     |
 | `CHANGELOG.md`                    | Schema change history and migration notes           |
 | `docs/camo_annotation_guide.html` | Guide to annotating scholarly literature using CAMO |
+| `docs/camo_annotation_essentials.html` | Simplified 0.10.0 annotation guide (Murphy 2005 example) |
 | `docs/camo_schema_guide.html`     | Plain-language guide to the schema                  |
 | `docs/adding-a-term.md`           | How to add and manage EcoSKOS vocabulary terms      |
 | `vocab/`                          | EcoSKOS term source (TSV) and its build scripts     |
