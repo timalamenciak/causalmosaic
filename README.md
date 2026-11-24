@@ -7,7 +7,9 @@
 [![Latest release](https://img.shields.io/github/v/tag/timalamenciak/causalmosaic?label=release)](https://github.com/timalamenciak/causalmosaic/tags)
 [![LinkML schema](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml/badge.svg)](https://github.com/timalamenciak/causalmosaic/actions/workflows/linkml-schema.yml)
 
-**Current schema version: 0.8.0**
+***PLEASE NOTE: This schema has been subsumed into [warp](https://github.com/timalamenciak/warp) and this repo will no longer be updated. Warp incorporates SEPIO's statement/proposition/evidence lines framework and provides a more semantically rigorous infrastructure for the causal mosaic***
+
+**Current schema version: 0.10.0**
 
 The **Causal Mosaic Schema (CAMO)** is a [LinkML](https://linkml.io/) schema for representing causal claims from ecological evidence as a structured, ontology-grounded labeled property graph.
 
